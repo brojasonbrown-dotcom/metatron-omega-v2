@@ -171,7 +171,7 @@ export function consolidate(
     if (exhausted) break;
   }
 
-  return { clusters, contradictions, compared, budgetExhausted: exhausted, redundantIds };
+  return { clusters, contradictions, compared, budgetExhausted: exhausted, redundantIds, energyRejected };
 }
 
 /**
