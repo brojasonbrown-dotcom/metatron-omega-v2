@@ -23,6 +23,7 @@ import { isFibonacciTick } from './FibonacciPatterns';
 import { computeQualiaCorrelate, type QualiaCorrelateMeasurement } from '@/core/field/QualiaCorrelate';
 import { qualiaScalar as reflectQualiaScalar } from '@/core/field/Reflect';
 import { PHI, PHI_INV } from '@/core/constants/WolframVerified';
+import { injectTextPsi, type TextInjection } from '@/core/gematria/lexeme';
 
 /**
  * Legacy flat 18-vector projection. Kept for parity tests / external callers.
@@ -195,6 +196,19 @@ export function tickMemory(
       }
     }
   }
+
+  // LANGUAGE INJECTION (word → field).
+  // Before this, `text` reached memory only as a journal label: words never
+  // became field structure, so nothing could bind, rehearse or recall a
+  // meaning the way it binds a sound. injectTextPsi writes each token onto
+  // the SAME (R=φ, r=1) torus the rungs occupy — major circle by Zeckendorf
+  // class of the word's exact base-27 integer, minor circle by its golden-angle
+  // phase — at φ⁻³ gain with 1/√k length normalisation. The four global
+  // invariant slots are untouched: text perturbs the field, it never
+  // fabricates closure or coherence. Consequence: L1 Hebbian co-activation
+  // now runs across (word, sound, image) simultaneously in one activation
+  // vector, and L3/bitmap recall retrieves language by field resonance.
+  const textInjection = text && text.length > 0 ? injectTextPsi(psi, text) : null;
 
   // Canonical qualia correlate on the post-injection Ψ. Pure derivation —
   // safe to compute every tick. The reflect scalar blends C/I/N/S/V to
