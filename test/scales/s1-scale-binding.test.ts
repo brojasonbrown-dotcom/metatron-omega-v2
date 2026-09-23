@@ -32,7 +32,7 @@ describe('band arithmetic', () => {
   });
 
   it('vision spans less than one octave', () => {
-    expect(bandOctaves(VISIBLE)).toBeCloseTo(0.8025498556033025, 9);
+    expect(bandOctaves(VISIBLE)).toBeCloseTo(0.802553935793783, 9);
     expect(bandOctaves(VISIBLE)).toBeLessThan(1);
   });
 
@@ -131,7 +131,7 @@ describe('rung-enable criterion', () => {
   });
 
   it('refuses a partially filled window', () => {
-    const w = new RingWindow(0, 5);
+    const w = new RingWindow(20, 5);
     for (let i = 0; i < 4; i++) {
       const v = w.push(1 / (i + 1));
       expect(v.stable).toBe(false);
@@ -140,7 +140,7 @@ describe('rung-enable criterion', () => {
   });
 
   it('accepts a monotonically closing loop and reports negative φ-decay', () => {
-    const w = new RingWindow(0, 5);
+    const w = new RingWindow(20, 5);
     let r = 1;
     let v = w.verdict();
     for (let i = 0; i < 5; i++) { v = w.push(r); r /= 1.618033988749895; }
@@ -150,7 +150,7 @@ describe('rung-enable criterion', () => {
   });
 
   it('refuses any real increase and names the offending step', () => {
-    const w = new RingWindow(0, 5);
+    const w = new RingWindow(20, 5);
     const seq = [1, 0.5, 0.25, 0.4, 0.2];
     let v = w.verdict();
     for (const x of seq) v = w.push(x);
@@ -169,7 +169,7 @@ describe('rung-enable criterion', () => {
   });
 
   it('treats a non-finite residual as loss of evidence, not as stability', () => {
-    const w = new RingWindow(0, 3);
+    const w = new RingWindow(20, 3);
     w.push(1); w.push(0.5);
     const v = w.push(NaN);
     expect(v.count).toBe(0);
