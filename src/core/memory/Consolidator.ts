@@ -157,12 +157,15 @@ export function consolidate(
   const clusters: Cluster[] = [];
   const contradictions: Contradiction[] = [];
   const redundantIds: string[] = [];
-  const energyRejected: Array<{ prototypeId: string; memberId: string; deltaE: number }> = [];
+  const energyRejected: Array<{
+    prototypeId: string; memberId: string; deltaE: number; margin: number;
+  }> = [];
   const assigned = new Set<string>();
   let compared = 0;
   let exhausted = false;
 
   const ordered = [...items].sort((x, y) => (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
+  const byId = new Map(ordered.map((it) => [it.id, it.vec]));
 
   for (const seed of ordered) {
     if (assigned.has(seed.id)) continue;
