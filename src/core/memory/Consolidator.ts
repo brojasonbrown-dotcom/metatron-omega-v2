@@ -119,6 +119,7 @@ export function consolidate(
   const clusters: Cluster[] = [];
   const contradictions: Contradiction[] = [];
   const redundantIds: string[] = [];
+  const energyRejected: Array<{ prototypeId: string; memberId: string; deltaE: number }> = [];
   const assigned = new Set<string>();
   let compared = 0;
   let exhausted = false;
@@ -139,6 +140,13 @@ export function consolidate(
       if (!Number.isFinite(cos)) continue;
 
       if (cos >= PROTOTYPE_COS) {
+        // Cosine says "same direction"; the energy gate says "same basin".
+        // Both must hold, or the two stay separate memories.
+        const verdict = mergeAdmissible(seed.vec, other.vec);
+        if (!verdict.admitted) {
+          energyRejected.push({ prototypeId: seed.id, memberId: other.id, deltaE: verdict.deltaE });
+          continue;
+        }
         members.push(other.id);
         redundantIds.push(other.id);
         cosSum += cos;
