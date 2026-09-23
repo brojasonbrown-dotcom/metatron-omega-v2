@@ -6,6 +6,23 @@
 import { useMemo } from "react";
 import { useOmegaState } from "../useOmegaRuntime";
 import { useOmegaDescribe } from "../useOmegaPull";
+import { dimensionProfile, torusGrid } from "@/core/runtime/rhuftf/ScaleMeasurement";
+
+/**
+ * Effective (spectral) dimension a rung of `nodes` nodes can carry, measured
+ * from the closed-form heat trace of its φ-aspect torus grid. Memoised by node
+ * count — the value depends on nothing else, so rungs sharing a node count
+ * share one computation.
+ */
+const DIM_CACHE = new Map<number, number>();
+function rungDimension(nodes: number): number {
+  if (!(nodes >= 1)) return NaN;
+  const hit = DIM_CACHE.get(nodes);
+  if (hit !== undefined) return hit;
+  const d = dimensionProfile(torusGrid(nodes)).plateauDim;
+  DIM_CACHE.set(nodes, d);
+  return d;
+}
 
 const num = (x: number, d = 4) => (Number.isFinite(x) ? x.toFixed(d) : "—");
 
@@ -70,6 +87,7 @@ export default function LadderDeckPanel() {
               <th className="text-right px-2">log r</th>
               <th className="text-right px-2">log τ</th>
               <th className="text-right px-2">QRF</th>
+              <th className="text-right px-2">d_s</th>
               <th className="text-right px-2">EMIT</th>
               <th className="text-right px-2">COH</th>
               <th className="text-right px-2">ENERGY</th>
@@ -107,6 +125,17 @@ export default function LadderDeckPanel() {
                     </span>
                   </td>
                   <td className="px-2 text-right tabular-nums">{num(r.qrf, 4)}</td>
+                  <td
+                    className={`px-2 text-right tabular-nums ${
+                      rungDimension(r.nodes) >= 1.9
+                        ? "text-emerald-400"
+                        : rungDimension(r.nodes) >= 1.5
+                          ? "text-amber-400"
+                          : "text-rose-400"
+                    }`}
+                  >
+                    {num(rungDimension(r.nodes), 3)}
+                  </td>
                   <td className="px-2 text-right tabular-nums">{num(r.emitted, 4)}</td>
                   <td className="px-2 text-right tabular-nums">
                     {live?.warm ? (
@@ -141,7 +170,13 @@ export default function LadderDeckPanel() {
         coherence. CLOSURE γ is the rung&apos;s shift autocorrelation |⟨Sz,z⟩|/‖z‖² — 1 means the
         field is an exact eigenvector of its own toroidal shift. SKILL = 1/(1+√(2−2γ)) is the
         corridor reading: it is amplitude- and node-count-free, so a large rung is not penalised
-        for carrying more field than a small one.
+        for carrying more field than a small one. d_s is the rung&apos;s measured spectral
+        dimension: the plateau of −2 d ln Z(t)/d ln t over the closed-form heat trace
+        Z(t) = Σ e^{−tλ} of its φ-aspect torus grid, λ(a,b) = (4/h_u²)sin²(πa/p) +
+        (4/h_v²)sin²(πb/q). It is a property of the rung&apos;s own geometry, not a target:
+        green means the rung resolves both toroidal cycles and genuinely carries a
+        two-dimensional scale of spacetime, red means it is a ring with too few nodes to
+        carry one, and no amount of field amplitude changes that.
 
       </p>
     </div>

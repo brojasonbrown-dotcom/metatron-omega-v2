@@ -25,9 +25,11 @@
 
 import type { ScaleShape } from '../ShadowStateTape';
 import type {
-  ScaleMeasurement, ScaleBand, SensorPassband, ScaleBinding,
+  ScaleMeasurement, ScaleBand, SensorPassband, ScaleBinding, ScaleDimension,
 } from './ScaleMeasurement';
-import { scaleMeasurementRegistry, bindScaleSensors } from './ScaleMeasurement';
+import {
+  scaleMeasurementRegistry, bindScaleSensors, measureScaleDimensions,
+} from './ScaleMeasurement';
 
 import {
   registerF1SeptenaryMeasurement,
@@ -131,6 +133,22 @@ export const RHUFTF_SENSOR_PASSBANDS: readonly SensorPassband[] = Object.freeze(
 /** Rung → sensor binding with `measured`/`inferred` provenance. */
 export function rhuftfScaleBindings(): readonly ScaleBinding[] {
   return bindScaleSensors(RHUFTF_SCALE_SHAPES, RHUFTF_SCALE_BANDS, RHUFTF_SENSOR_PASSBANDS);
+}
+
+/**
+ * Effective dimension each rung can actually carry, computed from the closed-
+ * form heat trace of its own φ-aspect torus grid (see `measureScaleDimensions`).
+ *
+ * As instantiated this ladder is geometrically thin, and the numbers say so:
+ * n=0 and n=2 (7 nodes) and n=3 (13 nodes) resolve ~1.05–1.11 dimensions — they
+ * are rings, not two-dimensional scales; n=5 (22 nodes) reaches 1.49; only the
+ * 55-node rungs (n=1, 6, 7, 8) reach ~2.04. The single rung with a real sensor
+ * behind it, n=4 (audible band, 9 nodes), resolves only ~1.21. Widening a rung
+ * to a Fibonacci node count whose φ-aspect grid plateaus at 2 is the concrete
+ * fix; nothing here is tuned, so the deficit column cannot be argued away.
+ */
+export function rhuftfScaleDimensions(): readonly ScaleDimension[] {
+  return measureScaleDimensions(rhuftfScaleBindings());
 }
 
 /**
