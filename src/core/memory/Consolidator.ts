@@ -23,37 +23,73 @@ import { PHI_INV, EMERGENT_FLOOR, cosineDense } from './Resonance';
 import { hopfieldBeta, hopfieldEnergy, hopfieldStep } from '@/core/gematria/resonanceKernel';
 
 /**
- * ENERGY ADMISSION GATE (modern Hopfield).
+ * ENERGY + SEPARATION ADMISSION GATE (modern Hopfield).
  *
- * Cosine alone says two vectors point the same way; it does not say the member
- * actually lies in the prototype's retrieval basin. `hopfieldEnergy` and
- * `hopfieldStep` existed in the kernel with zero callers, so coherence was
- * asserted and never measured. The theorem (Ramsauer et al. 2020, Certificate
- * 2.4) is that one retrieval step never raises
+ * Cosine says two vectors point the same way. It does not say the member is
+ * unambiguously in THIS prototype's retrieval basin rather than a neighbour's.
+ * `hopfieldEnergy` / `hopfieldStep` sat in the kernel with zero callers, so
+ * basin membership was asserted and never measured.
  *
  *     E(x) = −logsumexp(β·Xx)/β + ½⟨x,x⟩,      β = φ/√d
  *
- * so ΔE > 0 for a candidate merge is proof the member is NOT in the basin, and
- * the merge is refused with the number that failed. At d = 256,
- * β = 0.10112712429686842801.
+ * Two facts govern the gate, and only the second is informative:
+ *
+ *   • With a single stored pattern the retrieval step provably cannot raise E
+ *     on the unit sphere (ΔE = cos − 1 ≤ 0), so an isolated energy check is
+ *     VACUOUS. An earlier version of this gate tested exactly that and, on
+ *     un-normalised inputs, ended up rejecting on vector norm — measuring the
+ *     wrong quantity. It is fixed here: energies are computed on unit vectors
+ *     and the energy term is retained only as a finiteness/monotonicity guard.
+ *   • The informative condition is Ramsauer's SEPARATION requirement: one
+ *     retrieval step from the member, taken against the FULL set of live
+ *     prototypes, must land nearest to the prototype we are merging into. If
+ *     another prototype claims the retrieved point, the member is ambiguous
+ *     and merging it would make both memories harder to reach.
+ *
+ * At d = 256, β = 0.10112712429686842801.
  */
 export interface MergeVerdict {
   readonly admitted: boolean;
-  /** E(retrieved) − E(member). Admission requires ΔE ≤ 0. */
+  /** E(retrieved) − E(member), both on the unit sphere. Must be ≤ 0. */
   readonly deltaE: number;
+  /** ⟨retrieved, prototype⟩ − max over competing prototypes. Must be ≥ 0. */
+  readonly margin: number;
   readonly beta: number;
+}
+
+function unit(v: Float64Array): Float64Array {
+  let n = 0;
+  for (let i = 0; i < v.length; i++) n += v[i] * v[i];
+  n = Math.sqrt(n);
+  if (!(n > 0)) return new Float64Array(v.length);
+  const out = new Float64Array(v.length);
+  for (let i = 0; i < v.length; i++) out[i] = v[i] / n;
+  return out;
+}
+
+function dot(a: Float64Array, b: Float64Array): number {
+  let s = 0;
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) s += a[i] * b[i];
+  return s;
 }
 
 export function mergeAdmissible(
   prototype: Float64Array,
   member: Float64Array,
+  competitors: ReadonlyArray<Float64Array> = [],
   beta = hopfieldBeta(member.length),
 ): MergeVerdict {
-  const basis = [prototype];
-  const before = hopfieldEnergy(basis, member, beta);
-  const after = hopfieldEnergy(basis, hopfieldStep(basis, member, beta), beta);
-  const deltaE = after - before;
-  return { admitted: Number.isFinite(deltaE) && deltaE <= 0, deltaE, beta };
+  const p = unit(prototype);
+  const m = unit(member);
+  const basis = [p, ...competitors.map(unit)];
+  const retrieved = hopfieldStep(basis, m, beta);
+  const deltaE = hopfieldEnergy(basis, retrieved, beta) - hopfieldEnergy(basis, m, beta);
+  let rival = -Infinity;
+  for (let k = 1; k < basis.length; k++) rival = Math.max(rival, dot(retrieved, basis[k]));
+  const margin = basis.length > 1 ? dot(retrieved, p) - rival : Number.POSITIVE_INFINITY;
+  const admitted = Number.isFinite(deltaE) && deltaE <= 1e-12 && margin >= 0;
+  return { admitted, deltaE, margin, beta };
 }
 
 /** Cosine at or above this counts as the same thing said twice. */
