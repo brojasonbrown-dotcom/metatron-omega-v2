@@ -30,6 +30,14 @@ export interface IndexedPattern {
   readonly fingerprint: Fingerprint;
   readonly weight: number;
   readonly tick: number;
+  /**
+   * Times this entry has been returned by search(). Recall was previously
+   * frequency-blind: a pattern retrieved 500 times ranked identically to one
+   * seen once, so no amount of rehearsal made a structure easier to reach.
+   */
+  rehearsals: number;
+  /** Tick of the most recent search() hit (its own tick until first recall). */
+  lastRecalled: number;
 }
 
 export interface BitmapMatch {
@@ -38,6 +46,8 @@ export interface BitmapMatch {
   resonance: number;
   /** φ-weighted bitmap distance ∈ [0,1] (prefilter score). */
   distance: number;
+  /** Rank score: resonance · rehearsal gain · recency decay. */
+  score: number;
   entry: IndexedPattern;
 }
 
