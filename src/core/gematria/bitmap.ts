@@ -109,12 +109,6 @@ export function weightedDistance(a: Uint32Array, b: Uint32Array): number {
   return wsum > 0 ? d / wsum : 1;
 }
 
-/** Cheap resonance proxy in [0,1]: cos²(π·d/2) style angular estimate. */
-export function bitmapResonance(a: Uint32Array, b: Uint32Array): number {
-  const frac = hamming(a, b) / MAX_DISTANCE;      // ≈ θ/π
-  const cos = Math.cos(Math.PI * frac);
-  return cos * cos;                                // matches |⟨a|b⟩|²/(‖a‖²‖b‖²)
-}
 
 /** LSH bucket key — top `bits` bits of plane 0. Near-duplicates collide. */
 export function bucketOf(bm: Uint32Array, bits = 12): string {
