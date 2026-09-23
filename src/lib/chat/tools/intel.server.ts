@@ -25,6 +25,14 @@ const abuseipdbKey  = () => env("ABUSEIPDB_API_KEY");
 const githubToken   = () => env("GITHUB_TOKEN");
 const shodanKey     = () => env("SHODAN_API_KEY");
 const wolframKey    = () => env("WOLFRAM_APP_ID") || env("WOLFRAM_ALPHA_APP_ID");
+/**
+ * Separate App ID reserved for constant verification, so the 20 queries/min
+ * budget of the offline verification channel can never be consumed by chat
+ * traffic on `wolframKey()`. Falls back to no key rather than borrowing the
+ * chat key — a verification that silently ran on the wrong budget is worse
+ * than one that did not run.
+ */
+const wolframResearchKey = () => env("WOLFRAM_APP_ID_RESEARCH");
 const openaqKey     = () => env("OPENAQ_API_KEY");
 const nasaFirmsKey  = () => env("NASA_FIRMS_KEY");
 const hfToken       = () => env("HF_TOKEN") || env("HUGGINGFACE_TOKEN");
