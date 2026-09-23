@@ -196,6 +196,7 @@ export const INTEL_META: IntelToolMeta[] = [
 
   // ── Wolfram ──────────────────────────────────────────────────────────
   { name: "wolfram", category: "misc", auth: "key", envKey: "WOLFRAM_APP_ID", description: "Wolfram Alpha (short|llm|full).", parameters: obj({ query: str(), mode: str("short|llm|full"), units: str("metric|imperial") }, ["query"]) },
+  { name: "wolfram_verify", category: "misc", auth: "key", envKey: "WOLFRAM_APP_ID_RESEARCH", description: "Offline constant verification on the research App ID: evaluates N[expr, digits] (default 40) on a separate 20/min budget and returns the exact query string for provenance. Never call inside an engine tick.", parameters: obj({ expression: str("Wolfram expression, e.g. Log2[22]"), digits: int("10-60, default 40") }, ["expression"]) },
 
   // ── Phase S1 — live sensor feeds (keyless unless noted) ──────────────
   { name: "open_meteo", category: "weather", auth: "none", description: "Open-Meteo keyless forecast: temperature, wind, pressure, solar radiation, soil moisture at lat/lon.", parameters: obj({ lat: num(), lon: num(), hourly: str("comma list e.g. temperature_2m,wind_speed_10m,shortwave_radiation,soil_moisture_0_to_1cm") }, ["lat","lon"]) },

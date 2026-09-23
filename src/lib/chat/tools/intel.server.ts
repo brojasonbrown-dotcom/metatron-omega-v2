@@ -1745,7 +1745,7 @@ export const INTEL_HANDLERS: Record<string, (p: any) => Promise<any>> = {
   bsdd_search: bsddSearch, bsdd_dictionaries: bsddDictionaries, bsdd_class: bsddClass,
   speckle_graphql: speckleGraphql, osm_buildings: osmBuildings, cad_fetch: cadFetch,
   // wave 1 + 5
-  wolfram, wolfram_alpha: wolfram,
+  wolfram, wolfram_alpha: wolfram, wolfram_verify: wolframVerify,
   openweather: openWeather, newsapi: newsApi, virustotal: virusTotal, abuseipdb: abuseIpDb,
   crossref, semantic_scholar: semanticScholar, pubmed, patents: patentsview,
   osm_geocode: osmNominatim, overpass, binance, mastodon, celestrak,
