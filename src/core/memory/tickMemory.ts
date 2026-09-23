@@ -219,12 +219,14 @@ export function tickMemory(
   // Canonical qualia correlate on the post-injection Ψ. Pure derivation —
   // safe to compute every tick. The reflect scalar blends C/I/N/S/V to
   // match the Ψ-of-Ψ Reflect term's weighting (Reflect.ts:qualiaScalar).
-  // We use the QualiaCorrelate.Q as the integration-stability axis and
-  // metatronCoherence as the coherence axis, mirroring the FallbackEngine
-  // path so memory and engine score qualia consistently.
+  // We use the QualiaCorrelate.Q as the integration-stability axis and the
+  // WITNESS coherence as the coherence axis — the measured Lyapunov aggregate,
+  // not the headline blend, which carries coincidence-weighted terms that would
+  // otherwise set episodic salience and every downstream recall score.
   const correlate = computeQualiaCorrelate(psi);
+  const witnessC = Math.max(0, Math.min(1, out.metatronWitnessCoherence || 0));
   const q = reflectQualiaScalar({
-    C: Math.max(0, Math.min(1, out.metatronCoherence)),
+    C: witnessC,
     N: 1 - correlate.Q_stab,        // novelty ≈ instability
     S: correlate.Q_res,             // salience ≈ φ-attractor energy fraction
     V: 0,                            // valence unknown in this path
