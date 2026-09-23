@@ -225,3 +225,45 @@ describe('Hebbian bound — the documented ceiling is the real one', () => {
     expect(eta / decay).toBeCloseTo(PHI_SQ, 12);
   });
 });
+
+describe('separation gate — the informative half of the admission test', () => {
+  it('refuses a member that two prototypes claim equally', () => {
+    const d = 64;
+    const a = new Float64Array(d); a[0] = 1;
+    const b = new Float64Array(d); b[1] = 1;
+    const ambiguous = new Float64Array(d);
+    ambiguous[0] = 1; ambiguous[1] = 1; // exactly between a and b
+    const v = mergeAdmissible(a, ambiguous, [b]);
+    expect(Math.abs(v.margin)).toBeLessThan(1e-9);
+    // admits only on the boundary; any tilt toward b must refuse
+    const tilted = new Float64Array(d);
+    tilted[0] = 1; tilted[1] = 1.2;
+    expect(mergeAdmissible(a, tilted, [b]).admitted).toBe(false);
+    expect(mergeAdmissible(a, tilted, [b]).margin).toBeLessThan(0);
+  });
+
+  it('admits when the member clearly belongs to this prototype', () => {
+    const d = 64;
+    const a = new Float64Array(d); a[0] = 1;
+    const b = new Float64Array(d); b[1] = 1;
+    const near = new Float64Array(d); near[0] = 1; near[1] = 0.05;
+    const v = mergeAdmissible(a, near, [b]);
+    expect(v.admitted).toBe(true);
+    expect(v.margin).toBeGreaterThan(0);
+  });
+
+  it('is scale-free: rescaling either vector cannot change the verdict', () => {
+    const d = 64;
+    const a = new Float64Array(d); a[0] = 1;
+    const b = new Float64Array(d); b[1] = 1;
+    const near = new Float64Array(d); near[0] = 1; near[1] = 0.05;
+    const tiny = Float64Array.from(near, (x) => x * 1e-4);
+    const huge = Float64Array.from(near, (x) => x * 1e4);
+    const base = mergeAdmissible(a, near, [b]);
+    for (const m of [tiny, huge]) {
+      const v = mergeAdmissible(a, m, [b]);
+      expect(v.admitted).toBe(base.admitted);
+      expect(v.margin).toBeCloseTo(base.margin, 10);
+    }
+  });
+});
