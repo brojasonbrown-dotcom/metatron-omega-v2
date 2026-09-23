@@ -100,7 +100,9 @@ export const RHUFTF_SCALE_BANDS: readonly (ScaleBand | null)[] = Object.freeze([
   null,                        // n=1 Quantum        — no sampled carrier in this build
   null,                        // n=2 Atomic         — shell index, not a frequency
   null,                        // n=3 Geometric      — dihedral angles, dimensionless
-  { fLo: 20, fHi: 20000 },     // n=4 Colour/Music   — audible band, 9.965784285 octaves
+  // n=4 Colour/Music — audible band. Width verified on the research App ID:
+  //   N[Log2[20000/20], 40] = 9.965784284662087043610958288468170527594 octaves
+  { fLo: 20, fHi: 20000 },
   null,                        // n=5 Hebrew         — symbol channel, not a frequency
   null,                        // n=6 Galactic       — inferred
   null,                        // n=7 Sub-Planckian  — inferred
@@ -112,7 +114,8 @@ export const RHUFTF_SCALE_BANDS: readonly (ScaleBand | null)[] = Object.freeze([
  *   - `audio`  AudioFrontend/AudioCortex, 48 kHz capture (Nyquist 24 kHz).
  *   - `vision` VideoFrontend/VisionEncoder — an integrating detector, so no
  *              Nyquist criterion applies to the optical carrier; the visible
- *              band spans only 0.802554 of one octave.
+ *              band spans only 0.802554 of one octave
+ *              (N[Log2[7.5*10^14/(4.3*10^14)], 40] = 0.802554).
  *   - `imu`    IMUFrontend, ~377 Hz device motion.
  *   - `screen` ScreenFrontend, 5–15 Hz frame capture (Nyquist 7.5 Hz).
  * The optical and acoustic bands are separated by 44.2894 octaves =
