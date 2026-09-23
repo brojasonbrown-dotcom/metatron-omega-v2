@@ -150,3 +150,97 @@ export class TorusLoop {
     this.projected.fill(0);
   }
 }
+
+// ───────────────────────── rung-enable criterion ─────────────────────────
+//
+// A rung turns ON only when its ring residual is non-increasing across a full
+// Fibonacci window. Two admissions, and nothing else:
+//
+//   1. r[i] ≤ r[i−1]           — the loop is closing, not drifting; or
+//   2. r[i] ≤ pisotFloor(rung) — the residual is already at the theoretical
+//                                floor |ψ|ⁿ, where further "improvement" is
+//                                float64 noise, so an increase inside the
+//                                floor is not evidence of instability.
+//
+// An unfilled window is NOT stable. NaN is NOT stable. Absence of evidence is
+// never scored as convergence.
+
+export interface RingWindowVerdict {
+  /** Window is full and the residual is non-increasing (or floor-limited). */
+  readonly stable: boolean;
+  /** Samples currently held. */
+  readonly count: number;
+  /** Window length (a Fibonacci number). */
+  readonly window: number;
+  /** Oldest and newest residual in the window. NaN when empty. */
+  readonly first: number;
+  readonly last: number;
+  /**
+   * Mean decay in φ-rungs per tick: log_φ(last/first)/(count−1). Negative means
+   * the loop is closing. NaN when not computable.
+   */
+  readonly decayPhiPerTick: number;
+  /** Index of the first violating step, or −1. */
+  readonly violation: number;
+  readonly floor: number;
+}
+
+const FIB_WINDOWS = [3, 5, 8, 13, 21, 34, 55, 89] as const;
+
+/** Nearest Fibonacci window ≥ n (capped at 89). */
+export function fibWindow(n: number): number {
+  for (const f of FIB_WINDOWS) if (f >= n) return f;
+  return FIB_WINDOWS[FIB_WINDOWS.length - 1];
+}
+
+/**
+ * Rolling monotonicity witness over the ring residual. Observer only — it
+ * decides nothing itself; the caller reads `stable` to enable a rung.
+ */
+export class RingWindow {
+  private readonly buf: number[] = [];
+  readonly window: number;
+  readonly floor: number;
+
+  constructor(rung: number, window = 13) {
+    this.window = fibWindow(window);
+    this.floor = pisotFloor(rung);
+  }
+
+  push(residual: number): RingWindowVerdict {
+    // A non-finite residual is an unprimed or broken measurement: it clears the
+    // window rather than being averaged into it.
+    if (!Number.isFinite(residual)) {
+      this.buf.length = 0;
+      return this.verdict();
+    }
+    this.buf.push(residual);
+    if (this.buf.length > this.window) this.buf.shift();
+    return this.verdict();
+  }
+
+  verdict(): RingWindowVerdict {
+    const n = this.buf.length;
+    const first = n > 0 ? this.buf[0] : NaN;
+    const last = n > 0 ? this.buf[n - 1] : NaN;
+    let violation = -1;
+    for (let i = 1; i < n; i++) {
+      if (this.buf[i] > this.buf[i - 1] && this.buf[i] > this.floor) { violation = i; break; }
+    }
+    const decay = n > 1 && first > 0 && last > 0
+      ? Math.log(last / first) / LN_PHI / (n - 1)
+      : NaN;
+    return {
+      stable: n === this.window && violation === -1,
+      count: n,
+      window: this.window,
+      first,
+      last,
+      decayPhiPerTick: decay,
+      violation,
+      floor: this.floor,
+    };
+  }
+
+  reset(): void { this.buf.length = 0; }
+}
