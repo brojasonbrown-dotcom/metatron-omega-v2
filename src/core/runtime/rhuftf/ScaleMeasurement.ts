@@ -201,7 +201,8 @@ export interface TorusGrid {
 
 /**
  * Largest p × q ≤ `budget` whose aspect p/q is closest to `aspect`.
- * Deterministic: maximise p·q first, then minimise |p/q − aspect|, then
+ * Deterministic: maximise p·q first, then minimise |ln(p/q) − ln(aspect)|
+ * (a ratio error, so 1:7 and 7:1 are judged on the same footing), then
  * prefer the smaller q. q = 1 is admitted — a single-cycle rung is a ring,
  * and its measured dimension should come out as 1, not be forbidden.
  */
@@ -215,7 +216,7 @@ export function torusGrid(budget: number, aspect: number = PHI_SM): TorusGrid {
     const p = Math.floor(b / q);
     if (p < 1) break;
     const used = p * q;
-    const err = Math.abs(p / q - aspect);
+    const err = Math.abs(Math.log(p / q) - Math.log(aspect));
     if (used > bestUsed || (used === bestUsed && err < bestErr)) {
       bestUsed = used;
       bestErr = err;
@@ -335,6 +336,12 @@ export function dimensionProfile(
   }
 
   // Flattest window: minimal total |Δdim| over a run of PLATEAU_RUN samples.
+  const maxDim = samples.reduce((m, s) => (Number.isFinite(s.dim) && s.dim > m ? s.dim : m), 0);
+  // Plateau = flattest run of PLATEAU_RUN samples among runs whose mean is at
+  // least half the largest dimension the rung ever resolves. The half-max
+  // floor excludes the trivial flat tail at d → 0 (finite volume) and the
+  // flat head at d → 0 (below grid spacing), both of which are flatter than
+  // the real plateau but carry no geometry.
   let plateauDim = NaN;
   let plateauProbe = NaN;
   let bestVar = Infinity;
@@ -350,16 +357,13 @@ export function dimensionProfile(
     }
     if (!ok) continue;
     const mean = sum / PLATEAU_RUN;
-    // Prefer flat AND high: a flat run at d≈0 is the trivial tail, not a plateau.
-    const score = flat - mean * 1e-6;
-    if (mean > 0.25 && score < bestVar) {
-      bestVar = score;
+    if (mean >= 0.5 * maxDim && flat < bestVar) {
+      bestVar = flat;
       plateauDim = mean;
       plateauProbe = samples[i + ((PLATEAU_RUN - 1) >> 1)].probe;
     }
   }
 
-  const maxDim = samples.reduce((m, s) => (Number.isFinite(s.dim) && s.dim > m ? s.dim : m), 0);
   return Object.freeze({
     grid, hu, hv, tLo, tHi,
     samples: Object.freeze(samples),
