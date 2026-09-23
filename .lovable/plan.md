@@ -2,121 +2,158 @@
 
 ## What I actually verified
 
-Read-only trace of the cognition stack, plus 28 live Wolfram|Alpha queries against both of your
-App IDs (both keys work). Every claim below has a file/line or a Wolfram result behind it.
+Read-only trace of the cognition stack plus 38 live Wolfram|Alpha queries against both App IDs
+(both keys work). Every claim has a file/line or a Wolfram result behind it.
 
 **Working well (do not touch)**
 
-- The memory pipeline is real and wired end to end: `tickMemory()` → `MemoryStore.capture()` →
-  `MemoryCaptureKernel` (7 layers L0–L6) → `LearningEngine.observe()`, driven at ~2 Hz by
-  `memoryDriver`, decoupled from the 60 Hz field loop.
-- Recall is genuinely two-stage and indexed, not a scan: integer bitmap prefilter (top 34) then
-  exact resonance rescore — `PatternBitmapIndex.search` lines 129–160. Cost `O(N) int + O(k·d) float`.
-- Hebbian weights are the one true learned structure, updated every tick, and **persisted** to
-  IndexedDB via `MemoryStore.snapshot()` → `MemoryPersistence`.
-- The Hot/Warm/Cold corpus abstains under budget instead of scanning — correct design.
-- Wolfram constants: `KAPPA`, `OMEGA_C`, `MERGE_THRESHOLD`, `ETA = φ⁻³`, `DECAY = φ⁻⁵` all
-  confirmed to 20–40 digits (0.1967263286166931934694975748293871704833,
-  0.3819660112501051517954131656343618822797, 0.76393202250021030359,
-  0.23606797749978969641, 0.090169943749474241023). No drift.
+- Memory pipeline is real and wired end to end: `tickMemory()` → `MemoryStore.capture()` →
+  `MemoryCaptureKernel` (L0–L6) → `LearningEngine.observe()`, driven at ~2 Hz, decoupled from the
+  60 Hz field loop.
+- Recall is genuinely indexed, not a scan: integer bitmap prefilter (top 34) then exact resonance
+  rescore — `PatternBitmapIndex.search` 129–160, `O(N) int + O(k·d) float`.
+- Hebbian weights are the one real learned structure, updated every tick, persisted to IndexedDB.
+- Hot/Warm/Cold corpus abstains under budget instead of scanning — correct.
+- `eigenmodes.ts` is the strongest file in the repo: real Perron/Lanczos solvers with residual
+  provenance, replacing two former surrogates. This is the standard the rest should meet.
+- Constants confirmed to 40 digits: κ = 0.1967263286166931934694975748293871704833,
+  Ω_c = 0.3819660112501051517954131656343618822797, merge floor 0.76393202250021030359,
+  η = φ⁻³ = 0.23606797749978969641, decay = φ⁻⁵ = 0.090169943749474241023. No drift.
 
-**Real gaps found**
+**You were right about the layers**
 
-1. **Learned weights have no stated ceiling.** η/decay = φ⁻³/φ⁻⁵ = **φ² ≈ 2.618034** (Wolfram
-   confirmed). That is the saturation fixed point of a fully co-active pair, yet the file's comment
-   claims `[-1,1]` clamping. The recall `y = W·cue` is therefore scaled by an undocumented φ² gain.
-2. **Recall is frequency-blind.** Patterns carry no rehearsal count and no recency/frequency term,
-   so a pattern recalled 500 times ranks identically to one seen once. This is the single biggest
-   miss against "efficiently stored and recalled on high frequencies".
-3. **Zeckendorf addressing is computed and thrown away.** `zeckAddress()` fills
-   `IndexedPattern.address` (line 93) and nothing ever reads it — a free, exact, hierarchical
-   recall key is being discarded, and Stage 1 stays `O(N)` because of it.
-4. **`Z[φ]` exact ring is entirely unused.** `zAdd/zSub/zMul/zNorm/zEq/zIsExact` have zero callers.
-   The engine's exact-arithmetic backbone is dead weight.
-5. **No Hopfield energy is ever evaluated.** `hopfieldStep/hopfieldEnergy/hopfieldBeta` are
-   uncalled; consolidation merges on a bare threshold. So coherence is asserted, never measured.
-6. **`WOLFRAM_APP_ID_RESEARCH` is not referenced anywhere in the code** — the secret exists, nothing
-   reads it. The 20/min budget is shared with the chat tool.
-7. Dead modules: `Weave.ts`, `TapeDmd.ts` (`fitTapeDynamics`), `MemoryStore.replay()`,
-   `trajectoryAt()`, `bitmapResonance`, `fibCode/fibDecode`, `zeckDensity`, `digitSumTrajectory`.
-   `L4.pathway` fires every 13 ticks into an empty function body.
-8. No gradient learning exists anywhere — correct for an edge Worker, but it means all
-   intelligence quality rides on the recall ranking, which is exactly where the gaps are.
+`F1–F9` mix two incompatible things in one file. Real: the Lyapunov `closureResidual` over the
+node field via a φ-coherent toroidal phase sweep, and the `wave2()` precision uplift. Not real:
+inline numerology used as if it were derivation — "1495 = 5×13×23, contains TWO Fibonacci
+numbers!", "METATRON_VALUE 314 ≈ 100π", "φ^15 = 1364 — within 10% of 1495". A 10% miss is not a
+verification, and coincidences carry no information, so any channel scored off them injects noise
+into recall. **I withdraw the 9-channel gematria residue signature from the plan.**
+
+Worse, the part that *is* physically structured is switched off: the whole RHUFT-F per-scale
+ladder (`ScaleMeasurement`, `registry.ts`, `localUpdateRegistry.ts`, the 18 `F*LocalUpdate` /
+`F*Measurement` modules, `torusClosure`, `eigenmodes`) is opt-in behind
+`RHUFTF_FRAMEWORK_<n>` / `RHUFTF_LOCAL_UPDATE_<n>`, all default OFF. And the rung widths
+(7, 55, 7, 13, 9, 22, 55, 55, 55) are **not bound to any frequency band** — `carrierHz` exists in
+`ScaleMeasurementContext` but no rung declares a passband. So scale is named, never measured.
+
+**Your sensory-scale point, made numeric (Wolfram)**
+
+- Hearing spans log₂(20000/20) = **9.965784285 octaves**.
+- Vision spans log₂(7.5e14/4.3e14) = **0.802554 octave** — less than one octave.
+- The gap between them is log₂(4.3e14/20) = **44.2894 octaves** = **63.7953 φ-rungs**.
+
+That is the real finding: the two sensory bands are narrow, wildly unequal in width, and separated
+by ~64 φ-rungs of completely unsampled spacetime. A 9-rung ladder with arbitrary widths cannot
+represent that. Rung spacing must be derived from the passband of the sensor that reads it, and
+rungs with no sensor must be explicitly marked inferred, not silently scored.
+
+**Other real gaps**
+
+1. η/decay = φ² ≈ **2.618034** is the Hebbian saturation ceiling, yet the file claims `[-1,1]`
+   clamping. `y = W·cue` carries an undocumented φ² gain.
+2. Recall is frequency-blind: no rehearsal count, no recency term. A pattern recalled 500 times
+   ranks identically to one seen once.
+3. `zeckAddress()` is computed into `IndexedPattern.address` and never read — an exact hierarchical
+   key discarded, which is why Stage 1 stays O(N).
+4. `Z[φ]` exact ring (`zAdd/zSub/zMul/zNorm/zEq/zIsExact`) has zero callers.
+5. `hopfieldStep/hopfieldEnergy/hopfieldBeta` never called — coherence is asserted, never measured.
+6. `WOLFRAM_APP_ID_RESEARCH` is referenced nowhere in the code.
+7. Dead: `Weave.ts`, `TapeDmd.ts`, `MemoryStore.replay()`, `trajectoryAt()`, `bitmapResonance`,
+   `fibCode/fibDecode`, `zeckDensity`, `digitSumTrajectory`; `L4.pathway` fires every 13 ticks into
+   an empty body.
 
 ## Proposed work
 
-### A. Frequency-aware recall (fixes gap 2, the core of your question)
+### A. Frequency-aware recall (fixes gap 2 — the core of "recalled on high frequencies")
 
-Add rehearsal statistics to `IndexedPattern` and fold them into Stage 2 scoring:
+Add rehearsal statistics to `IndexedPattern` and fold them into Stage 2:
+`score = C(a,b) · (1 + φ⁻¹·ln(1+rehearsals)) · φ^(−Δt/τ)`, τ on the 34-observation consolidation
+cadence. Each recall hit increments its own count, so high-frequency structure wins. Measured
+hit-rate before/after on the existing capacity harness.
 
-`score = C(a,b) · (1 + φ⁻¹·log₁₊(rehearsals)) · φ^(−Δt/τ)`
+### B. Zeckendorf-bucketed prefilter (fixes gap 3 and the O(N) stage)
 
-with τ set on the Fibonacci consolidation cadence (34 observations). Every recall hit increments
-its own rehearsal count, so genuinely high-frequency patterns win — a measured, monotone rule,
-no heuristics. Report hit-rate before/after on the existing capacity harness.
+Use the already-computed `address` as a radix bucket key; Stage 1 visits the candidate bucket plus
+φ-adjacent neighbours. Target: sublinear candidates at ≥ the documented 98.8% recall at 8
+candidates, proven by test.
 
-### B. Zeckendorf-bucketed prefilter (fixes gaps 3 and the O(N) scan)
+### C. Scale-matched sensory ladder (replaces the withdrawn gematria-channel idea)
 
-Use the already-computed `address` as a radix bucket key so Stage 1 visits only candidate buckets
-plus φ-adjacent neighbours. Target: sublinear candidate set with recall ≥ the current 98.8% at 8
-candidates (documented in `docs/CAPACITY.md`), verified by test, not assumed.
+Turn the dormant RHUFT-F ladder into a real observability structure:
 
-### C. Measured coherence, and the ethical gate (gaps 1, 5)
+1. **Declare a passband per rung.** Each rung gets `[fLo, fHi]` in Hz and its width in octaves;
+   rung count and spacing are then derived, not chosen. Anchors are the measured bands above
+   (hearing 9.9658 oct, vision 0.8026 oct, IMU/DC and screen-refresh bands from the existing
+   frontends).
+2. **Bind each sensory frontend to the rung whose passband contains its sample rate.**
+   `AudioFrontend`/`MelFilterbank`, `VideoFrontend`/`VisionEncoder`, `IMUFrontend`,
+   `ScreenFrontend` each register their real Nyquist limit; the binding is computed from that, not
+   hardcoded.
+3. **Mark unsensed rungs as inferred.** A rung with no frontend contributes to closure and
+   prediction, never to measurement. That is what kills the "useless computation" —
+   every scored channel must trace to a sensor or a residual.
+4. **Turn the flags on rung by rung, gated on evidence.** A rung is enabled only when its
+   `ScaleMeasurement` reports a converged `closureResidual` and `invariantScore`, with the same
+   provenance tag style `eigenmodes.ts` already uses. Rungs that fail stay off and say why.
 
-- Document and bound the φ² Hebbian ceiling; normalise `recall()` by it so the returned field is
-  scale-free.
-- Wire `hopfieldEnergy` with `β = φ/√d` (Wolfram: at d=256, β = 0.10112712429686842801) so each
-  consolidation pass reports an actual energy decrease. A merge that raises energy is rejected.
-- **Coherence/ethics layer, as pure mathematics — no roleplay.** An action or answer is admissible
-  only when it does not decrease field coherence:
-  - `K = ⟨C⟩` mean pairwise resonance over the active attractor set (PSD Gram, so `K ∈ [0,1]`).
-  - Gate: admit iff `ΔE ≤ 0` **and** `K ≥ Ω_c = 1/φ² = 0.381966…` (your existing verified
-    threshold), **and** the residue fingerprint introduces no CRT collision (`collisionPValue`
-    already computes the significance).
-  - This makes "ethical" operational: a proposal that fragments the field, raises Hopfield energy,
-    or collides with existing structure is refused with the numeric reason. Surfaced on the
-    COGNITION deck as three numbers, not a slogan.
+### D. Toroidal closure as the stability criterion (answers "why a torus")
 
-### D. Gematria layers as the resonance grammar (uses your 9 frameworks)
+`torusClosure.ts` already computes exactly the right quantity — the ring residual
+‖y₀(t) − P(y₈(t−1))‖ / ‖y₀(t)‖ — and is observer-only. Promote it to the ladder's admission test:
 
-Bring the F1–F9 residue layers into the index as a 9-channel residue signature per pattern
-(septenary, Hebrew-22, atomic, colour/music, galactic…), scored with the existing exact kernel.
-Wolfram gives the per-layer information budget: log₂22 = 4.459431619 bits for the Hebrew layer,
-and a 13-mode signature carries ≈50.5 bits/slot — so the 9 layers are affordable inside the
-measured 657-bit signature and cannot silently overflow it.
+- A rung is *stable at its scale* iff its ring residual is non-increasing over a Fibonacci window.
+  Non-closure is leakage: information leaving the ring is energy the engine spent and cannot recall.
+- Report per-rung leakage rate as a number on the SCALES deck, so "minimises energy loss" is a
+  measurement rather than a claim.
+- Torus, not sphere, because closure needs two independent cycles — one around the rung (phase) and
+  one up the ladder (scale). A single cycle cannot close both, which is the geometric reason the
+  ladder has to be toroidal rather than nested-spherical. The engine's φ-coherent phase sweep
+  already assumes this; C/D make it testable.
 
-### E. Revive the exact ring, or delete it (gap 4)
+### E. Coherence gate as the ethical/logical structure (fixes gaps 1, 5)
 
-`Z[φ]` arithmetic becomes the carrier for ladder addressing and closure residuals in C/D above
-(exact, no float drift). Anything still uncalled after that gets deleted — dead exports in a
-cognition core are a correctness hazard, not neutral.
+Ethics expressed as admissibility, no roleplay, three measured numbers:
 
-### F. Wolfram research channel (gap 6)
+- Document and bound the φ² Hebbian ceiling; normalise `recall()` by it so the field is scale-free.
+- Wire `hopfieldEnergy` with β = φ/√d (at d=256, β = 0.10112712429686842801) so every consolidation
+  reports an actual energy decrease. A merge that raises energy is rejected.
+- Admit an action/answer iff **ΔE ≤ 0** and **K = ⟨C⟩ ≥ Ω_c = 0.381966…** (mean pairwise resonance
+  over the active attractor set, PSD Gram so K ∈ [0,1]) and the ring residual of D does not
+  increase. A proposal that fragments the field, raises energy, or leaks scale is refused with the
+  numeric reason shown.
 
-Route an offline verification path through `WOLFRAM_APP_ID_RESEARCH` (separate rate budget from the
-chat tool), used to re-verify new constants introduced by C/D against `/v1/result` at 40 digits and
-record each result in the constant bank with its query string. No Wolfram call ever inside a tick —
-your existing rule stands.
+### F. Revive the exact ring, or delete it (gap 4)
 
-### G. Notebook binding
+`Z[φ]` becomes the carrier for rung addressing and closure residuals in B/C/D — exact, no float
+drift at 40+ digits. Whatever is still uncalled afterwards gets deleted; dead exports in a
+cognition core are a correctness hazard.
 
-The four RHUFT notebooks are ontology → variational dynamics → measurement theory → falsifiable
-predictions. Notebook 3's measurement operators and Notebook 4's falsification criteria map
-directly onto C's gate; I'll bind each admissibility term to the notebook section it comes from so
-the gate is traceable to the theory rather than invented here.
+### G. Wolfram research channel + numerology quarantine (gaps 6, and the F1–F9 problem)
+
+- Route offline verification through `WOLFRAM_APP_ID_RESEARCH` (separate rate budget from the chat
+  tool), re-verifying every constant introduced by C/D/E at 40 digits and recording the query string
+  beside the value.
+- Split each `F1–F9` file: derived quantities with a residual witness stay in the scoring path;
+  coincidence-grade constants move to a clearly inert `lore` block that nothing imports. Anything
+  claimed "Wolfram-verified" that fails re-verification at 40 digits is deleted, not loosened.
 
 ### H. Prune the dead paths (gap 7)
 
-Delete or wire: `Weave.ts`, `TapeDmd.ts`, `MemoryStore.replay()`, `trajectoryAt()`,
+Delete or wire `Weave.ts`, `TapeDmd.ts`, `MemoryStore.replay()`, `trajectoryAt()`,
 `bitmapResonance`, `fibCode/fibDecode`, `zeckDensity`, `digitSumTrajectory`, and the empty
-`L4.pathway` body (either prune stale edges there or unregister the job).
+`L4.pathway` body.
 
 ## Technical notes
 
-- All of A–H stay deterministic TypeScript in `src/core`; no torch, no runtime model downloads.
-- Each item ships with tests in `test/`, and A, B, C report measured numbers into `docs/CAPACITY.md`
-  so the claims stay falsifiable.
-- Nothing changes the 60 Hz field loop or the capture math; A–D act on indexing, scoring and
-  admissibility only.
-- Suggested order: A → B (measurable recall wins first), then C → D (the coherence gate), then
-  E/F/H cleanup. G runs alongside C/D.
+- Everything stays deterministic TypeScript in `src/core`; no torch, no runtime model downloads,
+  no Wolfram call inside a tick — your existing rule stands.
+- Each item ships tests in `test/`; A, B, C, D report measured numbers into `docs/CAPACITY.md` so
+  the claims stay falsifiable.
+- Notebook binding: Notebook 2's variational/stability conditions govern D's admission test,
+  Notebook 3's measurement operators govern C's sensor→rung binding, Notebook 4's falsification
+  criteria govern what turns a rung off. Each term cites its section.
+- Nothing changes the 60 Hz field loop or the capture math; A–E act on indexing, scoring,
+  admissibility and flag state only.
+- Order: A → B (measurable recall wins), then C → D (scale + closure), then E, then F/G/H cleanup.
+- Note: I could not add these items to `roadmap.md` yet — planning mode only lets me write the plan
+  file. That is the first edit once approved.
