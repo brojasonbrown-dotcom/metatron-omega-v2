@@ -37,13 +37,6 @@ export function digitSum(n: number, base = 10): number {
   return digits(n, base).reduce((a, d) => a + d, 0);
 }
 
-/** Digit-sum trajectory to its fixed point. Terminates in O(log_b n). */
-export function digitSumTrajectory(n: number, base = 10): number[] {
-  const path: number[] = [Math.abs(Math.trunc(n))];
-  let cur = path[0];
-  while (cur >= base) { cur = digitSum(cur, base); path.push(cur); }
-  return path;
-}
 
 export interface Fingerprint {
   readonly n: number;

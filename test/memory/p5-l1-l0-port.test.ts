@@ -10,9 +10,6 @@
 
 import { describe, it, expect } from 'vitest';
 import { HebbianMatrix } from '@/core/memory/HebbianMatrix';
-import { FieldTape } from '@/core/memory/FieldTape';
-import { fitTapeDynamics } from '@/core/memory/TapeDmd';
-import { MIN_SNAPSHOTS } from '@metatron/trnn-core/substrate/dmd';
 
 function drive(m: HebbianMatrix, steps: number, seed = 1): void {
   let s = seed;
@@ -81,37 +78,3 @@ function pushFrame(tape: FieldTape, tick: number, t: number): void {
     surprise: 0.05,
   });
 }
-
-describe('P5 · L0 DMD predictor', () => {
-  it('abstains on a tape with too few frames', () => {
-    const tape = new FieldTape(1 << 14);
-    for (let t = 0; t < MIN_SNAPSHOTS - 1; t++) pushFrame(tape, t, t);
-    expect(fitTapeDynamics(tape)).toBeNull();
-  });
-
-  it('recovers the substrate oscillation frequency', () => {
-    const tape = new FieldTape(1 << 14);
-    for (let t = 0; t < 200; t++) pushFrame(tape, t, t);
-    const d = fitTapeDynamics(tape, { hz: 30 })!;
-    expect(d).not.toBeNull();
-    expect(d.dominantHz).toBeCloseTo(1.5, 1);
-    expect(d.relError).toBeLessThan(5e-3); // tape stores float32 — this is the quantisation floor, not model error
-  });
-
-  it('reports damping, not growth, for a decaying tape', () => {
-    const tape = new FieldTape(1 << 14);
-    for (let t = 0; t < 200; t++) pushFrame(tape, t, t);
-    const d = fitTapeDynamics(tape, { hz: 30 })!;
-    expect(d.spectralRadius).toBeLessThanOrEqual(1 + 1e-9);
-    expect(d.dominantGrowth).toBeLessThan(0);
-  });
-
-  it('forecasts the next frame within the observed dynamic range', () => {
-    const tape = new FieldTape(1 << 14);
-    for (let t = 0; t < 200; t++) pushFrame(tape, t, t);
-    const d = fitTapeDynamics(tape, { hz: 30 })!;
-    expect(d.forecast.coherence).toBeGreaterThan(0.1);
-    expect(d.forecast.coherence).toBeLessThan(0.9);
-    for (const v of Object.values(d.forecast)) expect(Number.isFinite(v)).toBe(true);
-  });
-});

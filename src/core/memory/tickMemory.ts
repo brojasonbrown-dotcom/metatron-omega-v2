@@ -23,6 +23,7 @@ import { isFibonacciTick } from './FibonacciPatterns';
 import { computeQualiaCorrelate, type QualiaCorrelateMeasurement } from '@/core/field/QualiaCorrelate';
 import { qualiaScalar as reflectQualiaScalar } from '@/core/field/Reflect';
 import { PHI, PHI_INV } from '@/core/constants/WolframVerified';
+import { injectTextPsi, type TextInjection } from '@/core/gematria/lexeme';
 
 /**
  * Legacy flat 18-vector projection. Kept for parity tests / external callers.
@@ -122,7 +123,11 @@ export function projectPsiToroidal(out: MetatronOutput): Float64Array {
   }
   const tailBase = N_RUNGS * 4;
   psi[tailBase + 0] = out.torusClosure;
-  psi[tailBase + 1] = out.metatronCoherence;
+  // Witness coherence, not the headline blend: the blend spends part of its
+  // weight on numerical coincidences, and this slot is scored by recall.
+  psi[tailBase + 1] = Number.isFinite(out.metatronWitnessCoherence)
+    ? out.metatronWitnessCoherence
+    : 0;
   psi[tailBase + 2] = circulation;
   psi[tailBase + 3] = out.phaseCirculation;
   return psi;
@@ -141,6 +146,8 @@ export interface TickMemoryResult {
   /** Post-injection toroidal Ψ used for capture — exposed so downstream
    *  learners (LearningEngine) observe exactly what memory stored. */
   psi: Float64Array;
+  /** Provenance of the word→field injection; null when the tick carried no text. */
+  textInjection: TextInjection | null;
 }
 
 
@@ -152,7 +159,7 @@ export function tickMemory(
 ): TickMemoryResult {
   if (!Number.isFinite(tick) || tick < 1) {
     const zero: QualiaCorrelateMeasurement = { Q: 0, Q_inc: 0, Q_stab: 0, Q_res: 0, N: 0, attractorK: 0, live: false, incRatio: NaN, incApprox: NaN };
-    return { tick, isFibonacci: false, salience: 0, episodicCaptured: false, firedJobs: [], qualiaCorrelate: zero, qualiaScalar: 0, psi: new Float64Array(0) };
+    return { tick, isFibonacci: false, salience: 0, episodicCaptured: false, firedJobs: [], qualiaCorrelate: zero, qualiaScalar: 0, psi: new Float64Array(0), textInjection: null };
   }
   // True toroidal embedding (Gap #2): each rung occupies a (θ_n, φ_n) point
   // on the (R=φ, r=1) torus surface, amplitude-modulated by chainUpCoupling.
@@ -196,15 +203,30 @@ export function tickMemory(
     }
   }
 
+  // LANGUAGE INJECTION (word → field).
+  // Before this, `text` reached memory only as a journal label: words never
+  // became field structure, so nothing could bind, rehearse or recall a
+  // meaning the way it binds a sound. injectTextPsi writes each token onto
+  // the SAME (R=φ, r=1) torus the rungs occupy — major circle by Zeckendorf
+  // class of the word's exact base-27 integer, minor circle by its golden-angle
+  // phase — at φ⁻³ gain with 1/√k length normalisation. The four global
+  // invariant slots are untouched: text perturbs the field, it never
+  // fabricates closure or coherence. Consequence: L1 Hebbian co-activation
+  // now runs across (word, sound, image) simultaneously in one activation
+  // vector, and L3/bitmap recall retrieves language by field resonance.
+  const textInjection = text && text.length > 0 ? injectTextPsi(psi, text) : null;
+
   // Canonical qualia correlate on the post-injection Ψ. Pure derivation —
   // safe to compute every tick. The reflect scalar blends C/I/N/S/V to
   // match the Ψ-of-Ψ Reflect term's weighting (Reflect.ts:qualiaScalar).
-  // We use the QualiaCorrelate.Q as the integration-stability axis and
-  // metatronCoherence as the coherence axis, mirroring the FallbackEngine
-  // path so memory and engine score qualia consistently.
+  // We use the QualiaCorrelate.Q as the integration-stability axis and the
+  // WITNESS coherence as the coherence axis — the measured Lyapunov aggregate,
+  // not the headline blend, which carries coincidence-weighted terms that would
+  // otherwise set episodic salience and every downstream recall score.
   const correlate = computeQualiaCorrelate(psi);
+  const witnessC = Math.max(0, Math.min(1, out.metatronWitnessCoherence || 0));
   const q = reflectQualiaScalar({
-    C: Math.max(0, Math.min(1, out.metatronCoherence)),
+    C: witnessC,
     N: 1 - correlate.Q_stab,        // novelty ≈ instability
     S: correlate.Q_res,             // salience ≈ φ-attractor energy fraction
     V: 0,                            // valence unknown in this path
@@ -215,7 +237,7 @@ export function tickMemory(
     tick,
     psi,
     qualiaScalar: q,
-    coherence: out.metatronCoherence,
+    coherence: witnessC,
     energy: out.torusClosure,
     text,
     forceReason: isFibonacciTick(tick) ? 'fibonacci' : undefined,
@@ -229,6 +251,6 @@ export function tickMemory(
     qualiaCorrelate: correlate,
     qualiaScalar: q,
     psi,
-
+    textInjection,
   };
 }

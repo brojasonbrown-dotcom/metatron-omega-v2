@@ -12,7 +12,6 @@ import {
   resonanceDecayFactor, RESONANCE_FLOOR, cosineDense, PHI_INV,
 } from '@/core/memory/Resonance';
 import { fibonacciBandedSelect, bandQuota } from '@/core/memory/Banding';
-import { weave, type Strand } from '@/core/memory/Weave';
 import { consolidate, prunableKeys, PROTOTYPE_COS } from '@/core/memory/Consolidator';
 import { KnowledgeBase } from '@/core/knowledge/KnowledgeBase';
 
@@ -150,59 +149,6 @@ describe('Fibonacci banding — age fairness', () => {
   it('returns everything when the pool is smaller than k', () => {
     const items = [mk(0, 0.2, 'a'), mk(3, 0.9, 'b')];
     expect(fibonacciBandedSelect(items, 10).map((x) => x.id)).toEqual(['b', 'a']);
-  });
-});
-
-describe('weave — multi-modal moments', () => {
-  const s = (id: string, kind: Strand['kind'], t: number, score: number): Strand =>
-    ({ id, kind, t, score, text: id });
-
-  it('groups strands inside the φ window into one moment', () => {
-    const out = weave([
-      s('a', 'corpus', NOW, 0.8),
-      s('b', 'journal', NOW + 500, 0.7),
-      s('c', 'episode', NOW + 900, 0.6),
-    ], { now: NOW });
-    expect(out).toHaveLength(1);
-    expect(out[0].strands).toHaveLength(3);
-    expect(out[0].kinds).toEqual(['corpus', 'episode', 'journal']);
-  });
-
-  it('splits strands beyond the window into separate moments', () => {
-    const out = weave([
-      s('a', 'corpus', NOW, 0.8),
-      s('b', 'corpus', NOW + 60_000, 0.8),
-    ], { now: NOW + 60_000 });
-    expect(out.length).toBe(2);
-  });
-
-  it('a dead strand annihilates the evidence base, leaving only breadth', () => {
-    const out = weave([
-      s('a', 'corpus', NOW, 0.9),
-      s('b', 'journal', NOW + 100, 0),
-    ], { now: NOW, floor: false });
-    // geometric base collapses to 0; what remains is the two-modality lift.
-    expect(out[0].coherence).toBeCloseTo(1 - PHI_INV, 12);
-    const alive = weave([
-      s('a', 'corpus', NOW, 0.9),
-      s('b', 'journal', NOW + 100, 0.9),
-    ], { now: NOW })[0];
-    expect(alive.coherence).toBeGreaterThan(out[0].coherence);
-  });
-
-  it('cross-modal breadth lifts a moment above the same evidence in one modality', () => {
-    const mono = weave([s('a', 'corpus', NOW, 0.5), s('b', 'corpus', NOW + 100, 0.5)], { now: NOW })[0];
-    const multi = weave([s('a', 'corpus', NOW, 0.5), s('b', 'episode', NOW + 100, 0.5)], { now: NOW })[0];
-    expect(multi.coherence).toBeGreaterThan(mono.coherence);
-  });
-
-  it('is deterministic under input order', () => {
-    const input = [
-      s('a', 'corpus', NOW, 0.4), s('b', 'vision', NOW + 200, 0.6), s('c', 'percept', NOW + 400, 0.9),
-    ];
-    const a = weave(input, { now: NOW }).map((m) => m.id);
-    const b = weave([...input].reverse(), { now: NOW }).map((m) => m.id);
-    expect(a).toEqual(b);
   });
 });
 

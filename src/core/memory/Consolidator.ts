@@ -20,6 +20,77 @@
  */
 
 import { PHI_INV, EMERGENT_FLOOR, cosineDense } from './Resonance';
+import { hopfieldBeta, hopfieldEnergy, hopfieldStep } from '@/core/gematria/resonanceKernel';
+
+/**
+ * ENERGY + SEPARATION ADMISSION GATE (modern Hopfield).
+ *
+ * Cosine says two vectors point the same way. It does not say the member is
+ * unambiguously in THIS prototype's retrieval basin rather than a neighbour's.
+ * `hopfieldEnergy` / `hopfieldStep` sat in the kernel with zero callers, so
+ * basin membership was asserted and never measured.
+ *
+ *     E(x) = −logsumexp(β·Xx)/β + ½⟨x,x⟩,      β = φ/√d
+ *
+ * Two facts govern the gate, and only the second is informative:
+ *
+ *   • With a single stored pattern the retrieval step provably cannot raise E
+ *     on the unit sphere (ΔE = cos − 1 ≤ 0), so an isolated energy check is
+ *     VACUOUS. An earlier version of this gate tested exactly that and, on
+ *     un-normalised inputs, ended up rejecting on vector norm — measuring the
+ *     wrong quantity. It is fixed here: energies are computed on unit vectors
+ *     and the energy term is retained only as a finiteness/monotonicity guard.
+ *   • The informative condition is Ramsauer's SEPARATION requirement: one
+ *     retrieval step from the member, taken against the FULL set of live
+ *     prototypes, must land nearest to the prototype we are merging into. If
+ *     another prototype claims the retrieved point, the member is ambiguous
+ *     and merging it would make both memories harder to reach.
+ *
+ * At d = 256, β = 0.10112712429686842801.
+ */
+export interface MergeVerdict {
+  readonly admitted: boolean;
+  /** E(retrieved) − E(member), both on the unit sphere. Must be ≤ 0. */
+  readonly deltaE: number;
+  /** ⟨retrieved, prototype⟩ − max over competing prototypes. Must be ≥ 0. */
+  readonly margin: number;
+  readonly beta: number;
+}
+
+function unit(v: Float64Array): Float64Array {
+  let n = 0;
+  for (let i = 0; i < v.length; i++) n += v[i] * v[i];
+  n = Math.sqrt(n);
+  if (!(n > 0)) return new Float64Array(v.length);
+  const out = new Float64Array(v.length);
+  for (let i = 0; i < v.length; i++) out[i] = v[i] / n;
+  return out;
+}
+
+function dot(a: Float64Array, b: Float64Array): number {
+  let s = 0;
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) s += a[i] * b[i];
+  return s;
+}
+
+export function mergeAdmissible(
+  prototype: Float64Array,
+  member: Float64Array,
+  competitors: ReadonlyArray<Float64Array> = [],
+  beta = hopfieldBeta(member.length),
+): MergeVerdict {
+  const p = unit(prototype);
+  const m = unit(member);
+  const basis = [p, ...competitors.map(unit)];
+  const retrieved = hopfieldStep(basis, m, beta);
+  const deltaE = hopfieldEnergy(basis, retrieved, beta) - hopfieldEnergy(basis, m, beta);
+  let rival = -Infinity;
+  for (let k = 1; k < basis.length; k++) rival = Math.max(rival, dot(retrieved, basis[k]));
+  const margin = basis.length > 1 ? dot(retrieved, p) - rival : Number.POSITIVE_INFINITY;
+  const admitted = Number.isFinite(deltaE) && deltaE <= 1e-12 && margin >= 0;
+  return { admitted, deltaE, margin, beta };
+}
 
 /** Cosine at or above this counts as the same thing said twice. */
 export const PROTOTYPE_COS = 1 - PHI_INV * PHI_INV * PHI_INV;   // ≈ 0.7639
@@ -57,6 +128,14 @@ export interface ConsolidationReport {
   readonly budgetExhausted: boolean;
   /** ids whose only role was duplicating a prototype */
   readonly redundantIds: readonly string[];
+  /**
+   * Merges the cosine accepted but the Hopfield energy refused (ΔE > 0), with
+   * the number that failed. These stay as independent items: a merge that
+   * raises retrieval energy would make both memories harder to reach.
+   */
+  readonly energyRejected: ReadonlyArray<{
+    prototypeId: string; memberId: string; deltaE: number; margin: number;
+  }>;
 }
 
 function jaccard(a?: ReadonlySet<string>, b?: ReadonlySet<string>): number {
@@ -78,11 +157,15 @@ export function consolidate(
   const clusters: Cluster[] = [];
   const contradictions: Contradiction[] = [];
   const redundantIds: string[] = [];
+  const energyRejected: Array<{
+    prototypeId: string; memberId: string; deltaE: number; margin: number;
+  }> = [];
   const assigned = new Set<string>();
   let compared = 0;
   let exhausted = false;
 
   const ordered = [...items].sort((x, y) => (x.id < y.id ? -1 : x.id > y.id ? 1 : 0));
+  const byId = new Map(ordered.map((it) => [it.id, it.vec]));
 
   for (const seed of ordered) {
     if (assigned.has(seed.id)) continue;
@@ -98,6 +181,23 @@ export function consolidate(
       if (!Number.isFinite(cos)) continue;
 
       if (cos >= PROTOTYPE_COS) {
+        // Cosine says "same direction"; the energy gate says "same basin".
+        // Both must hold, or the two stay separate memories.
+        // Competitors = the prototypes already elected in this pass. The member
+        // must retrieve to THIS seed, not to one of them.
+        const competitors: Float64Array[] = [];
+        for (const c of clusters) {
+          const cv = byId.get(c.prototypeId);
+          if (cv && c.prototypeId !== seed.id) competitors.push(cv);
+        }
+        const verdict = mergeAdmissible(seed.vec, other.vec, competitors);
+        if (!verdict.admitted) {
+          energyRejected.push({
+            prototypeId: seed.id, memberId: other.id,
+            deltaE: verdict.deltaE, margin: verdict.margin,
+          });
+          continue;
+        }
         members.push(other.id);
         redundantIds.push(other.id);
         cosSum += cos;
@@ -122,7 +222,7 @@ export function consolidate(
     if (exhausted) break;
   }
 
-  return { clusters, contradictions, compared, budgetExhausted: exhausted, redundantIds };
+  return { clusters, contradictions, compared, budgetExhausted: exhausted, redundantIds, energyRejected };
 }
 
 /**

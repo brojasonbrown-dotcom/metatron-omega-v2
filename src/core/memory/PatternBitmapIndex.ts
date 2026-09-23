@@ -30,6 +30,14 @@ export interface IndexedPattern {
   readonly fingerprint: Fingerprint;
   readonly weight: number;
   readonly tick: number;
+  /**
+   * Times this entry has been returned by search(). Recall was previously
+   * frequency-blind: a pattern retrieved 500 times ranked identically to one
+   * seen once, so no amount of rehearsal made a structure easier to reach.
+   */
+  rehearsals: number;
+  /** Tick of the most recent search() hit (its own tick until first recall). */
+  lastRecalled: number;
 }
 
 export interface BitmapMatch {
@@ -38,6 +46,8 @@ export interface BitmapMatch {
   resonance: number;
   /** φ-weighted bitmap distance ∈ [0,1] (prefilter score). */
   distance: number;
+  /** Rank score: resonance · rehearsal gain · recency decay. */
+  score: number;
   entry: IndexedPattern;
 }
 
@@ -63,6 +73,10 @@ export function densify(sig: PatternSignature, dim: number): Float64Array {
 }
 
 const DEFAULT_PREFILTER = 34; // Fibonacci — candidates kept for exact rescore
+/** φ⁻¹ = 0.6180339887498949 — rehearsal gain and recency decay base. */
+const PHI_INV = 0.6180339887498949;
+/** Recency time constant: one L3 consolidation window (34 observations). */
+export const REHEARSAL_TAU = 34;
 
 export class PatternBitmapIndex {
   private entries = new Map<string, IndexedPattern>();
@@ -94,6 +108,8 @@ export class PatternBitmapIndex {
       fingerprint: fp,
       weight: bitmapWeight(bitmap),
       tick: sig.tick,
+      rehearsals: 0,
+      lastRecalled: sig.tick,
     };
     this.entries.set(sig.hash, entry);
 
@@ -123,14 +139,34 @@ export class PatternBitmapIndex {
   }
 
   /**
-   * Two-stage recall. Stage 1: φ-weighted Hamming over every indexed pattern
-   * (integer popcounts). Stage 2: exact resonance kernel on the survivors.
+   * Three-stage recall.
+   *
+   *   Stage 0  LSH bucket gather. The `buckets` map was built on every index()
+   *            and never read by search(), so every recall paid a full O(N)
+   *            prefilter. The cue's own bucket is now gathered first and the
+   *            scan widens to all patterns only when the bucket cannot supply
+   *            `prefilter` candidates — so candidate recall is never worse
+   *            than the full scan, and is strictly cheaper when populated.
+   *   Stage 1  φ-weighted Hamming (integer popcounts) over the candidates.
+   *   Stage 2  Exact resonance kernel, then the frequency/recency rank:
+   *
+   *              score = C(a,b) · (1 + φ⁻¹·ln(1+rehearsals)) · φ^(−Δt/τ)
+   *
+   *            τ = REHEARSAL_TAU = 34 observations (the L3 consolidation
+   *            cadence), so a memory that has not been reached for one
+   *            consolidation window is worth φ⁻¹ of its fresh value, and the
+   *            rehearsal term grows logarithmically — frequent structure wins
+   *            without ever saturating the resonance term it multiplies.
+   *
+   * Every returned entry is marked rehearsed, so recall reinforces what recall
+   * reaches. `now` defaults to the newest indexed tick when not supplied.
    */
   search(
     cue: Float64Array,
     patterns: readonly PatternSignature[],
     topN = 5,
     prefilter = DEFAULT_PREFILTER,
+    now?: number,
   ): BitmapMatch[] {
     if (patterns.length === 0) return [];
     const dim = this.dim || cue.length;
@@ -139,24 +175,55 @@ export class PatternBitmapIndex {
       Int32Array.from({ length: cue.length }, (_, i) => i), cue, dim,
     );
 
+    // Stage 0 — bucket gather with full-scan fallback.
+    for (const p of patterns) if (!this.entries.has(p.hash)) this.index(p, dim);
+    const want = Math.max(topN, Math.min(prefilter, patterns.length));
+    const cueBucket = bucketOf(cueBitmap);
+    const inBucket = this.buckets.get(cueBucket);
+    let candidates: readonly PatternSignature[] = patterns;
+    if (inBucket && inBucket.size >= want) {
+      const filtered = patterns.filter((p) => inBucket.has(p.hash));
+      if (filtered.length >= want) candidates = filtered;
+    }
+
+    // Stage 1 — integer prefilter.
     const scored: Array<{ p: PatternSignature; e: IndexedPattern; d: number }> = [];
-    for (const p of patterns) {
-      const e = this.entries.get(p.hash) ?? this.index(p, dim);
+    for (const p of candidates) {
+      const e = this.entries.get(p.hash)!;
       scored.push({ p, e, d: weightedDistance(cueBitmap, e.bitmap) });
     }
     scored.sort((a, b) => a.d - b.d);
-    const keep = scored.slice(0, Math.max(topN, Math.min(prefilter, scored.length)));
+    const keep = scored.slice(0, want);
     this.lastPrefiltered = scored.length;
     this.lastRescored = keep.length;
 
-    const out: BitmapMatch[] = keep.map(({ p, e, d }) => ({
-      pattern: p,
-      entry: e,
-      distance: d,
-      resonance: resonanceSparse(p.indices, p.amplitudes, cue),
-    }));
-    out.sort((a, b) => b.resonance - a.resonance);
-    return out.slice(0, topN);
+    // Stage 2 — exact kernel, then frequency/recency rank.
+    const tNow = now ?? this.newestTick();
+    const out: BitmapMatch[] = keep.map(({ p, e, d }) => {
+      const resonance = resonanceSparse(p.indices, p.amplitudes, cue);
+      return { pattern: p, entry: e, distance: d, resonance, score: this.rank(resonance, e, tNow) };
+    });
+    out.sort((a, b) => b.score - a.score || a.entry.address.localeCompare(b.entry.address));
+    const winners = out.slice(0, topN);
+    for (const w of winners) {
+      w.entry.rehearsals++;
+      if (tNow > w.entry.lastRecalled) w.entry.lastRecalled = tNow;
+    }
+    return winners;
+  }
+
+  /** score = C · (1 + φ⁻¹·ln(1+rehearsals)) · φ^(−Δt/τ). Monotone in C. */
+  private rank(resonance: number, e: IndexedPattern, now: number): number {
+    const rehearsal = 1 + PHI_INV * Math.log1p(e.rehearsals);
+    const age = Math.max(0, now - e.lastRecalled);
+    const recency = PHI_INV ** (age / REHEARSAL_TAU);
+    return resonance * rehearsal * recency;
+  }
+
+  private newestTick(): number {
+    let t = 0;
+    for (const e of this.entries.values()) if (e.lastRecalled > t) t = e.lastRecalled;
+    return t;
   }
 
   stats(): BitmapIndexStats {
