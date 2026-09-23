@@ -17,6 +17,22 @@
  *  • Adds optional `extensionMultipoles[]` for CMB acoustic peaks beyond the
  *    canonical ℓ-ladder — V10 kernel unchanged.
  *  • Pure function. EMERGENT mode (V10 default).
+ *
+ * LORE QUARANTINE — read before using any field of the result
+ * -----------------------------------------------------------
+ * The `*Resonance` fields (`cmbPeakPsiResonance`, `darkRatioSqrt5Resonance`,
+ * `baryonAsymmetryResonance`, `sachsWolfeResonance`, `reionizationResonance`)
+ * and `cosmicWebCoherence`, which blends them, are LORE: they score
+ * percent-level near-coincidences between unrelated quantities
+ * (546/220 ≈ ψ, Ω_dark/Ω_matter ≈ √5, ΔT/T ≈ φ⁻²⁴). A near-coincidence carries
+ * no information, so these are DISPLAY DIAGNOSTICS ONLY and must never enter a
+ * scored path. They are retained solely because the v10 parity goldens and the
+ * UI decks read them.
+ *
+ * The MEASURED quantity of this module is `closureResidual` — the Lyapunov
+ * residual over the 55-node field. That is what `MetatronCore` feeds into
+ * `metatronWitnessCoherence`, and that is the only F9 output memory capture
+ * and recall are allowed to score.
  */
 
 import { PHI, PHI_INV, PI, PSI } from './constants';

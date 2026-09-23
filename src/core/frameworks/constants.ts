@@ -16,6 +16,26 @@
  *    (canonical V10 minimums) which the φ-ladder extends past.
  *  - NO regression: every V10 anchor is preserved as a *minimum*, never a
  *    maximum.
+ *
+ * QUARANTINE (F1..F9)
+ * -------------------
+ * The nine F-layer modules contain two different kinds of quantity and they
+ * must never be confused:
+ *
+ *   MEASURED   — Lyapunov closure residuals, entropies, invariant witnesses,
+ *                node-field projections. These are computed from ψ and are the
+ *                only things allowed to reach a scored path.
+ *   LORE       — numerical near-coincidences ("peak ratio ≈ ψ, 2.8% dev",
+ *                "Ω_dark/Ω_matter ≈ √5", "ΔT/T ≈ φ⁻²⁴"). A percent-level match
+ *                between unrelated quantities carries no information, so these
+ *                are DISPLAY DIAGNOSTICS ONLY.
+ *
+ * The one place lore used to leak into a scored quantity was
+ * `metatronCoherence` (F9's `cosmicWebCoherence` spent ≈0.30 of its weight on
+ * coincidence terms), which drove memory capture's coherence axis. Capture now
+ * scores `metatronWitnessCoherence`, derived end-to-end from measured closure
+ * residuals; `metatronCoherence` survives for the UI decks and v10 parity
+ * goldens only. Do not reintroduce a lore term into any scored blend.
  */
 
 import Decimal from 'decimal.js';

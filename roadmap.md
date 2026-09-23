@@ -49,20 +49,46 @@ Anything that cannot be is deleted, not documented.
       Still open: move the coincidence commentary inside the nine F-layer files
       into an inert `lore` block, and delete anything that fails 40-digit
       re-verification. No scored path depends on it any more, so this is now
-      hygiene rather than correctness.
+      hygiene rather than correctness. Marked: `constants.ts` and
+      `F9_HyperGalactic.ts` now carry an explicit MEASURED-vs-LORE quarantine
+      header naming every coincidence-derived field as display-only.
 
-- [ ] **`WOLFRAM_APP_ID_RESEARCH` verification channel.** Offline only, never
+- [x] **`WOLFRAM_APP_ID_RESEARCH` verification channel.** `wolfram_verify` in
+      `intel.server.ts`: runs `N[expr, digits]` (default 40, clamped 10-60) on
+      the research App ID with its own 20/min token bucket, and returns the exact
+      query string so provenance can be recorded beside the constant. It never
+      falls back to the chat key - a verification that quietly ran on the wrong
+      budget is worse than one that did not run. Verified through it:
+      `N[Log2[22],40] = 4.459431618637297256199363046725792958703`,
+      `N[Log2[20000/20],40] = 9.965784284662087043610958288468170527594`.
+      Was: **`WOLFRAM_APP_ID_RESEARCH` verification channel.** Offline only, never
       inside a tick; separate 20/min budget from the chat tool. Re-verify every
       constant at 40 digits and record the exact query string beside it.
-- [ ] **Scale-matched sensory ladder.** Declare `[fLo, fHi]` per rung; bind each
+- [x] **Scale-matched sensory ladder.** `ScaleMeasurement.ts` now carries
+      `ScaleBand`, `SensorPassband` and `bindScaleSensors`; `registry.ts`
+      declares `RHUFTF_SCALE_BANDS` and `RHUFTF_SENSOR_PASSBANDS` (audio 48 kHz,
+      IMU 377 Hz, screen 15 Hz, vision as an integrating detector exempt from
+      Nyquist on the carrier). A rung is `measured` only when a declared
+      frontend covers its band edge-to-edge *and* satisfies `fs >= 2*fHi`;
+      everything else is `inferred`, with `octaves`/`phiRungs` reported as NaN
+      rather than 0. Result, stated plainly: one of nine rungs (n=4, audible)
+      is measured; the other eight are named scales with no instrument behind
+      them, and are now marked as such instead of being silently scored.
+      Was: Declare `[fLo, fHi]` per rung; bind each
       frontend by its Nyquist limit; mark unsensed rungs `inferred` so they are
       never silently scored. Hearing spans 9.965784285 octaves, vision 0.802554
       of one, separated by 44.2894 octaves = 63.7953 φ-rungs — the present
       9-rung ladder with widths (7,55,7,13,9,22,55,55,55) is bound to no band.
-- [ ] **Toroidal closure as the rung-enable criterion.** `torusClosure.ts`
-      already computes `ringResidual`; a rung turns on only when that residual is
-      non-increasing over a Fibonacci window, with eigenmodes-style provenance.
-      Per-rung leakage surfaced on the SCALES deck.
+- [x] **Toroidal closure as the rung-enable criterion.** `RingWindow` in
+      `torusClosure.ts`: a rung is stable only when a *full* Fibonacci window
+      (`fibWindow`, 3..89) of ring residuals is non-increasing. Two admissions
+      and no others - `r[i] <= r[i-1]`, or `r[i] <= pisotFloor(rung) = |psi|^n`,
+      where an increase is float64 noise below the irreducible closure defect.
+      A partial window is not stable, and a non-finite residual clears the
+      window rather than being averaged into it: absence of evidence is never
+      scored as convergence. Reports `decayPhiPerTick = log_phi(last/first)/(n-1)`
+      and the index of the first violating step.
+      Still open: surface per-rung leakage on the SCALES deck (UI only).
 
 ## Notebook binding
 

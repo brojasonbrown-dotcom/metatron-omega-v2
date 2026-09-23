@@ -25,6 +25,14 @@ const abuseipdbKey  = () => env("ABUSEIPDB_API_KEY");
 const githubToken   = () => env("GITHUB_TOKEN");
 const shodanKey     = () => env("SHODAN_API_KEY");
 const wolframKey    = () => env("WOLFRAM_APP_ID") || env("WOLFRAM_ALPHA_APP_ID");
+/**
+ * Separate App ID reserved for constant verification, so the 20 queries/min
+ * budget of the offline verification channel can never be consumed by chat
+ * traffic on `wolframKey()`. Falls back to no key rather than borrowing the
+ * chat key — a verification that silently ran on the wrong budget is worse
+ * than one that did not run.
+ */
+const wolframResearchKey = () => env("WOLFRAM_APP_ID_RESEARCH");
 const openaqKey     = () => env("OPENAQ_API_KEY");
 const nasaFirmsKey  = () => env("NASA_FIRMS_KEY");
 const hfToken       = () => env("HF_TOKEN") || env("HUGGINGFACE_TOKEN");
@@ -984,6 +992,54 @@ async function wolfram(p: { query?: string; mode?: "short" | "llm" | "full"; uni
   return { mode, ok: r.ok, status: r.status, query: (j as any).queryresult };
 }
 
+/**
+ * Offline constant verification — NEVER called inside an engine tick.
+ *
+ * Runs on `WOLFRAM_APP_ID_RESEARCH` with its own 20 queries/min token bucket,
+ * so a busy chat session cannot starve verification (and vice versa). The exact
+ * query string is returned alongside the digits so it can be recorded next to
+ * the constant it verifies; a verification whose provenance is not recorded is
+ * not a verification.
+ */
+const RESEARCH_BUDGET_PER_MIN = 20;
+let researchWindowStart = 0;
+let researchCount = 0;
+function researchBudget(): { ok: boolean; remaining: number; resetInSec: number } {
+  const now = Date.now();
+  if (now - researchWindowStart >= 60_000) { researchWindowStart = now; researchCount = 0; }
+  const resetInSec = Math.max(0, Math.ceil((researchWindowStart + 60_000 - now) / 1000));
+  if (researchCount >= RESEARCH_BUDGET_PER_MIN) return { ok: false, remaining: 0, resetInSec };
+  researchCount++;
+  return { ok: true, remaining: RESEARCH_BUDGET_PER_MIN - researchCount, resetInSec };
+}
+
+async function wolframVerify(p: { expression?: string; digits?: number }) {
+  const KEY = wolframResearchKey();
+  if (!KEY) throw new Error("SKIP: WOLFRAM_APP_ID_RESEARCH not configured");
+  const expr = need(p.expression, "expression");
+  const digits = Math.max(10, Math.min(60, Math.floor(p.digits ?? 40)));
+  const budget = researchBudget();
+  if (!budget.ok) {
+    return {
+      channel: "research", ok: false, budgeted: false,
+      reason: `Verification budget exhausted (${RESEARCH_BUDGET_PER_MIN}/min).`,
+      resetInSec: budget.resetInSec,
+    };
+  }
+  const query = `N[${expr}, ${digits}]`;
+  const r = await fetch(
+    `https://api.wolframalpha.com/v1/result?appid=${KEY}&i=${encodeURIComponent(query)}`,
+    { signal: AbortSignal.timeout(20_000) },
+  );
+  const answer = (await r.text()).trim();
+  return {
+    channel: "research", ok: r.ok, status: r.status,
+    expression: expr, digits, query, answer,
+    budgetRemaining: budget.remaining, budgetResetInSec: budget.resetInSec,
+  };
+}
+
+
 // ─── WAVE-6 keyless expansion ────────────────────────────────────────────
 async function usgsQuakes(p: { mag?: string; window?: string }) {
   const mag = ["significant","4.5","2.5","1.0","all"].includes(p.mag || "") ? p.mag : "2.5";
@@ -1689,7 +1745,7 @@ export const INTEL_HANDLERS: Record<string, (p: any) => Promise<any>> = {
   bsdd_search: bsddSearch, bsdd_dictionaries: bsddDictionaries, bsdd_class: bsddClass,
   speckle_graphql: speckleGraphql, osm_buildings: osmBuildings, cad_fetch: cadFetch,
   // wave 1 + 5
-  wolfram, wolfram_alpha: wolfram,
+  wolfram, wolfram_alpha: wolfram, wolfram_verify: wolframVerify,
   openweather: openWeather, newsapi: newsApi, virustotal: virusTotal, abuseipdb: abuseIpDb,
   crossref, semantic_scholar: semanticScholar, pubmed, patents: patentsview,
   osm_geocode: osmNominatim, overpass, binance, mastodon, celestrak,
