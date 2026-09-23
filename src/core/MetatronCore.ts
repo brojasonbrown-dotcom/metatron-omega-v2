@@ -126,8 +126,19 @@ export interface MetatronOutput {
    * spikes when a single layer (any scale) breaks coherence.
    */
   metatronClosure: number;
-  /** φ-weighted master coherence across the chain (NOT a Lyapunov metric). */
+  /**
+   * φ-weighted master coherence across the chain (NOT a Lyapunov metric).
+   * DIAGNOSTIC ONLY — part of its weight comes from numerical coincidences in
+   * the rung blends, so it must never gate, score or drive learning. Use
+   * `metatronWitnessCoherence` for anything that does.
+   */
   metatronCoherence: number;
+  /**
+   * φ-weighted geometric mean of clamp01(1 − closureResidual) over the nine
+   * rungs: derived end-to-end from measured Lyapunov residuals. This is the
+   * aggregate the memory system, recall and consolidation are allowed to use.
+   */
+  metatronWitnessCoherence: number;
   /**
    * Toroidal loop closure F9↔F8 (cosmic web ↔ sub-Planck). The torus closes
    * when the largest scale's chain-up coupling matches the smallest scale's
