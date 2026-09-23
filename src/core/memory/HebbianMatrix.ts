@@ -8,9 +8,21 @@
  *   η     = φ⁻³ ≈ 0.236068
  *   decay = φ⁻⁵ ≈ 0.090170
  *
- * Stability: ‖W‖_F is bounded because decay > 0 and activations are
- * clamped to [−1,1] by the caller. Determinism: identical activation
- * stream ⇒ identical W. Eviction: when cap reached, smallest |w| pruned.
+ * STABILITY — stated exactly, because the previous note was wrong.
+ *
+ *   • The *unclamped* rule has fixed point w* = η/decay = φ² =
+ *     2.618033988749894848, so the saturating clamp at ±1 in update() is what
+ *     actually binds, not the activation range: |W_ij| ≤ 1 always holds.
+ *     (The old comment claimed the caller clamped activations to [−1,1]; it
+ *     does not, and nothing depended on it doing so.)
+ *   • Consequently ‖W‖_F ≤ √(size) and recall() obeys
+ *     ‖y‖_∞ ≤ 2·‖cue‖₁ (each entry contributes to two output rows). recall()
+ *     is therefore bounded but NOT unit-scaled: callers comparing y against a
+ *     fixed threshold must normalise by ‖cue‖₁ themselves. It is left raw here
+ *     so the engine's frozen numerics stay bit-identical.
+ *
+ * Determinism: identical activation stream ⇒ identical W.
+ * Eviction: when cap reached, smallest |w| pruned.
  */
 
 import { PHI_INV } from '@/core/frameworks/constants';

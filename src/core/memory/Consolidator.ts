@@ -20,6 +20,41 @@
  */
 
 import { PHI_INV, EMERGENT_FLOOR, cosineDense } from './Resonance';
+import { hopfieldBeta, hopfieldEnergy, hopfieldStep } from '@/core/gematria/resonanceKernel';
+
+/**
+ * ENERGY ADMISSION GATE (modern Hopfield).
+ *
+ * Cosine alone says two vectors point the same way; it does not say the member
+ * actually lies in the prototype's retrieval basin. `hopfieldEnergy` and
+ * `hopfieldStep` existed in the kernel with zero callers, so coherence was
+ * asserted and never measured. The theorem (Ramsauer et al. 2020, Certificate
+ * 2.4) is that one retrieval step never raises
+ *
+ *     E(x) = −logsumexp(β·Xx)/β + ½⟨x,x⟩,      β = φ/√d
+ *
+ * so ΔE > 0 for a candidate merge is proof the member is NOT in the basin, and
+ * the merge is refused with the number that failed. At d = 256,
+ * β = 0.10112712429686842801.
+ */
+export interface MergeVerdict {
+  readonly admitted: boolean;
+  /** E(retrieved) − E(member). Admission requires ΔE ≤ 0. */
+  readonly deltaE: number;
+  readonly beta: number;
+}
+
+export function mergeAdmissible(
+  prototype: Float64Array,
+  member: Float64Array,
+  beta = hopfieldBeta(member.length),
+): MergeVerdict {
+  const basis = [prototype];
+  const before = hopfieldEnergy(basis, member, beta);
+  const after = hopfieldEnergy(basis, hopfieldStep(basis, member, beta), beta);
+  const deltaE = after - before;
+  return { admitted: Number.isFinite(deltaE) && deltaE <= 0, deltaE, beta };
+}
 
 /** Cosine at or above this counts as the same thing said twice. */
 export const PROTOTYPE_COS = 1 - PHI_INV * PHI_INV * PHI_INV;   // ≈ 0.7639
