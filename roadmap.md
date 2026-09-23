@@ -34,12 +34,23 @@ Anything that cannot be is deleted, not documented.
 
 ## Open
 
-- [ ] **F1–F9 quarantine.** The residual-witness quantities (Lyapunov
-      `closureResidual`, `wave2` uplift) stay. The inline numerology used as
-      derivation ("1495 contains TWO Fibonacci numbers", "314 ≈ 100π",
-      "φ^15 within 10% of 1495") moves to an inert `lore` block that nothing
-      imports, and anything failing 40-digit re-verification is deleted.
-      Nothing scored by recall may depend on a coincidence.
+- [ ] **F1-F9 quarantine.** Partly resolved, and the part that mattered is done:
+      the coincidence terms were reaching a *scored* quantity. Each rung's
+      headline metric is a blend, and F9's `cosmicWebCoherence` spends ~0.30 of
+      its weight on terms like "Omega_dark/Omega_matter ~= sqrt(5)" and
+      "dT/T ~= phi^-24"; that blend was `metatronCoherence`, which was the
+      coherence axis of memory capture (psi[37], qualia C, episodic salience) and
+      therefore of every recall score downstream.
+      `MetatronCore` now also returns `metatronWitnessCoherence` - the same
+      phi^(-rank) weighted geometric mean taken over clamp01(1 - closureResidual),
+      i.e. derived end-to-end from measured Lyapunov residuals - and `tickMemory`
+      scores on that. `metatronCoherence` survives as a display diagnostic only,
+      so the v10 parity goldens and UI decks are untouched.
+      Still open: move the coincidence commentary inside the nine F-layer files
+      into an inert `lore` block, and delete anything that fails 40-digit
+      re-verification. No scored path depends on it any more, so this is now
+      hygiene rather than correctness.
+
 - [ ] **`WOLFRAM_APP_ID_RESEARCH` verification channel.** Offline only, never
       inside a tick; separate 20/min budget from the chat tool. Re-verify every
       constant at 40 digits and record the exact query string beside it.
