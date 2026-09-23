@@ -123,7 +123,11 @@ export function projectPsiToroidal(out: MetatronOutput): Float64Array {
   }
   const tailBase = N_RUNGS * 4;
   psi[tailBase + 0] = out.torusClosure;
-  psi[tailBase + 1] = out.metatronCoherence;
+  // Witness coherence, not the headline blend: the blend spends part of its
+  // weight on numerical coincidences, and this slot is scored by recall.
+  psi[tailBase + 1] = Number.isFinite(out.metatronWitnessCoherence)
+    ? out.metatronWitnessCoherence
+    : 0;
   psi[tailBase + 2] = circulation;
   psi[tailBase + 3] = out.phaseCirculation;
   return psi;
