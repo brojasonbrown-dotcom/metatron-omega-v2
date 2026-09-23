@@ -394,7 +394,7 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
   void PHI;
 
   return { F1, F2, F3, F4, F5, F6, F7, F8, F9,
-           metatronClosure, metatronCoherence,
+           metatronClosure, metatronCoherence, metatronWitnessCoherence,
            torusClosure, phaseCirculation, chain };
 }
 
