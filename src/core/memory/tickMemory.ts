@@ -237,7 +237,7 @@ export function tickMemory(
     tick,
     psi,
     qualiaScalar: q,
-    coherence: out.metatronCoherence,
+    coherence: witnessC,
     energy: out.torusClosure,
     text,
     forceReason: isFibonacciTick(tick) ? 'fibonacci' : undefined,
