@@ -24,8 +24,10 @@
  */
 
 import type { ScaleShape } from '../ShadowStateTape';
-import type { ScaleMeasurement } from './ScaleMeasurement';
-import { scaleMeasurementRegistry } from './ScaleMeasurement';
+import type {
+  ScaleMeasurement, ScaleBand, SensorPassband, ScaleBinding,
+} from './ScaleMeasurement';
+import { scaleMeasurementRegistry, bindScaleSensors } from './ScaleMeasurement';
 
 import {
   registerF1SeptenaryMeasurement,
