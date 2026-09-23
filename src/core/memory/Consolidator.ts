@@ -92,6 +92,12 @@ export interface ConsolidationReport {
   readonly budgetExhausted: boolean;
   /** ids whose only role was duplicating a prototype */
   readonly redundantIds: readonly string[];
+  /**
+   * Merges the cosine accepted but the Hopfield energy refused (ΔE > 0), with
+   * the number that failed. These stay as independent items: a merge that
+   * raises retrieval energy would make both memories harder to reach.
+   */
+  readonly energyRejected: ReadonlyArray<{ prototypeId: string; memberId: string; deltaE: number }>;
 }
 
 function jaccard(a?: ReadonlySet<string>, b?: ReadonlySet<string>): number {
