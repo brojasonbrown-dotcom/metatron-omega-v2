@@ -317,6 +317,33 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
   }
   const metatronCoherence = mW > 0 ? Math.exp(mLog / mW) : 0;
 
+  // ─── WITNESS COHERENCE — the only aggregate allowed to gate anything ─────
+  //
+  // `metatronCoherence` above is the φ-weighted mean of each rung's *headline*
+  // metric. Those headline metrics are blends, and a material share of their
+  // weight comes from numerical coincidences rather than measurements — e.g.
+  // F9's `cosmicWebCoherence` spends ≈0.30 of its weight on terms like
+  // "Ω_dark/Ω_matter ≈ √5" and "ΔT/T ≈ φ⁻²⁴". A near-miss between two numbers
+  // carries no information about the field's state, so anything scored off it
+  // injects noise into memory, recall and consolidation.
+  //
+  // The witness quantities are different in kind: each rung's `closureResidual`
+  // is a Lyapunov residual measured over that rung's own node field, and it
+  // falsifies itself — it rises when the rung stops closing. The witness
+  // coherence is the same φ^(-rank) weighted geometric mean taken over
+  // clamp01(1 − closureResidual_i), so it is derived end-to-end from measured
+  // residuals and nothing else.
+  //
+  // `metatronCoherence` is retained as a reported diagnostic for continuity of
+  // the UI decks and the v10 parity goldens. It must not gate, score, or drive
+  // learning; `metatronWitnessCoherence` is what does.
+  let wLog = 0, wW = 0;
+  for (const { r, w } of residuals) {
+    wLog += w * Math.log(Math.max(1e-12, Math.min(1, Math.max(0, 1 - r))));
+    wW += w;
+  }
+  const metatronWitnessCoherence = wW > 0 ? Math.exp(wLog / wW) : 0;
+
   const chain: ChainDiagnostic[] = [
     { framework: 'F8', scale: 'sub-Planck',     chainUpCoupling: F8.chainUpCoupling, closureResidual: F8.closureResidual, masterMetric: F8.superpositionMComposite },
     { framework: 'F1', scale: 'septenary',      chainUpCoupling: F1.chainUpCoupling, closureResidual: F1.closureResidual, masterMetric: F1.heptagonCoherence },
