@@ -133,7 +133,9 @@ export interface ConsolidationReport {
    * the number that failed. These stay as independent items: a merge that
    * raises retrieval energy would make both memories harder to reach.
    */
-  readonly energyRejected: ReadonlyArray<{ prototypeId: string; memberId: string; deltaE: number }>;
+  readonly energyRejected: ReadonlyArray<{
+    prototypeId: string; memberId: string; deltaE: number; margin: number;
+  }>;
 }
 
 function jaccard(a?: ReadonlySet<string>, b?: ReadonlySet<string>): number {
@@ -178,9 +180,19 @@ export function consolidate(
       if (cos >= PROTOTYPE_COS) {
         // Cosine says "same direction"; the energy gate says "same basin".
         // Both must hold, or the two stay separate memories.
-        const verdict = mergeAdmissible(seed.vec, other.vec);
+        // Competitors = the prototypes already elected in this pass. The member
+        // must retrieve to THIS seed, not to one of them.
+        const competitors: Float64Array[] = [];
+        for (const c of clusters) {
+          const cv = byId.get(c.prototypeId);
+          if (cv && c.prototypeId !== seed.id) competitors.push(cv);
+        }
+        const verdict = mergeAdmissible(seed.vec, other.vec, competitors);
         if (!verdict.admitted) {
-          energyRejected.push({ prototypeId: seed.id, memberId: other.id, deltaE: verdict.deltaE });
+          energyRejected.push({
+            prototypeId: seed.id, memberId: other.id,
+            deltaE: verdict.deltaE, margin: verdict.margin,
+          });
           continue;
         }
         members.push(other.id);
