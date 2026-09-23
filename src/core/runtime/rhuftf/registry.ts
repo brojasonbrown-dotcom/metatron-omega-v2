@@ -82,6 +82,53 @@ export function rhuftfScaleShapes(): readonly ScaleShape[] {
 }
 
 /**
+ * Declared physical passband per rung, in Hz — `null` where no band is
+ * physically defined for that rung's quantity.
+ *
+ * Only n=4 (Colour/Music) carries a carrier band this ladder actually samples:
+ * the audible range, which a microphone at 48 kHz covers with Nyquist to
+ * spare. Every other rung is `null`, hence `inferred`, hence never scored as
+ * an observation. That is the honest state of the ladder: eight of nine rungs
+ * are named scales with no instrument behind them. Adding a band here is a
+ * claim that a frontend reads it, and `bindScaleSensors` will refuse the claim
+ * unless a declared sensor covers the band and satisfies Nyquist.
+ */
+export const RHUFTF_SCALE_BANDS: readonly (ScaleBand | null)[] = Object.freeze([
+  null,                        // n=0 Septenary      — partition index, not a frequency
+  null,                        // n=1 Quantum        — no sampled carrier in this build
+  null,                        // n=2 Atomic         — shell index, not a frequency
+  null,                        // n=3 Geometric      — dihedral angles, dimensionless
+  { fLo: 20, fHi: 20000 },     // n=4 Colour/Music   — audible band, 9.965784285 octaves
+  null,                        // n=5 Hebrew         — symbol channel, not a frequency
+  null,                        // n=6 Galactic       — inferred
+  null,                        // n=7 Sub-Planckian  — inferred
+  null,                        // n=8 Hyper-Galactic — inferred
+]);
+
+/**
+ * Passbands of the frontends that actually exist in `src/core/sensory`.
+ *   - `audio`  AudioFrontend/AudioCortex, 48 kHz capture (Nyquist 24 kHz).
+ *   - `vision` VideoFrontend/VisionEncoder — an integrating detector, so no
+ *              Nyquist criterion applies to the optical carrier; the visible
+ *              band spans only 0.802554 of one octave.
+ *   - `imu`    IMUFrontend, ~377 Hz device motion.
+ *   - `screen` ScreenFrontend, 5–15 Hz frame capture (Nyquist 7.5 Hz).
+ * The optical and acoustic bands are separated by 44.2894 octaves =
+ * 63.7953 φ-rungs of completely unsampled spacetime.
+ */
+export const RHUFTF_SENSOR_PASSBANDS: readonly SensorPassband[] = Object.freeze([
+  { sensor: 'audio', fLo: 20, fHi: 20000, sampleRateHz: 48000 },
+  { sensor: 'imu', fLo: 0.1, fHi: 188.5, sampleRateHz: 377 },
+  { sensor: 'screen', fLo: 0.5, fHi: 7.5, sampleRateHz: 15 },
+  { sensor: 'vision', fLo: 4.3e14, fHi: 7.5e14 },
+]);
+
+/** Rung → sensor binding with `measured`/`inferred` provenance. */
+export function rhuftfScaleBindings(): readonly ScaleBinding[] {
+  return bindScaleSensors(RHUFTF_SCALE_SHAPES, RHUFTF_SCALE_BANDS, RHUFTF_SENSOR_PASSBANDS);
+}
+
+/**
  * Flag-respecting bulk register. Returns the ordered set of scale indices
  * that were actually activated (i.e. whose `FLAG_RHUFTF_FRAMEWORK_<n>` was
  * on). Idempotent — safe to call from HMR, tests, or panel bootstraps.
