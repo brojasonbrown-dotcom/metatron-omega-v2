@@ -21,7 +21,7 @@
  *      the address is the canonical non-consecutive-Fibonacci slot key.
  *
  *   2. RESIDUE (bucketing only).  v mod 22 is a 22-symbol channel carrying
- *      log₂22 = 4.459431618685029 bits per word — enough to bucket candidates,
+ *      log₂22 = 4.459431618637297 bits per word — enough to bucket candidates,
  *      never enough to assert a meaning. Nothing scores similarity from it.
  *
  * FIELD PLACEMENT.  A token is written onto the same (R=φ, r=1) torus that
@@ -51,7 +51,7 @@ export const LEXEME_EXACT_LEN = 11;
 /** Symbols in the residue channel. */
 export const LEXEME_RESIDUE_SYMBOLS = 22;
 /** Information carried by one residue symbol: log₂22, Wolfram-verified. */
-export const LEXEME_RESIDUE_BITS = 4.459431618685029;
+export const LEXEME_RESIDUE_BITS = 4.459431618637297;
 /** Injection gain φ⁻³ — matches the Hebbian learning rate, keeps ‖ΔΨ‖ in envelope. */
 export const LEXEME_GAIN = PHI_INV * PHI_INV * PHI_INV;
 /** Per-rung component count of the toroidal Ψ embedding. */
