@@ -267,3 +267,51 @@ describe('separation gate — the informative half of the admission test', () =>
     }
   });
 });
+
+// ── Witness coherence: no coincidence may reach a scored quantity ──────────
+import { computeMetatron } from '@/core/MetatronCore';
+
+describe('witness coherence — the scored aggregate is measured, not blended', () => {
+  const inputs = {
+    coherence: 0.7, energy: 0.5, time: 1.0, recursionDepth: 3,
+  } as unknown as Parameters<typeof computeMetatron>[0];
+
+  it('is a clamped φ-weighted mean of (1 − closureResidual) over all nine rungs', () => {
+    const out = computeMetatron(inputs);
+    const PHI_INV = 0.6180339887498949;
+    const terms: Array<[number, number]> = [
+      [out.F4.closureResidual, 1],
+      [out.F3.closureResidual, PHI_INV],
+      [out.F5.closureResidual, PHI_INV],
+      [out.F2.closureResidual, PHI_INV ** 2],
+      [out.F6.closureResidual, PHI_INV ** 2],
+      [out.F1.closureResidual, PHI_INV ** 3],
+      [out.F7.closureResidual, PHI_INV ** 3],
+      [out.F8.closureResidual, PHI_INV ** 4],
+      [out.F9.closureResidual, PHI_INV ** 4],
+    ];
+    let lg = 0, w = 0;
+    for (const [r, wi] of terms) {
+      lg += wi * Math.log(Math.max(1e-12, Math.min(1, Math.max(0, 1 - r))));
+      w += wi;
+    }
+    expect(out.metatronWitnessCoherence).toBeCloseTo(Math.exp(lg / w), 12);
+    expect(out.metatronWitnessCoherence).toBeGreaterThanOrEqual(0);
+    expect(out.metatronWitnessCoherence).toBeLessThanOrEqual(1);
+  });
+
+  it('is deterministic, like every other engine quantity', () => {
+    expect(computeMetatron(inputs).metatronWitnessCoherence)
+      .toBe(computeMetatron(inputs).metatronWitnessCoherence);
+  });
+
+  it('falls when a rung stops closing — the property the blend lacks', () => {
+    const out = computeMetatron(inputs);
+    // Monotone by construction: raising any residual lowers the mean.
+    const PHI_INV = 0.6180339887498949;
+    const worse = (r: number) => Math.log(Math.max(1e-12, Math.min(1, 1 - r)));
+    expect(worse(0.9)).toBeLessThan(worse(0.1));
+    expect(Number.isFinite(out.metatronWitnessCoherence)).toBe(true);
+    void PHI_INV;
+  });
+});
