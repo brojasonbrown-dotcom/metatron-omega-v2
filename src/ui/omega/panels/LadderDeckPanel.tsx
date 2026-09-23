@@ -172,7 +172,7 @@ export default function LadderDeckPanel() {
         corridor reading: it is amplitude- and node-count-free, so a large rung is not penalised
         for carrying more field than a small one. d_s is the rung&apos;s measured spectral
         dimension: the plateau of −2 d ln Z(t)/d ln t over the closed-form heat trace
-        Z(t) = Σ e^{−tλ} of its φ-aspect torus grid, λ(a,b) = (4/h_u²)sin²(πa/p) +
+        Z(t) = Σ e<sup>−tλ</sup> of its φ-aspect torus grid, λ(a,b) = (4/h_u²)sin²(πa/p) +
         (4/h_v²)sin²(πb/q). It is a property of the rung&apos;s own geometry, not a target:
         green means the rung resolves both toroidal cycles and genuinely carries a
         two-dimensional scale of spacetime, red means it is a ring with too few nodes to
