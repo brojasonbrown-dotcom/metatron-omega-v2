@@ -104,6 +104,8 @@ export class PatternBitmapIndex {
       fingerprint: fp,
       weight: bitmapWeight(bitmap),
       tick: sig.tick,
+      rehearsals: 0,
+      lastRecalled: sig.tick,
     };
     this.entries.set(sig.hash, entry);
 
