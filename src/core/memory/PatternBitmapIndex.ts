@@ -73,6 +73,10 @@ export function densify(sig: PatternSignature, dim: number): Float64Array {
 }
 
 const DEFAULT_PREFILTER = 34; // Fibonacci — candidates kept for exact rescore
+/** φ⁻¹ = 0.6180339887498949 — rehearsal gain and recency decay base. */
+const PHI_INV = 0.6180339887498949;
+/** Recency time constant: one L3 consolidation window (34 observations). */
+export const REHEARSAL_TAU = 34;
 
 export class PatternBitmapIndex {
   private entries = new Map<string, IndexedPattern>();
