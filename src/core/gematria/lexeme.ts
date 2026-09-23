@@ -164,7 +164,7 @@ export function injectTextPsi(psi: Float64Array, text: string): TextInjection {
     const top = lx.zeck.length > 0 ? lx.zeck[0] : 2;
     const n = top % rungs;
     // Minor circle: golden-angle phase of the exact integer (equidistributed).
-    const minor = 2 * Math.PI * (((lx.value * PHI_INV) % 1) + 1) % (2 * Math.PI);
+    const minor = 2 * Math.PI * ((lx.value * PHI_INV) % 1);
     const theta = (2 * Math.PI * n) / rungs;
     const ringR = PHI + Math.cos(minor);
     const amp = PHI_INV ** Math.min(r, 12);
