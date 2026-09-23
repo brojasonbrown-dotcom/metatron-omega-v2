@@ -142,6 +142,8 @@ export interface TickMemoryResult {
   /** Post-injection toroidal Ψ used for capture — exposed so downstream
    *  learners (LearningEngine) observe exactly what memory stored. */
   psi: Float64Array;
+  /** Provenance of the word→field injection; null when the tick carried no text. */
+  textInjection: TextInjection | null;
 }
 
 
@@ -153,7 +155,7 @@ export function tickMemory(
 ): TickMemoryResult {
   if (!Number.isFinite(tick) || tick < 1) {
     const zero: QualiaCorrelateMeasurement = { Q: 0, Q_inc: 0, Q_stab: 0, Q_res: 0, N: 0, attractorK: 0, live: false, incRatio: NaN, incApprox: NaN };
-    return { tick, isFibonacci: false, salience: 0, episodicCaptured: false, firedJobs: [], qualiaCorrelate: zero, qualiaScalar: 0, psi: new Float64Array(0) };
+    return { tick, isFibonacci: false, salience: 0, episodicCaptured: false, firedJobs: [], qualiaCorrelate: zero, qualiaScalar: 0, psi: new Float64Array(0), textInjection: null };
   }
   // True toroidal embedding (Gap #2): each rung occupies a (θ_n, φ_n) point
   // on the (R=φ, r=1) torus surface, amplitude-modulated by chainUpCoupling.
@@ -243,6 +245,6 @@ export function tickMemory(
     qualiaCorrelate: correlate,
     qualiaScalar: q,
     psi,
-
+    textInjection,
   };
 }
