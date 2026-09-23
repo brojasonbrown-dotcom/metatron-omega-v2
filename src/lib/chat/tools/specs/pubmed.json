@@ -1,0 +1,16 @@
+{
+  "name": "pubmed",
+  "description": "Search NCBI PubMed for biomedical and life-sciences literature. Returns matching article PMIDs, titles, authors, abstracts.",
+  "intel_action": "pubmed",
+  "auth": "none",
+  "rate_limit_per_min": 30,
+  "timeout_ms": 15000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" },
+      "retmax": { "type": "integer", "minimum": 1, "maximum": 25, "default": 10 }
+    },
+    "required": ["query"]
+  }
+}

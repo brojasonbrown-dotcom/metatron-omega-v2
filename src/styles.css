@@ -1,0 +1,332 @@
+@import "tailwindcss" source(none);
+@import "tw-animate-css";
+/* Fonts are loaded via <link> in src/routes/__root.tsx head() to avoid
+   PostCSS "@import must precede all other statements" warnings caused by
+   Tailwind's @import expanding before url-imports. */
+
+@source "../src";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Metatron V11 engine shell — theme presets.
+ *
+ * Default = matrix (also applied when no `data-theme` is set). Each preset
+ * rewrites the semantic tokens already declared in @theme inline above, so
+ * all shadcn primitives and Tailwind utilities adopt the new palette
+ * automatically.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+:root,
+[data-theme="matrix"] {
+  --background: oklch(0.12 0.02 145);
+  --foreground: oklch(0.92 0.18 145);
+  --card: oklch(0.16 0.03 145);
+  --card-foreground: oklch(0.92 0.18 145);
+  --popover: oklch(0.16 0.03 145);
+  --popover-foreground: oklch(0.92 0.18 145);
+  --primary: oklch(0.78 0.22 145);
+  --primary-foreground: oklch(0.12 0.02 145);
+  --secondary: oklch(0.22 0.05 145);
+  --secondary-foreground: oklch(0.92 0.18 145);
+  --muted: oklch(0.20 0.02 145);
+  --muted-foreground: oklch(0.55 0.06 145);
+  --accent: oklch(0.78 0.18 85);
+  --accent-foreground: oklch(0.10 0.02 85);
+  --destructive: oklch(0.62 0.24 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.30 0.07 145);
+  --input: oklch(0.22 0.04 145);
+  --ring: oklch(0.78 0.22 145);
+}
+
+[data-theme="noir"] {
+  --background: oklch(0.10 0.005 270);
+  --foreground: oklch(0.95 0.005 270);
+  --card: oklch(0.14 0.005 270);
+  --card-foreground: oklch(0.95 0.005 270);
+  --popover: oklch(0.14 0.005 270);
+  --popover-foreground: oklch(0.95 0.005 270);
+  --primary: oklch(0.92 0.005 270);
+  --primary-foreground: oklch(0.10 0 0);
+  --secondary: oklch(0.20 0.005 270);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.18 0.005 270);
+  --muted-foreground: oklch(0.60 0.005 270);
+  --accent: oklch(0.78 0.16 85);
+  --accent-foreground: oklch(0.10 0 0);
+  --destructive: oklch(0.62 0.24 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.28 0.005 270);
+  --input: oklch(0.20 0.005 270);
+  --ring: oklch(0.78 0.16 85);
+}
+
+[data-theme="aurora"] {
+  --background: oklch(0.14 0.04 280);
+  --foreground: oklch(0.93 0.04 200);
+  --card: oklch(0.18 0.05 280);
+  --card-foreground: oklch(0.93 0.04 200);
+  --popover: oklch(0.18 0.05 280);
+  --popover-foreground: oklch(0.93 0.04 200);
+  --primary: oklch(0.72 0.18 200);
+  --primary-foreground: oklch(0.10 0.02 200);
+  --secondary: oklch(0.24 0.06 280);
+  --secondary-foreground: oklch(0.93 0.04 200);
+  --muted: oklch(0.22 0.04 280);
+  --muted-foreground: oklch(0.62 0.04 240);
+  --accent: oklch(0.78 0.18 160);
+  --accent-foreground: oklch(0.10 0.02 160);
+  --destructive: oklch(0.62 0.24 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.32 0.08 270);
+  --input: oklch(0.22 0.05 280);
+  --ring: oklch(0.78 0.18 160);
+}
+
+[data-theme="solar"] {
+  --background: oklch(0.16 0.04 60);
+  --foreground: oklch(0.95 0.04 80);
+  --card: oklch(0.20 0.05 60);
+  --card-foreground: oklch(0.95 0.04 80);
+  --popover: oklch(0.20 0.05 60);
+  --popover-foreground: oklch(0.95 0.04 80);
+  --primary: oklch(0.78 0.18 70);
+  --primary-foreground: oklch(0.14 0.04 60);
+  --secondary: oklch(0.26 0.06 50);
+  --secondary-foreground: oklch(0.95 0.04 80);
+  --muted: oklch(0.24 0.04 60);
+  --muted-foreground: oklch(0.65 0.06 60);
+  --accent: oklch(0.70 0.20 25);
+  --accent-foreground: oklch(0.10 0 0);
+  --destructive: oklch(0.62 0.24 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.34 0.08 60);
+  --input: oklch(0.24 0.05 60);
+  --ring: oklch(0.78 0.18 70);
+}
+
+[data-theme="ocean"] {
+  --background: oklch(0.14 0.04 220);
+  --foreground: oklch(0.93 0.04 200);
+  --card: oklch(0.18 0.05 220);
+  --card-foreground: oklch(0.93 0.04 200);
+  --popover: oklch(0.18 0.05 220);
+  --popover-foreground: oklch(0.93 0.04 200);
+  --primary: oklch(0.72 0.16 210);
+  --primary-foreground: oklch(0.10 0.02 210);
+  --secondary: oklch(0.24 0.06 220);
+  --secondary-foreground: oklch(0.93 0.04 200);
+  --muted: oklch(0.22 0.04 220);
+  --muted-foreground: oklch(0.62 0.04 210);
+  --accent: oklch(0.78 0.18 190);
+  --accent-foreground: oklch(0.10 0.02 190);
+  --destructive: oklch(0.62 0.24 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.32 0.06 215);
+  --input: oklch(0.22 0.05 220);
+  --ring: oklch(0.78 0.18 190);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * Metatron V11 utilities (Orbitron display, glow halos, scanline).
+ * Glow utilities self-disable when `[data-glow="off"]` is set on <html>.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+.font-display {
+  font-family: "Orbitron", "JetBrains Mono", ui-monospace, monospace;
+}
+
+.text-glow {
+  text-shadow:
+    0 0 8px color-mix(in oklab, var(--primary) 50%, transparent),
+    0 0 18px color-mix(in oklab, var(--primary) 22%, transparent);
+}
+[data-glow="off"] .text-glow { text-shadow: none; }
+
+.panel-matrix {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--card) 92%, transparent) 0%,
+    color-mix(in oklab, var(--card) 78%, transparent) 100%
+  );
+}
+
+/* Scanline texture — painted by a fixed, pointer-transparent overlay
+ * (::after) on its OWN compositor layer instead of as a background on the
+ * root flex container. As a root background, every animated descendant
+ * (tick counters, coherence bar) dirtied the whole gradient surface and the
+ * full viewport re-tiled each frame. The fixed pseudo-element never changes,
+ * so the browser caches its layer once and composites it for free. */
+.scanline { position: relative; }
+.scanline::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    color-mix(in oklab, var(--primary) 4%, transparent) 2px,
+    color-mix(in oklab, var(--primary) 4%, transparent) 4px
+  );
+}
+[data-glow="off"] .scanline::after { content: none; }
+
+[data-density="compact"] { font-size: 12px; }
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.65; }
+  50%      { opacity: 1; }
+}
+
+/* Horizontal tab strips: scroll without a visible bar (deck headers). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

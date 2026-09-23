@@ -1,0 +1,16 @@
+{
+  "name": "abuseipdb",
+  "description": "AbuseIPDB IP reputation lookup — abuse confidence score, country, ISP, recent reports. Requires ABUSEIPDB_API_KEY (configured).",
+  "intel_action": "abuseipdb",
+  "auth": "abuseipdb_api_key",
+  "rate_limit_per_min": 30,
+  "timeout_ms": 8000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "ip": { "type": "string", "description": "IPv4 or IPv6 address." },
+      "max_age_days": { "type": "integer", "minimum": 1, "maximum": 365, "default": 90 }
+    },
+    "required": ["ip"]
+  }
+}

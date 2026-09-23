@@ -1,0 +1,17 @@
+{
+  "name": "arxiv_search",
+  "description": "Search arXiv preprints by free-text query. Returns recent papers with title, authors, abstract, and PDF URL. Use specific terms (no boolean operators).",
+  "intel_action": "arxiv_cat",
+  "auth": "none",
+  "rate_limit_per_min": 20,
+  "timeout_ms": 12000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "category": { "type": "string", "description": "arXiv category, e.g. quant-ph, hep-th, cs.AI, q-bio. Optional." },
+      "query": { "type": "string", "description": "Free-text search terms. No boolean operators." },
+      "max_results": { "type": "integer", "minimum": 1, "maximum": 25, "default": 5 }
+    },
+    "required": ["query"]
+  }
+}

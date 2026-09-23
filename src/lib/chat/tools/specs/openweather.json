@@ -1,0 +1,17 @@
+{
+  "name": "openweather",
+  "description": "Live weather, 5-day forecast, or air-pollution data for any place by lat/lon. Requires OPENWEATHER_API_KEY (configured).",
+  "intel_action": "openweather",
+  "auth": "openweather_api_key",
+  "rate_limit_per_min": 60,
+  "timeout_ms": 8000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "endpoint": { "type": "string", "enum": ["current", "forecast", "air"], "default": "current" },
+      "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+      "lon": { "type": "number", "minimum": -180, "maximum": 180 }
+    },
+    "required": ["lat", "lon"]
+  }
+}

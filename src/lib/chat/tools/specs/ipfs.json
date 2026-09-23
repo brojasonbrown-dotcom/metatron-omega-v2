@@ -1,0 +1,17 @@
+{
+  "name": "ipfs",
+  "description": "Read first bytes of any IPFS CID via a 7-gateway fallback chain (dweb.link, ipfs.io, pinata, 4everland, nftstorage, w3s, flk-ipfs). Returns content + which gateway served it + per-gateway attempts log.",
+  "intel_action": "ipfs",
+  "auth": "none",
+  "rate_limit_per_min": 30,
+  "timeout_ms": 30000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "cid": { "type": "string", "description": "IPFS CIDv0 (Qm…) or CIDv1 (bafy…)." },
+      "gateway": { "type": "string", "description": "Optional: force a specific gateway URL (e.g. https://ipfs.io)." },
+      "max_bytes": { "type": "integer", "minimum": 1, "maximum": 65536, "default": 8192 }
+    },
+    "required": ["cid"]
+  }
+}

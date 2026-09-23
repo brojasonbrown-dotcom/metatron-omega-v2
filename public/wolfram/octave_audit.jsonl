@@ -1,0 +1,56 @@
+{"area": "factor", "id": "FACTOR_144", "input": "FactorInteger[144]", "pod": "Result", "result": "2^4\u00d73^2 (6 prime factors, 2 distinct)"}
+{"area": "factor", "id": "FACTOR_216", "input": "FactorInteger[216]", "pod": "Result", "result": "2^3\u00d73^3 (6 prime factors, 2 distinct)"}
+{"area": "factor", "id": "FACTOR_288", "input": "FactorInteger[288]", "pod": "Result", "result": "2^5\u00d73^2 (7 prime factors, 2 distinct)"}
+{"area": "factor", "id": "FACTOR_324", "input": "FactorInteger[324]", "pod": "Result", "result": "2^2\u00d73^4 (6 prime factors, 2 distinct)"}
+{"area": "factor", "id": "FACTOR_432", "input": "FactorInteger[432]", "pod": "Result", "result": "2^4\u00d73^3 (7 prime factors, 2 distinct)"}
+{"area": "factor", "id": "FACTOR_528", "input": "FactorInteger[528]", "pod": "Result", "result": "2^4\u00d73\u00d711 (6 prime factors, 3 distinct)"}
+{"area": "factor", "id": "FACTOR_648", "input": "FactorInteger[648]", "pod": "Result", "result": "2^3\u00d73^4 (7 prime factors, 2 distinct)"}
+{"area": "factor", "id": "FACTOR_864", "input": "FactorInteger[864]", "pod": "Result", "result": "2^5\u00d73^3 (8 prime factors, 2 distinct)"}
+{"area": "factor", "id": "FACTOR_1296", "input": "FactorInteger[1296]", "pod": "Result", "result": "2^4\u00d73^4 (8 prime factors, 2 distinct)"}
+{"area": "ratio", "id": "R_216_144", "input": "Simplify[216/144]", "pod": "Result", "result": "3/2"}
+{"area": "ratio", "id": "R_288_144", "input": "Simplify[288/144]", "pod": "Result", "result": "2"}
+{"area": "ratio", "id": "R_324_144", "input": "Simplify[324/144]", "pod": "Result", "result": "9/4"}
+{"area": "ratio", "id": "R_432_144", "input": "Simplify[432/144]", "pod": "Result", "result": "3"}
+{"area": "ratio", "id": "R_528_144", "input": "Simplify[528/144]", "pod": "Result", "result": "11/3"}
+{"area": "ratio", "id": "R_648_144", "input": "Simplify[648/144]", "pod": "Result", "result": "9/2"}
+{"area": "ratio", "id": "R_864_144", "input": "Simplify[864/144]", "pod": "Result", "result": "6"}
+{"area": "ratio", "id": "R_1296_144", "input": "Simplify[1296/144]", "pod": "Result", "result": "9"}
+{"area": "ratio", "id": "R_288_216", "input": "Simplify[288/216]", "pod": "Result", "result": "4/3"}
+{"area": "ratio", "id": "R_324_216", "input": "Simplify[324/216]", "pod": "Result", "result": "3/2"}
+{"area": "ratio", "id": "R_432_216", "input": "Simplify[432/216]", "pod": "Result", "result": "2"}
+{"area": "ratio", "id": "R_528_216", "input": "Simplify[528/216]", "pod": "Result", "result": "22/9"}
+{"area": "ratio", "id": "R_648_216", "input": "Simplify[648/216]", "pod": "Result", "result": "3"}
+{"area": "ratio", "id": "R_864_216", "input": "Simplify[864/216]", "pod": "Result", "result": "4"}
+{"area": "ratio", "id": "R_1296_216", "input": "Simplify[1296/216]", "pod": "Result", "result": "6"}
+{"area": "ratio", "id": "R_324_288", "input": "Simplify[324/288]", "pod": "Result", "result": "9/8"}
+{"area": "ratio", "id": "R_432_288", "input": "Simplify[432/288]", "pod": "Result", "result": "3/2"}
+{"area": "ratio", "id": "R_528_288", "input": "Simplify[528/288]", "pod": "Result", "result": "11/6"}
+{"area": "ratio", "id": "R_648_288", "input": "Simplify[648/288]", "pod": "Result", "result": "9/4"}
+{"area": "ratio", "id": "R_864_288", "input": "Simplify[864/288]", "pod": "Result", "result": "3"}
+{"area": "ratio", "id": "R_1296_288", "input": "Simplify[1296/288]", "pod": "Result", "result": "9/2"}
+{"area": "ratio", "id": "R_432_324", "input": "Simplify[432/324]", "pod": "Result", "result": "4/3"}
+{"area": "ratio", "id": "R_528_324", "input": "Simplify[528/324]", "pod": "Result", "result": "44/27"}
+{"area": "ratio", "id": "R_648_324", "input": "Simplify[648/324]", "pod": "Result", "result": "2"}
+{"area": "ratio", "id": "R_864_324", "input": "Simplify[864/324]", "pod": "Result", "result": "8/3"}
+{"area": "ratio", "id": "R_1296_324", "input": "Simplify[1296/324]", "pod": "Result", "result": "4"}
+{"area": "ratio", "id": "R_528_432", "input": "Simplify[528/432]", "pod": "Result", "result": "11/9"}
+{"area": "ratio", "id": "R_648_432", "input": "Simplify[648/432]", "pod": "Result", "result": "3/2"}
+{"area": "ratio", "id": "R_864_432", "input": "Simplify[864/432]", "pod": "Result", "result": "2"}
+{"area": "ratio", "id": "R_1296_432", "input": "Simplify[1296/432]", "pod": "Result", "result": "3"}
+{"area": "ratio", "id": "R_648_528", "input": "Simplify[648/528]", "pod": "Result", "result": "27/22"}
+{"area": "ratio", "id": "R_864_528", "input": "Simplify[864/528]", "pod": "Result", "result": "18/11"}
+{"area": "ratio", "id": "R_1296_528", "input": "Simplify[1296/528]", "pod": "Result", "result": "27/11"}
+{"area": "ratio", "id": "R_864_648", "input": "Simplify[864/648]", "pod": "Result", "result": "4/3"}
+{"area": "ratio", "id": "R_1296_648", "input": "Simplify[1296/648]", "pod": "Result", "result": "2"}
+{"area": "ratio", "id": "R_1296_864", "input": "Simplify[1296/864]", "pod": "Result", "result": "3/2"}
+{"area": "phys", "id": "SCHUMANN_TO_144", "input": "144 Hz / 7.83 Hz", "pod": "Result", "result": "18.39 s/s (seconds per second)\n18.39\n1839%"}
+{"area": "phys", "id": "A432_VS_A440_CENTS", "input": "1200 log2(432/440)", "pod": "Result", "result": "-(1200 log(55/54))/log(2)"}
+{"area": "phys", "id": "WAVELEN_528_AIR", "input": "speed of sound in air at 20 C / 528 Hz", "pod": "Result", "result": "1.455 mi/(h Hz) (miles per hour hertz)"}
+{"area": "phys", "id": "WAVELEN_1296_AIR", "input": "speed of sound in air at 20 C / 1296 Hz", "pod": "Result", "result": "0.5926 mi/(h Hz) (miles per hour hertz)"}
+{"area": "phys", "id": "VIS_OCTAVE_432", "input": "Log2[(5*10^14)/432]", "pod": "Result", "result": "log(31250000000000/27)/log(2)"}
+{"area": "phys", "id": "C_OVER_432", "input": "speed of light / 432 Hz", "pod": "Result", "result": "693964 meters"}
+{"area": "const", "id": "PHI60", "input": "N[GoldenRatio, 60]", "pod": "Result", "result": "1.61803398874989484820458683436563811772030917980576286213545"}
+{"area": "const", "id": "PHI2_60", "input": "N[GoldenRatio^2, 60]", "pod": "Result", "result": "2.61803398874989484820458683436563811772030917980576286213545"}
+{"area": "const", "id": "INV_PHI2_60", "input": "N[1/GoldenRatio^2, 60]", "pod": "Result", "result": "0.381966011250105151795413165634361882279690820194237137864551"}
+{"area": "const", "id": "INV_PHI3_60", "input": "N[1/GoldenRatio^3, 60]", "pod": "Result", "result": "0.236067977499789696409173668731276235440618359611525724270897"}
+{"area": "const", "id": "KAPPA_60", "input": "N[1/(GoldenRatio*Pi), 60]", "pod": "Result", "result": "0.196726328616693193469497574829387170483317866184501748948831"}

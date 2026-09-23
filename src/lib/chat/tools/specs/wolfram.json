@@ -1,0 +1,17 @@
+{
+  "name": "wolfram",
+  "description": "Wolfram Alpha computational knowledge engine. Use for math, physics constants, unit conversions, symbolic computation, and authoritative scientific facts. Mode 'short' = single-line answer; 'llm' = LLM-optimized plaintext (best for facts); 'full' = structured JSON pods.",
+  "intel_action": "wolfram",
+  "auth": "key",
+  "rate_limit_per_min": 20,
+  "timeout_ms": 25000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string", "description": "Natural-language or symbolic query, e.g. 'integrate sin(x)^2 from 0 to pi' or 'mass of proton in MeV'." },
+      "mode": { "type": "string", "enum": ["short", "llm", "full"], "default": "short" },
+      "units": { "type": "string", "enum": ["metric", "imperial"], "default": "metric" }
+    },
+    "required": ["query"]
+  }
+}

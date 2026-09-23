@@ -1,0 +1,17 @@
+{
+  "name": "reddit",
+  "description": "Search Reddit posts across all subreddits. Returns title, subreddit, score, comments count, permalink. Use for current online discussion and sentiment.",
+  "intel_action": "reddit",
+  "auth": "none",
+  "rate_limit_per_min": 20,
+  "timeout_ms": 12000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" },
+      "limit": { "type": "integer", "minimum": 1, "maximum": 25, "default": 10 },
+      "sort": { "type": "string", "enum": ["relevance", "hot", "new", "top"], "default": "relevance" }
+    },
+    "required": ["query"]
+  }
+}

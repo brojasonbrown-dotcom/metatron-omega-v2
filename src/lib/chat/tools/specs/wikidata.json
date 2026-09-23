@@ -1,0 +1,17 @@
+{
+  "name": "wikidata",
+  "description": "Search Wikidata for entities (people, places, concepts) and return their structured Q-IDs and labels. No auth required.",
+  "intel_action": "wikidata",
+  "auth": "none",
+  "rate_limit_per_min": 60,
+  "timeout_ms": 8000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "search": { "type": "string", "description": "Search term, e.g. 'Riemann hypothesis'." },
+      "language": { "type": "string", "default": "en" },
+      "limit": { "type": "integer", "minimum": 1, "maximum": 20, "default": 5 }
+    },
+    "required": ["search"]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "wayback",
+  "description": "Internet Archive Wayback Machine — find the closest archived snapshot of any URL. Useful for verifying historical claims or recovering deleted content.",
+  "intel_action": "wayback",
+  "auth": "none",
+  "rate_limit_per_min": 30,
+  "timeout_ms": 12000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": { "type": "string", "description": "URL to look up." },
+      "timestamp": { "type": "string", "description": "Optional YYYYMMDD or YYYYMMDDhhmmss." }
+    },
+    "required": ["url"]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "osm_geocode",
+  "description": "Geocode any place name to lat/lon via OpenStreetMap Nominatim. No auth required. Use before openweather to resolve a city name.",
+  "intel_action": "osm_geocode",
+  "auth": "none",
+  "rate_limit_per_min": 30,
+  "timeout_ms": 8000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "q": { "type": "string", "description": "Free-form place name, e.g. 'Reykjavik' or '1600 Pennsylvania Ave'." },
+      "limit": { "type": "integer", "minimum": 1, "maximum": 5, "default": 1 }
+    },
+    "required": ["q"]
+  }
+}

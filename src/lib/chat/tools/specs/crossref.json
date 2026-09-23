@@ -1,0 +1,16 @@
+{
+  "name": "crossref",
+  "description": "CrossRef scholarly metadata search — peer-reviewed papers with DOI, authors, year, journal. No auth required.",
+  "intel_action": "crossref",
+  "auth": "none",
+  "rate_limit_per_min": 50,
+  "timeout_ms": 10000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" },
+      "rows": { "type": "integer", "minimum": 1, "maximum": 20, "default": 5 }
+    },
+    "required": ["query"]
+  }
+}

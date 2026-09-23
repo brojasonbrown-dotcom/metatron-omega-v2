@@ -1,0 +1,96 @@
+{"area": "01_phi_psi", "id": "PHI_60", "input": "N[GoldenRatio, 60]", "pod": "Result", "result": "1.61803398874989484820458683436563811772030917980576286213545"}
+{"area": "01_phi_psi", "id": "INV_PHI_60", "input": "N[1/GoldenRatio, 60]", "pod": "Result", "result": "0.618033988749894848204586834365638117720309179805762862135449"}
+{"area": "01_phi_psi", "id": "PHI_SQ_60", "input": "N[GoldenRatio^2, 60]", "pod": "Result", "result": "2.61803398874989484820458683436563811772030917980576286213545"}
+{"area": "01_phi_psi", "id": "LN_PHI_60", "input": "N[Log[GoldenRatio], 60]", "pod": "Result", "result": "0.481211825059603447497758913424368423135184334385660519661018"}
+{"area": "01_phi_psi", "id": "PSI_60", "input": "N[1+Sqrt[2], 60]", "pod": "Result", "result": "2.41421356237309504880168872420969807856967187537694807317668"}
+{"area": "01_phi_psi", "id": "PSI_SQ_60", "input": "N[(1+Sqrt[2])^2, 60]", "pod": "Result", "result": "5.82842712474619009760337744841939615713934375075389614635336"}
+{"area": "01_phi_psi", "id": "INV_SQRT5_60", "input": "N[1/Sqrt[5], 60]", "pod": "Result", "result": "0.447213595499957939281834733746255247088123671922305144854179"}
+{"area": "01_phi_psi", "id": "PHI_COS_ATTR_60", "input": "N[1 - 1/Sqrt[5], 60]", "pod": "Result", "result": "0.552786404500042060718165266253744752911876328077694855145821"}
+{"area": "02_heptagonal", "id": "HEPT_SUM_COS", "input": "Sum[Cos[2 Pi k/7], {k,0,6}]", "pod": "Sum", "result": "sum_(k=0)^6 cos((2 \u03c0 k)/7) = 1 - 2 sin(\u03c0/14) + 2 sin((3 \u03c0)/14) - 2 cos(\u03c0/7)"}
+{"area": "02_heptagonal", "id": "HEPT_SUM_SIN", "input": "Sum[Sin[2 Pi k/7], {k,0,6}]", "pod": "Sum", "result": "sum_(k=0)^6 sin((2 \u03c0 k)/7) = 0"}
+{"area": "02_heptagonal", "id": "SIN_PI_7", "input": "N[Sin[Pi/7], 60]", "pod": "Result", "result": "0.433883739117558120475768332848358754609990727787459876444547"}
+{"area": "02_heptagonal", "id": "COS_PI_7", "input": "N[Cos[Pi/7], 60]", "pod": "Result", "result": "0.900968867902419126236102319507445051165919162131857150053562"}
+{"area": "02_heptagonal", "id": "TWO_SIN_PI_14", "input": "N[2 Sin[Pi/14], 60]", "pod": "Result", "result": "0.445041867912628808577805128993589518932711137529089910623974"}
+{"area": "02_heptagonal", "id": "COS_2PI_7", "input": "N[Cos[2 Pi/7], 60]", "pod": "Result", "result": "0.623489801858733530525004884004239810632274730896402105365549"}
+{"area": "03_tetra", "id": "SP3_RAD", "input": "N[ArcCos[-1/3], 60]", "pod": "Result", "result": "1.91063323624901855632771420503151550848682939002001098191940"}
+{"area": "03_tetra", "id": "SP3_DEG", "input": "N[ArcCos[-1/3]*180/Pi, 60]", "pod": "Result", "result": "109.471220634490691369245999339962435963006843100907948288171"}
+{"area": "03_tetra", "id": "TETRA_HALF_DEG", "input": "N[ArcCos[1/Sqrt[3]]*180/Pi, 60]", "pod": "Result", "result": "54.7356103172453456846229996699812179815034215504539741440856"}
+{"area": "03_tetra", "id": "SQRT_8_9", "input": "N[Sqrt[8/9], 60]", "pod": "Result", "result": "0.942809041582063365867792482806465385713114583584632048784453"}
+{"area": "03_tetra", "id": "PACK_FCC", "input": "N[Pi/(3 Sqrt[2]), 60]", "pod": "Result", "result": "0.740480489693061041169313498343448949769103614895948370514233"}
+{"area": "03_tetra", "id": "PACK_HEX2", "input": "N[Pi/(2 Sqrt[3]), 60]", "pod": "Result", "result": "0.906899682117108925297039128821077866142033124046370287784942"}
+{"area": "03_tetra", "id": "PACK_E8", "input": "N[Pi^4/384, 60]", "pod": "Result", "result": "0.253669507901048013636563366376836227212832254355951618988198"}
+{"area": "04_em", "id": "F_PLANCK", "input": "N[299792458/(1.616255*10^-35), 60]", "pod": "Result", "result": "1.85486\u00d710^43"}
+{"area": "04_em", "id": "EM_PHI_OCT", "input": "N[Log[10^20/10^-12]/Log[GoldenRatio], 60]", "pod": "Result", "result": "153.119102937013311083462072076055581130099295454983427011334"}
+{"area": "04_em", "id": "VISIBLE_PEAK_HZ", "input": "N[299792458/(555*10^-9), 60]", "pod": "Result", "result": "5.40166590990990990990990990990990990990990990990990990990991\u00d710^14"}
+{"area": "04_em", "id": "PHI_OCT_144_TO_PLANCK", "input": "N[Log[(299792458/(1.616255*10^-35))/144]/Log[GoldenRatio], 60]", "pod": "Result", "result": "196.71"}
+{"area": "04_em", "id": "PHI_OCT_COSMIC", "input": "N[Log[1.372506807*10^26/(1.616255*10^-35)]/Log[GoldenRatio], 60]", "pod": "Result", "result": "291.544"}
+{"area": "04_em", "id": "BASE2_COSMIC", "input": "N[Log[1.372506807*10^26/(1.616255*10^-35)]/Log[2], 60]", "pod": "Result", "result": "202.402"}
+{"area": "04_em", "id": "EFOLDS_COSMIC", "input": "N[Log[1.372506807*10^26/(1.616255*10^-35)], 60]", "pod": "Result", "result": "140.294"}
+{"area": "04_em", "id": "DECADES_COSMIC", "input": "N[Log[10, 1.372506807*10^26/(1.616255*10^-35)], 60]", "pod": "Result", "result": "60.929"}
+{"area": "05_planck", "id": "PLANCK_LEN_M", "input": "N[1.616255*10^-35, 60]", "pod": "Result", "result": "1.61626\u00d710^-35"}
+{"area": "05_planck", "id": "PLANCK_MASS_KG", "input": "N[2.176434*10^-8, 60]", "pod": "Result", "result": "2.17643\u00d710^-8"}
+{"area": "05_planck", "id": "PLANCK_TIME_S", "input": "N[5.391247*10^-44, 60]", "pod": "Result", "result": "5.39125\u00d710^-44"}
+{"area": "05_planck", "id": "PLANCK_TEMP_K", "input": "N[1.416784*10^32, 60]", "pod": "Result", "result": "1.41678\u00d710^32"}
+{"area": "05_planck", "id": "HUBBLE_RADIUS_M", "input": "N[299792458/(67.4*1000/(3.0857*10^22)), 60]", "pod": "Result", "result": "1.37251\u00d710^26"}
+{"area": "05_planck", "id": "HUBBLE_FREQ_HZ", "input": "N[299792458/(299792458/(67.4*1000/(3.0857*10^22))), 60]", "pod": "Result", "result": "2.18427\u00d710^-18"}
+{"area": "06_thermo", "id": "EXP_NEG_INV_PHI", "input": "N[Exp[-1/GoldenRatio], 60]", "pod": "Result", "result": "0.539003082724044620961937898364676370356118506844102179220842"}
+{"area": "06_thermo", "id": "INV_PHI_H_STAR", "input": "N[1/GoldenRatio, 60]", "pod": "Result", "result": "0.618033988749894848204586834365638117720309179805762862135449"}
+{"area": "06_thermo", "id": "EXP_NEG_PHI", "input": "N[Exp[-GoldenRatio], 60]", "pod": "Result", "result": "0.198288152862206232267888956604864670842084892501297165274262"}
+{"area": "06_thermo", "id": "PHI_BITS", "input": "N[Log[GoldenRatio]/Log[2], 60]", "pod": "Result", "result": "0.694241913630617301738790266898595223463567285227129715980990"}
+{"area": "06_thermo", "id": "PARITY_PHI3", "input": "N[1 - 1/GoldenRatio^3, 60]", "pod": "Result", "result": "0.763932022500210303590826331268723764559381640388474275729103"}
+{"area": "06_thermo", "id": "INV_PHI_CUBED", "input": "N[1/GoldenRatio^3, 60]", "pod": "Result", "result": "0.236067977499789696409173668731276235440618359611525724270897"}
+{"area": "07_bio", "id": "NERNST_RT_F_310K", "input": "N[8.314462618*310.15/96485.33212, 60]", "pod": "Result", "result": "0.0267267"}
+{"area": "07_bio", "id": "GIBBS_ATP_DIMLESS", "input": "N[30500/(8.314462618*310.15), 60]", "pod": "Result", "result": "11.8275"}
+{"area": "07_bio", "id": "DNA_PITCH_RATIO", "input": "N[34/21, 60]", "pod": "Result", "result": "1.61904761904761904761904761904761904761904761904761904761905"}
+{"area": "07_bio", "id": "MT_OUTER_INNER", "input": "N[25/15, 60]", "pod": "Result", "result": "1.66666666666666666666666666666666666666666666666666666666667"}
+{"area": "07_bio", "id": "F13_OVER_F12", "input": "N[233/144, 60]", "pod": "Result", "result": "1.61805555555555555555555555555555555555555555555555555555556"}
+{"area": "07_bio", "id": "MEMBRANE_FIELD", "input": "N[70*10^-3/(4*10^-9), 60]", "pod": "Result", "result": "1.75000000000000000000000000000000000000000000000000000000000\u00d710^7"}
+{"area": "08_muon", "id": "ALPHA_INV", "input": "N[1/137.035999084, 60]", "pod": "Result", "result": "0.00729735256928"}
+{"area": "08_muon", "id": "SCHWINGER_AE", "input": "N[1/(2 Pi)/137.035999084, 60]", "pod": "Result", "result": "0.00116140973289"}
+{"area": "08_muon", "id": "PHI_POW_11_0795", "input": "N[GoldenRatio^11.0795, 60]", "pod": "Result", "result": "206.766"}
+{"area": "08_muon", "id": "MMU_ME", "input": "N[105.6583755/0.51099895069, 60]", "pod": "Result", "result": "206.768"}
+{"area": "08_muon", "id": "MMU_ME_SQ", "input": "N[(105.6583755/0.51099895069)^2, 60]", "pod": "Result", "result": "42753.1"}
+{"area": "08_muon", "id": "AMU_BMW", "input": "N[116592061*10^-11, 30]", "pod": "Result", "result": "0.00116592061000000000000000000000"}
+{"area": "08_muon", "id": "DELTA_AMU", "input": "N[251*10^-11, 30]", "pod": "Result", "result": "2.51000000000000000000000000000\u00d710^-9"}
+{"area": "09_fib", "id": "FIB_7", "input": "Fibonacci[7]", "pod": "Result", "result": "13"}
+{"area": "09_fib", "id": "FIB_10", "input": "Fibonacci[10]", "pod": "Result", "result": "55"}
+{"area": "09_fib", "id": "FIB_13", "input": "Fibonacci[13]", "pod": "Result", "result": "233"}
+{"area": "09_fib", "id": "FIB_17", "input": "Fibonacci[17]", "pod": "Result", "result": "1597"}
+{"area": "09_fib", "id": "FIB_22", "input": "Fibonacci[22]", "pod": "Result", "result": "17711"}
+{"area": "09_fib", "id": "LUCAS_7", "input": "LucasL[7]", "pod": "Result", "result": "29"}
+{"area": "09_fib", "id": "RATIO_F12_F11", "input": "N[144/89, 60]", "pod": "Result", "result": "1.61797752808988764044943820224719101123595505617977528089888"}
+{"area": "10_phyllo", "id": "GOLDEN_ANGLE_DEG", "input": "N[360/GoldenRatio^2, 60]", "pod": "Result", "result": "137.507764050037854646348739628370277620688695269925369631238"}
+{"area": "10_phyllo", "id": "GOLDEN_ANGLE_COMP", "input": "N[360*(1 - 1/GoldenRatio), 60]", "pod": "Result", "result": "137.507764050037854646348739628370277620688695269925369631238"}
+{"area": "10_phyllo", "id": "SILVER_ANGLE_DEG", "input": "N[360/(1+Sqrt[2])^2, 60]", "pod": "Result", "result": "61.7662350913715648627841185690173834298362497285973873127906"}
+{"area": "10_phyllo", "id": "GOLDEN_ANGLE_RAD", "input": "N[2 Pi/GoldenRatio^2, 60]", "pod": "Result", "result": "2.39996322972865332223155550663361385312499901105811504293511"}
+{"area": "10_phyllo", "id": "GOLDEN_ANGLE_RAD_ALT", "input": "N[Pi (3 - Sqrt[5]), 60]", "pod": "Result", "result": "2.39996322972865332223155550663361385312499901105811504293511"}
+{"area": "11_super", "id": "TDESIGN_LB_9", "input": "(9+1)(9+3)/4", "pod": "Result", "result": "30"}
+{"area": "11_super", "id": "TDESIGN_LB_13", "input": "(13+1)(13+3)/4", "pod": "Result", "result": "56"}
+{"area": "11_super", "id": "TDESIGN_LB_21", "input": "(21+1)(21+3)/4", "pod": "Result", "result": "132"}
+{"area": "11_super", "id": "TDESIGN_LB_55", "input": "(55+1)(55+3)/4", "pod": "Result", "result": "812"}
+{"area": "11_super", "id": "PHI_INV_SUM_9", "input": "N[Sum[1/GoldenRatio^k, {k,0,8}], 60]", "pod": "Result", "result": "2.58359213500126182154495798761234258735628984233084565437462"}
+{"area": "11_super", "id": "PHI_DECAY_SUM_9", "input": "N[Sum[2/GoldenRatio^k, {k,1,8}], 60]", "pod": "Result", "result": "3.16718427000252364308991597522468517471257968466169130874923"}
+{"area": "11_super", "id": "PHI_INV_SUM_INF", "input": "N[Sum[1/GoldenRatio^k, {k,0,Infinity}], 60]", "pod": "Result", "result": "2.61803398874989484820458683436563811772030917980576286213545"}
+{"area": "12_triadic", "id": "SIN_2PI_3", "input": "N[Sin[2 Pi/3], 60]", "pod": "Result", "result": "0.866025403784438646763723170752936183471402626905190314027903"}
+{"area": "12_triadic", "id": "COS_2PI_3", "input": "N[Cos[2 Pi/3], 60]", "pod": "Result", "result": "-0.500000000000000000000000000000000000000000000000000000000000"}
+{"area": "12_triadic", "id": "TRIADIC_SUM", "input": "Sum[Exp[I 2 Pi k/3], {k,0,2}]", "pod": "Sum", "result": "sum_(k=0)^2 exp(1/3 i 2 \u03c0 k) = 0"}
+{"area": "12_triadic", "id": "LOG3_LOGPHI", "input": "N[Log[3]/Log[GoldenRatio], 60]", "pod": "Result", "result": "2.28301182858927940046602460418564540537745329721948342000822"}
+{"area": "12_triadic", "id": "KURAMOTO_THRESH", "input": "N[1/(1-Cos[2 Pi/3]), 60]", "pod": "Result", "result": "0.666666666666666666666666666666666666666666666666666666666667"}
+{"area": "12_triadic", "id": "TRIADIC_DENSITY", "input": "N[3/(2 Pi), 60]", "pod": "Result", "result": "0.477464829275686007306651290117543086103378937221369346243002"}
+{"area": "13_residual", "id": "ONE_MINUS_INVPHI_4", "input": "N[(1 - 1/GoldenRatio)^4, 60]", "pod": "Result", "result": "0.0212862362522081877036764783215995278735072240789798951555789"}
+{"area": "13_residual", "id": "INV_PHI_6", "input": "N[1/GoldenRatio^6, 60]", "pod": "Result", "result": "0.0557280900008412143633053250748950582375265615538971029164110"}
+{"area": "13_residual", "id": "V10_FLOOR", "input": "N[0.05625982094858675, 60]", "pod": "Result", "result": "0.05625982094858675"}
+{"area": "13_residual", "id": "INV_FIB_13", "input": "N[1/233, 60]", "pod": "Result", "result": "0.00429184549356223175965665236051502145922746781115879828326180"}
+{"area": "13_residual", "id": "INV_PHI_9", "input": "N[1/GoldenRatio^9, 60]", "pod": "Result", "result": "0.0131556174964248389559523684316960024905121133959373126052532"}
+{"area": "14_solfeggio", "id": "R_528_396", "input": "528/396", "pod": "Decimal approximation", "result": "1.3333333333333333333333333333333333333333333333333333333333333333..."}
+{"area": "14_solfeggio", "id": "R_528_417", "input": "N[528/417, 30]", "pod": "Result", "result": "1.26618705035971223021582733813"}
+{"area": "14_solfeggio", "id": "R_639_396", "input": "N[639/396, 30]", "pod": "Result", "result": "1.61363636363636363636363636364"}
+{"area": "14_solfeggio", "id": "R_741_528", "input": "N[741/528, 30]", "pod": "Result", "result": "1.40340909090909090909090909091"}
+{"area": "14_solfeggio", "id": "R_852_639", "input": "N[852/639, 30]", "pod": "Result", "result": "1.33333333333333333333333333333"}
+{"area": "14_solfeggio", "id": "TET_FIFTH", "input": "N[2^(7/12), 60]", "pod": "Result", "result": "1.49830707687668149879928073202979579630215155373174687644102"}
+{"area": "14_solfeggio", "id": "JUST_FIFTH", "input": "N[3/2, 60]", "pod": "Result", "result": "1.50000000000000000000000000000000000000000000000000000000000"}
+{"area": "15_holo", "id": "BEKENSTEIN_BITS", "input": "N[(4 Pi (1.372506807*10^26)^2 / 4) / (1.616255*10^-35)^2, 30]", "pod": "Result", "result": "2.26547\u00d710^122"}
+{"area": "15_holo", "id": "BEKEN_LOG2", "input": "N[Log[2, (4 Pi (1.372506807*10^26)^2 / 4) / (1.616255*10^-35)^2], 30]", "pod": "Result", "result": "406.455"}
+{"area": "15_holo", "id": "BEKEN_LOG_PHI", "input": "N[Log[GoldenRatio, (4 Pi (1.372506807*10^26)^2 / 4) / (1.616255*10^-35)^2], 30]", "pod": "Result", "result": "585.466"}
+{"area": "15_holo", "id": "PROTON_PLANCK_RATIO", "input": "N[8.4*10^-16/(1.616255*10^-35), 30]", "pod": "Result", "result": "5.1972\u00d710^19"}
+{"area": "15_holo", "id": "PROTON_PLANCK_PHIOCT", "input": "N[Log[GoldenRatio, 8.4*10^-16/(1.616255*10^-35)], 30]", "pod": "Result", "result": "94.3394"}

@@ -1,0 +1,101 @@
+{"area": "f1_septenary", "id": "SILVER", "input": "N[1+Sqrt[2], 50]", "pod": "Result", "result": "2.4142135623730950488016887242096980785696718753769"}
+{"area": "f1_septenary", "id": "SILVER_INV", "input": "N[Sqrt[2]-1, 50]", "pod": "Result", "result": "0.41421356237309504880168872420969807856967187537695"}
+{"area": "f1_septenary", "id": "TOEPLITZ7", "input": "Eigenvalues[Table[GoldenRatio^(-Abs[i-j]),{i,1,7},{j,1,7}]] // N[#,50]&", "pod": "Input", "result": "(#1 | 50 digits&)(eigenvalues | (Table[\u03d5^(-abs(i - j)), {i, 1, 7}, {j, 1, 7}]))"}
+{"area": "f1_septenary", "id": "TOEPLITZ12", "input": "Eigenvalues[Table[GoldenRatio^(-Abs[i-j]),{i,1,12},{j,1,12}]] // N[#,50]&", "pod": "Input", "result": "(#1 | 50 digits&)(eigenvalues | (Table[\u03d5^(-abs(i - j)), {i, 1, 12}, {j, 1, 12}]))"}
+{"area": "f1_septenary", "id": "SOLF_MEAN", "input": "N[Mean[{174,285,396,417,528,639,741}], 50]", "pod": "Result", "result": "454.28571428571428571428571428571428571428571428571"}
+{"area": "f1_septenary", "id": "R_741_174", "input": "N[741/174, 50]", "pod": "Result", "result": "4.2586206896551724137931034482758620689655172413793"}
+{"area": "f1_septenary", "id": "PHI_OCT_174_741", "input": "N[Log[GoldenRatio, 741/174], 50]", "pod": "Result", "result": "3.0110343317147076191606545572652200059744349325155"}
+{"area": "f1_septenary", "id": "PHI_WEIGHTS_5", "input": "N[Table[GoldenRatio^(-k)/Sum[GoldenRatio^(-j),{j,0,4}],{k,0,4}], 50]", "error": "no success"}
+{"area": "f2_quantum", "id": "PLANCK_LEN", "input": "N[1.616255*10^-35, 50]", "pod": "Result", "result": "1.61626\u00d710^-35"}
+{"area": "f2_quantum", "id": "PLANCK_TIME", "input": "N[5.391247*10^-44, 50]", "pod": "Result", "result": "5.39125\u00d710^-44"}
+{"area": "f2_quantum", "id": "ALPHA_INV_CODATA", "input": "N[137.035999084, 50]", "pod": "Result", "result": "137.035999084"}
+{"area": "f2_quantum", "id": "ALPHA_FS", "input": "N[7.2973525693*10^-3, 50]", "pod": "Result", "result": "0.0072973525693"}
+{"area": "f2_quantum", "id": "MP_ME_RATIO", "input": "N[1836.15267343, 50]", "pod": "Result", "result": "1836.15267343"}
+{"area": "f2_quantum", "id": "LOGPHI_MP_ME", "input": "N[Log[GoldenRatio, 1836.15267343], 50]", "pod": "Result", "result": "15.61771205904"}
+{"area": "f2_quantum", "id": "PHI_15", "input": "N[GoldenRatio^15, 50]", "pod": "Result", "result": "1364.0007331374358574047979689630392518093885996815"}
+{"area": "f2_quantum", "id": "MP_ME_OVER_PHI15", "input": "N[1836.15267343/GoldenRatio^15, 50]", "pod": "Result", "result": "1.34615226284"}
+{"area": "f2_quantum", "id": "MU_E_RATIO", "input": "N[105.6583755/0.51099895069, 50]", "pod": "Result", "result": "206.768"}
+{"area": "f2_quantum", "id": "TAU_E_RATIO", "input": "N[1776.86/0.51099895069, 50]", "pod": "Result", "result": "3477.23"}
+{"area": "f2_quantum", "id": "LOGPHI_MU_E", "input": "N[Log[GoldenRatio, 105.6583755/0.51099895069], 50]", "pod": "Result", "result": "11.0795"}
+{"area": "f2_quantum", "id": "LOGPHI_TAU_E", "input": "N[Log[GoldenRatio, 1776.86/0.51099895069], 50]", "pod": "Result", "result": "16.9447"}
+{"area": "f2_quantum", "id": "PHI_11", "input": "N[GoldenRatio^11, 50]", "pod": "Result", "result": "199.00502499874064149020822825854179247710751700271"}
+{"area": "f2_quantum", "id": "RYDBERG_EV", "input": "N[13.605693122994, 50]", "pod": "Result", "result": "13.605693122994"}
+{"area": "f2_quantum", "id": "RYDBERG_OVER_PHI5", "input": "N[13.605693122994/GoldenRatio^5, 50]", "pod": "Result", "result": "1.2268245835730"}
+{"area": "f2_quantum", "id": "WEINBERG_PHI", "input": "N[Sqrt[5]-2, 50]", "pod": "Result", "result": "0.23606797749978969640917366873127623544061835961153"}
+{"area": "f2_quantum", "id": "W_BOSON_PHI_EXP", "input": "N[Log[GoldenRatio, 80.377/0.51099895069/10^-3], 50]", "pod": "Result", "result": "24.8661"}
+{"area": "f2_quantum", "id": "ELECTRON_MASS_MEV", "input": "N[0.51099895069, 50]", "pod": "Result", "result": "0.51099895069"}
+{"area": "f3_atomic", "id": "BOHR_RADIUS", "input": "N[5.29177210903*10^-11, 50]", "pod": "Result", "result": "5.29177210903\u00d710^-11"}
+{"area": "f3_atomic", "id": "LOGPHI_RYDBERG", "input": "N[Log[GoldenRatio, 13.605693122994], 50]", "pod": "Result", "result": "5.4248216298716"}
+{"area": "f3_atomic", "id": "LOGPHI_MAGIC", "input": "Table[N[Log[GoldenRatio, m], 50], {m, {2,8,20,28,50,82,126}}]", "pod": "Result", "result": "{1.4404200904125564790175514995878638024586041426841, 4.3212602712376694370526544987635914073758124280522, 6.2253920571942224503757412519646007127742071256523, 6.9246106114754625136577119873797179032737118086525, 8.1295238431507754636988280051656100181726018232524, 9.1575456332945097991338736952883123000472610804161, 10.050214178241464835572209696163144911570014260407}"}
+{"area": "f3_atomic", "id": "NOBLE_RATIOS", "input": "N[{10/2, 18/10, 36/18, 54/36, 86/54, 118/86}, 30]", "pod": "Result", "result": "{5.00000000000000000000000000000, 1.80000000000000000000000000000, 2.00000000000000000000000000000, 1.50000000000000000000000000000, 1.59259259259259259259259259259, 1.37209302325581395348837209302}"}
+{"area": "f3_atomic", "id": "BOHR_PLANCK_DECADES", "input": "N[Log[10, 5.29177210903*10^-11/(1.616255*10^-35)], 50]", "pod": "Result", "result": "24.5151"}
+{"area": "f4_geometric", "id": "COS_36", "input": "N[(1+Sqrt[5])/4, 50]", "pod": "Result", "result": "0.80901699437494742410229341718281905886015458990288"}
+{"area": "f4_geometric", "id": "DODECA_EDGE_CIRCUM", "input": "N[4/(GoldenRatio^2 Sqrt[3]), 50]", "pod": "Result", "result": "0.88211271766614333026871574982347832666366270409303"}
+{"area": "f4_geometric", "id": "ICOSA_EDGE_CIRCUM", "input": "N[2/(GoldenRatio Sqrt[5]), 50]", "pod": "Result", "result": "0.55278640450004206071816526625374475291187632807769"}
+{"area": "f4_geometric", "id": "GOLDEN_ANGLE_DEG", "input": "N[360/GoldenRatio^2, 50]", "pod": "Result", "result": "137.50776405003785464634873962837027762068869526993"}
+{"area": "f4_geometric", "id": "GOLDEN_ANGLE_ALT", "input": "N[360 (1 - 1/GoldenRatio), 50]", "pod": "Result", "result": "137.50776405003785464634873962837027762068869526993"}
+{"area": "f4_geometric", "id": "CIRCUMR_DODECA", "input": "N[(Sqrt[3]+Sqrt[15])/4, 50]", "pod": "Result", "result": "1.4012585384440735446766779353220679944439317397755"}
+{"area": "f4_geometric", "id": "CIRCUMR_ICOSA", "input": "N[(1/4) Sqrt[10+2 Sqrt[5]], 50]", "pod": "Result", "result": "0.95105651629515357211643933337938214340569863412575"}
+{"area": "f4_geometric", "id": "SURFACE_DODECA", "input": "N[3 Sqrt[5(5+2 Sqrt[5])], 50]", "pod": "Result", "result": "20.645728807067603073108143728663315192888490040122"}
+{"area": "f5_color", "id": "SEMITONE", "input": "N[2^(1/12), 50]", "pod": "Result", "result": "1.0594630943592952645618252949463417007792043174942"}
+{"area": "f5_color", "id": "LOGPHI_OCTAVE", "input": "N[Log[GoldenRatio, 2], 50]", "pod": "Result", "result": "1.4404200904125564790175514995878638024586041426841"}
+{"area": "f5_color", "id": "PYTH_COMMA", "input": "N[531441/524288, 50]", "pod": "Result", "result": "1.0136432647705078125000000000000000000000000000000"}
+{"area": "f5_color", "id": "LOGPHI_8_5", "input": "N[Log[GoldenRatio, 8/5], 50]", "pod": "Result", "result": "0.97670839486855994471201624597471829951881358776799"}
+{"area": "f5_color", "id": "R_639_396", "input": "N[639/396, 50]", "pod": "Result", "result": "1.6136363636363636363636363636363636363636363636364"}
+{"area": "f5_color", "id": "LOGPHI_639_396", "input": "N[Log[GoldenRatio, 639/396], 50]", "pod": "Result", "result": "0.99434431617258763163053795589715921616392025098828"}
+{"area": "f5_color", "id": "PHI_CENTS", "input": "N[1200 Log[2, GoldenRatio], 50]", "pod": "Result", "result": "833.09029635674076208654832027831426815628074227256"}
+{"area": "f5_color", "id": "FIFTH_CENTS", "input": "N[1200 Log[2, 3/2], 50]", "pod": "Result", "result": "701.95500086538741774448673273737981051177728923098"}
+{"area": "f5_color", "id": "M6_CENTS", "input": "N[1200 Log[2, 8/5], 50]", "pod": "Result", "result": "813.68628613516518255561668461273178896220232837050"}
+{"area": "f5_color", "id": "M6_PHI_DEV_CENTS", "input": "N[1200 (Log[2,GoldenRatio]-Log[2,8/5]), 50]", "pod": "Result", "result": "19.404010221575579530931635665582479194078413902052"}
+{"area": "f5_color", "id": "SOLF_PHI_PAIR_CENTS", "input": "N[1200 Log[2, 639/396], 50]", "pod": "Result", "result": "828.37860104086176624886049388027923003113635577405"}
+{"area": "f5_color", "id": "SOLF_PHI_DEV_CENTS", "input": "N[1200 (Log[2,GoldenRatio]-Log[2,639/396]), 50]", "pod": "Result", "result": "4.7116953158789958376878263980350381251443864985100"}
+{"area": "f5_color", "id": "SOUND_20C", "input": "N[331.3 Sqrt[1+20/273.15], 30]", "pod": "Result", "result": "343.215"}
+{"area": "f6_hebrew", "id": "PATHS_OVER_PHI", "input": "N[22/GoldenRatio, 50]", "pod": "Result", "result": "13.596747752497686660500910356044038589846801955727"}
+{"area": "f6_hebrew", "id": "SEFIROT_OVER_PHI", "input": "N[10/GoldenRatio, 50]", "pod": "Result", "result": "6.1803398874989484820458683436563811772030917980576"}
+{"area": "f6_hebrew", "id": "LOGPHI_1495", "input": "N[Log[GoldenRatio, 1495], 50]", "pod": "Result", "result": "15.190569111470559795500424015031015636087555154467"}
+{"area": "f6_hebrew", "id": "METATRON_OVER_PI", "input": "N[314/Pi, 30]", "pod": "Result", "result": "99.9493042617102708628590033979"}
+{"area": "f6_hebrew", "id": "HARMONIC_22", "input": "N[Sum[1/k, {k, {1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400}}], 50]", "error": "no success"}
+{"area": "f6_hebrew", "id": "HARMONIC_22_OVER_PI", "input": "N[Sum[1/k, {k, {1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400}}]/Pi, 50]", "error": "no success"}
+{"area": "f6_hebrew", "id": "GEMATRIA_POPCOUNTS", "input": "Total[DigitCount[#,2,1]&/@{1,2,3,4,5,6,7,8,9,10,20,30,40,50,60,70,80,90,100,200,300,400}]", "error": "no success"}
+{"area": "f7_galactic", "id": "ARCTAN_PHI_INV_SQ_DEG", "input": "N[ArcTan[1/GoldenRatio^2]*180/Pi, 50]", "pod": "Result", "result": "20.905157447889299032928958365289129765507059767951"}
+{"area": "f7_galactic", "id": "HUBBLE_PLANCK_REF", "input": "N[67.36, 30]", "pod": "Result", "result": "67.36"}
+{"area": "f7_galactic", "id": "UNIVERSE_AGE", "input": "N[13.799, 30]", "pod": "Result", "result": "13.799"}
+{"area": "f7_galactic", "id": "BAO_OVER_F12", "input": "N[147.09/144, 50]", "pod": "Result", "result": "1.02146"}
+{"area": "f7_galactic", "id": "LOGPHI_BAO_F12", "input": "N[Log[GoldenRatio, 147.09/144], 50]", "pod": "Result", "result": "0.0441206"}
+{"area": "f7_galactic", "id": "AU_IN_LY", "input": "N[1/63241.077, 30]", "pod": "Result", "result": "0.0000158125"}
+{"area": "f7_galactic", "id": "AGE_PHI_PRED", "input": "N[Fibonacci[7] + GoldenRatio/2, 50]", "pod": "Result", "result": "13.809016994374947424102293417182819058860154589903"}
+{"area": "f7_galactic", "id": "PHI_CUBED", "input": "N[GoldenRatio^3, 50]", "pod": "Result", "result": "4.2360679774997896964091736687312762354406183596115"}
+{"area": "f8_subplanck", "id": "KAPPA_144", "input": "N[144/(GoldenRatio Pi), 50]", "pod": "Result", "result": "28.328591320803819859607650775431752549597772730568"}
+{"area": "f8_subplanck", "id": "INV_PHI_3", "input": "N[1/GoldenRatio^3, 50]", "pod": "Result", "result": "0.23606797749978969640917366873127623544061835961153"}
+{"area": "f8_subplanck", "id": "STEP_174_PHI", "input": "N[174 GoldenRatio, 50]", "pod": "Result", "result": "281.53791404248170358759810917962103248333379728620"}
+{"area": "f8_subplanck", "id": "TORUS_963_174", "input": "N[963/174, 50]", "pod": "Result", "result": "5.5344827586206896551724137931034482758620689655172"}
+{"area": "f8_subplanck", "id": "PHI3_PLUS_1", "input": "N[GoldenRatio^3+1, 50]", "pod": "Result", "result": "5.2360679774997896964091736687312762354406183596115"}
+{"area": "f8_subplanck", "id": "TWO_OVER_PHI2", "input": "N[2/GoldenRatio^2, 50]", "pod": "Result", "result": "0.76393202250021030359082633126872376455938164038847"}
+{"area": "f8_subplanck", "id": "V10_KAPPA", "input": "N[1/(GoldenRatio Pi), 50]", "pod": "Result", "result": "0.19672632861669319346949757482938717048331786618450"}
+{"area": "f9_hyper", "id": "CMB_TEMP", "input": "N[2.72548, 30]", "pod": "Result", "result": "2.72548"}
+{"area": "f9_hyper", "id": "DARK_MATTER_RATIO", "input": "N[0.6911/0.3089, 50]", "pod": "Result", "result": "2.23729"}
+{"area": "f9_hyper", "id": "SQRT5", "input": "N[Sqrt[5], 50]", "pod": "Result", "result": "2.2360679774997896964091736687312762354406183596115"}
+{"area": "f9_hyper", "id": "PSI_SQ", "input": "N[(1+Sqrt[2])^2, 50]", "pod": "Result", "result": "5.8284271247461900976033774484193961571393437507539"}
+{"area": "f9_hyper", "id": "INV_SQRT2", "input": "N[1/Sqrt[2], 50]", "pod": "Result", "result": "0.70710678118654752440084436210484903928483593768847"}
+{"area": "f9_hyper", "id": "LOGPHI_ETA", "input": "N[Log[GoldenRatio, 6.1*10^-10], 50]", "pod": "Result", "result": "-44.0919"}
+{"area": "f9_hyper", "id": "LOGPHI_SW", "input": "N[Log[GoldenRatio, 10^-5], 50]", "pod": "Result", "result": "-23.924859833908329856790948761883684551578014914841"}
+{"area": "f9_hyper", "id": "REION_PHI4_2", "input": "N[GoldenRatio^4+2, 50]", "pod": "Result", "result": "8.8541019662496845446137605030969143531609275394173"}
+{"area": "f9_hyper", "id": "CMB_PEAK_RATIO_2_1", "input": "N[546/220, 30]", "pod": "Result", "result": "2.48181818181818181818181818182"}
+{"area": "f9_hyper", "id": "CMB_PEAK_PSI", "input": "N[(1+Sqrt[2]), 30]", "pod": "Result", "result": "2.41421356237309504880168872421"}
+{"area": "lyapunov", "id": "PHI_NEG_1_5", "input": "N[1/GoldenRatio^(3/2), 50]", "pod": "Result", "result": "0.48586827175664567818286387589453256219248598400237"}
+{"area": "lyapunov", "id": "PHI_NEG_2_22", "input": "N[1/GoldenRatio^(2+1/22), 50]", "pod": "Result", "result": "0.37370187881736887594191078741718381936733388106699"}
+{"area": "lyapunov", "id": "PHI_NEG_3", "input": "N[1/GoldenRatio^3, 50]", "pod": "Result", "result": "0.23606797749978969640917366873127623544061835961153"}
+{"area": "lyapunov", "id": "BAND_WIDTH", "input": "N[GoldenRatio - 1/GoldenRatio, 50]", "pod": "Result", "result": "1.0000000000000000000000000000000000000000000000000"}
+{"area": "residual", "id": "HEX_PACKING", "input": "N[Pi/(2 Sqrt[3]), 50]", "pod": "Result", "result": "0.90689968211710892529703912882107786614203312404637"}
+{"area": "residual", "id": "F8_ZPE_LIMIT", "input": "N[(1+GoldenRatio)/2, 50]", "pod": "Result", "result": "1.3090169943749474241022934171828190588601545899029"}
+{"area": "residual", "id": "REDUCED_COMPTON", "input": "N[3.8615926796*10^-13, 50]", "pod": "Result", "result": "3.8615926796\u00d710^-13"}
+{"area": "residual", "id": "TETRA_DEG", "input": "N[ArcCos[-1/3]*180/Pi, 50]", "pod": "Result", "result": "109.47122063449069136924599933996243596300684310091"}
+{"area": "residual", "id": "INV_PHI_8", "input": "N[1/GoldenRatio^8, 50]", "pod": "Result", "result": "0.021286236252208187703676478321599527873507224078980"}
+{"area": "residual", "id": "INV_PHI_2", "input": "N[1/GoldenRatio^2, 50]", "pod": "Result", "result": "0.38196601125010515179541316563436188227969082019424"}
+{"area": "residual", "id": "INV_PHI_6", "input": "N[1/GoldenRatio^6, 50]", "pod": "Result", "result": "0.055728090000841214363305325074895058237526561553897"}
+{"area": "audit", "id": "F_PLANCK", "input": "N[299792458/(1.616255*10^-35), 50]", "pod": "Result", "result": "1.85486\u00d710^43"}
+{"area": "audit", "id": "PHI_OCT_F4_TO_F8", "input": "N[Abs[Log10[528*10^-9] - Log10[1.616255*10^-35]]/Log10[GoldenRatio], 50]", "pod": "Result", "result": "136.439"}
+{"area": "audit", "id": "NERNST_RT_F_310", "input": "N[8.314462618*310.15/96485.33212, 50]", "pod": "Result", "result": "0.0267267"}
+{"area": "audit", "id": "GIBBS_ATP_DIM", "input": "N[30500/(8.314462618*310.15), 50]", "pod": "Result", "result": "11.8275"}
+{"area": "audit", "id": "PHI_OCT_144_TO_PLANCK", "input": "N[Log[GoldenRatio, 299792458/(1.616255*10^-35)/144], 50]", "pod": "Result", "result": "196.71"}
+{"area": "audit", "id": "ALPHA_INV_AT_MZ", "input": "N[127.952, 30]", "pod": "Result", "result": "127.952"}

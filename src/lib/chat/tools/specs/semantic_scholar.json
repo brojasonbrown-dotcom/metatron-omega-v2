@@ -1,0 +1,16 @@
+{
+  "name": "semantic_scholar",
+  "description": "Semantic Scholar academic graph search. Returns papers ranked by citations and relevance, with abstracts and venue info. Broader coverage than arXiv.",
+  "intel_action": "semantic_scholar",
+  "auth": "none",
+  "rate_limit_per_min": 20,
+  "timeout_ms": 15000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string" },
+      "limit": { "type": "integer", "minimum": 1, "maximum": 25, "default": 10 }
+    },
+    "required": ["query"]
+  }
+}

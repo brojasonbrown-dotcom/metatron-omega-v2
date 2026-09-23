@@ -1,0 +1,26 @@
+{"id": "F4_DIHEDRAL_TETRA", "query": "N[ArcCos[1/3], 60]", "expected_60dp": "1.23095941734077468213836579415911143789842262398632262849326", "wolfram_raw": "cos^(-1)(1/3) | 60 digits", "match": false}
+{"id": "F4_DIHEDRAL_OCTA", "query": "N[Pi - ArcCos[1/3], 60]", "expected_60dp": "1.91063323624901810648117418580415603484636114529416252961069", "wolfram_raw": "\u03c0 - cos^(-1)(1/3) | 60 digits", "match": false}
+{"id": "F4_DIHEDRAL_DODECA", "query": "N[ArcCos[-1/Sqrt[5]], 60]", "expected_60dp": "2.03444393579570273544187502117265666906754825232828826987389", "wolfram_raw": "cos^(-1)(-1/sqrt(5)) | 60 digits", "match": false}
+{"id": "F4_DIHEDRAL_ICOSA", "query": "N[ArcCos[-Sqrt[5]/3], 60]", "expected_60dp": "2.41186499736279450451364833192373893712852263974410785655461", "wolfram_raw": "cos^(-1)(-sqrt(5)/3) | 60 digits", "match": false}
+{"id": "F4_COS36", "query": "N[Cos[Pi/5], 60]", "expected_60dp": "0.80901699437494742410229341718281905886015458990288143106772", "wolfram_raw": "cos(\u03c0/5) | 60 digits", "match": false}
+{"id": "F4_COS_PI8", "query": "N[Cos[Pi/8], 60]", "expected_60dp": "0.92387953251128675612818318939678828682241662586364434006172", "wolfram_raw": "cos(\u03c0/8) | 60 digits", "match": false}
+{"id": "F4_DODECA_EDGE_CIRCUM", "query": "N[4/(GoldenRatio^2 Sqrt[3]), 60]", "expected_60dp": "0.88211271763366339040149166757754725617517391775296614825905", "wolfram_raw": "4/(\u03d5^2 sqrt(3)) | 60 digits", "match": false}
+{"id": "F4_ICOSA_EDGE_CIRCUM", "query": "N[2/(GoldenRatio Sqrt[5]), 60]", "expected_60dp": "0.55278640450004206071816526625890098231175342382500313947912", "wolfram_raw": "2/(\u03d5 sqrt(5)) | 60 digits", "match": false}
+{"id": "F4_GOLDEN_ANGLE_DEG", "query": "N[360/GoldenRatio^2, 60]", "expected_60dp": "137.50776405003785397206813584068725714839905361688474713087866", "wolfram_raw": "360/\u03d5^2 | 60 digits", "match": false}
+{"id": "F4_VESICA_AREA_RATIO", "query": "N[(2 Pi/3 - Sqrt[3]/2)/Pi, 60]", "expected_60dp": "0.39100221895577382189239031094296942538156718068488447737617", "wolfram_raw": "(2\u00d7\u03c0/3 - sqrt(3)/2)/\u03c0 | 60 digits", "match": false}
+{"id": "F4_CIRCUMR_TETRA", "query": "N[Sqrt[6]/4, 60]", "expected_60dp": "0.61237243569579452454932101867647284799148690455467044049036", "wolfram_raw": "sqrt(6)/4 | 60 digits", "match": false}
+{"id": "F4_CIRCUMR_CUBE", "query": "N[Sqrt[3]/2, 60]", "expected_60dp": "0.86602540378443864676372317075293618347140262690519031402790", "wolfram_raw": "sqrt(3)/2 | 60 digits", "match": false}
+{"id": "F4_CIRCUMR_OCTA", "query": "N[Sqrt[2]/2, 60]", "expected_60dp": "0.70710678118654752440084436210484903928483593768847403658833", "wolfram_raw": "sqrt(2)/2 | 60 digits", "match": false}
+{"id": "F4_CIRCUMR_DODECA", "query": "N[(Sqrt[3]+Sqrt[15])/4, 60]", "expected_60dp": "1.40125853844407358980370298938861736780056397785172919066921", "wolfram_raw": "1/4 (sqrt(3) + sqrt(15)) | 60 digits", "match": false}
+{"id": "F4_CIRCUMR_ICOSA", "query": "N[Sqrt[10+2 Sqrt[5]]/4, 60]", "expected_60dp": "0.95105651629515357211643933337938214340569863412575022244730", "wolfram_raw": "1/4 sqrt(10 + 2 sqrt(5)) | 60 digits", "match": false}
+{"id": "F4_VOLUME_ICOSA_PHI", "query": "N[5 GoldenRatio^2 / 6, 60]", "expected_60dp": "2.18169499062415737350034598905468490147640901832146488511604", "wolfram_raw": "5\u00d7\u03d5^2/6 | 60 digits", "match": false}
+{"id": "F4_SURFACE_ICOSA", "query": "N[5 Sqrt[3], 60]", "expected_60dp": "8.66025403784438646763723170752936183471402626905190314027903", "wolfram_raw": "5 sqrt(3) | 60 digits", "match": false}
+{"id": "F4_SURFACE_DODECA", "query": "N[3 Sqrt[5 (5+2 Sqrt[5])], 60]", "expected_60dp": "20.64572881994533895100295364996283568037151212105276811117467", "wolfram_raw": "3 sqrt(5 (5 + 2 sqrt(5))) | 60 digits", "match": false}
+{"id": "F4_SILVER_RATIO", "query": "N[1+Sqrt[2], 60]", "expected_60dp": "2.41421356237309504880168872420969807856967187537694807317668", "wolfram_raw": "1 + sqrt(2) | 60 digits", "match": false}
+{"id": "F4_SILVER_IDENTITY", "query": "N[(1+Sqrt[2])^2 - (2(1+Sqrt[2])+1), 60]", "expected_60dp": "0", "wolfram_raw": "(1 + sqrt(2))^2 - (2 (1 + sqrt(2)) + 1) | 60 digits", "match": false}
+{"id": "F4_AMMANN_BEENKER_INFLATION", "query": "N[1+Sqrt[2], 60]", "expected_60dp": "2.41421356237309504880168872420969807856967187537694807317668", "wolfram_raw": "1 + sqrt(2) | 60 digits", "match": false}
+{"id": "F4_DESCARTES_TETRA", "query": "4*180", "expected_60dp": "720", "wolfram_raw": "4\u00d7180", "match": false}
+{"id": "F4_DESCARTES_CUBE", "query": "8*90", "expected_60dp": "720", "wolfram_raw": "8\u00d790", "match": false}
+{"id": "F4_DESCARTES_OCTA", "query": "6*120", "expected_60dp": "720", "wolfram_raw": "6\u00d7120", "match": false}
+{"id": "F4_DESCARTES_DODECA", "query": "20*36", "expected_60dp": "720", "wolfram_raw": "20\u00d736", "match": false}
+{"id": "F4_DESCARTES_ICOSA", "query": "12*60", "expected_60dp": "720", "wolfram_raw": "12\u00d760", "match": false}

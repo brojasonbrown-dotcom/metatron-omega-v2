@@ -1,0 +1,17 @@
+{
+  "name": "github_search",
+  "description": "Search GitHub repositories, code, or issues. Authenticated via GITHUB_TOKEN (configured) for high rate limits.",
+  "intel_action": "github_search",
+  "auth": "github_token",
+  "rate_limit_per_min": 30,
+  "timeout_ms": 10000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "kind": { "type": "string", "enum": ["repositories", "code", "issues"], "default": "repositories" },
+      "q": { "type": "string", "description": "GitHub search query." },
+      "per_page": { "type": "integer", "minimum": 1, "maximum": 30, "default": 10 }
+    },
+    "required": ["q"]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "nasa_donki",
+  "description": "NASA DONKI space-weather notifications (CME, solar flares, geomagnetic storms). Authenticated via NASA_API_KEY (configured).",
+  "intel_action": "donki",
+  "auth": "nasa_api_key",
+  "rate_limit_per_min": 30,
+  "timeout_ms": 12000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "kind": { "type": "string", "enum": ["CME", "FLR", "GST", "SEP", "MPC", "RBE", "HSS", "WSAEnlilSimulations", "notifications"], "default": "notifications" },
+      "days": { "type": "integer", "minimum": 1, "maximum": 30, "default": 7 }
+    }
+  }
+}

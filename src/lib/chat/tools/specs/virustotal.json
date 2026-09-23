@@ -1,0 +1,16 @@
+{
+  "name": "virustotal",
+  "description": "VirusTotal API v3: query files (sha256), URLs, domains, or IP addresses for threat-intel. Requires VIRUSTOTAL_API_KEY (configured).",
+  "intel_action": "virustotal",
+  "auth": "virustotal_api_key",
+  "rate_limit_per_min": 4,
+  "timeout_ms": 10000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "kind": { "type": "string", "enum": ["file", "url", "domain", "ip"] },
+      "value": { "type": "string", "description": "sha256 hex (file), full URL (url), domain (domain), or IPv4/IPv6 (ip)." }
+    },
+    "required": ["kind", "value"]
+  }
+}

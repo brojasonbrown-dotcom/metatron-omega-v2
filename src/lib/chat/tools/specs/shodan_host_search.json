@@ -1,0 +1,17 @@
+{
+  "name": "shodan_host_search",
+  "description": "Shodan internet-wide search for exposed services. Use Shodan query syntax (e.g. 'apache country:US port:443', 'product:nginx', 'org:\"Cloudflare\"'). Returns matching hosts with banner data.",
+  "intel_action": "shodan_host_search",
+  "auth": "key",
+  "rate_limit_per_min": 60,
+  "timeout_ms": 20000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string", "description": "Shodan search query." },
+      "facets": { "type": "string", "description": "Optional comma-separated facets like 'country,port'." },
+      "page": { "type": "string", "default": "1" }
+    },
+    "required": ["query"]
+  }
+}

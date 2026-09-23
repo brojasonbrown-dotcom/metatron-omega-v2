@@ -1,0 +1,17 @@
+{
+  "name": "http_probe",
+  "description": "Fetch URL status, response headers, and a body snippet (up to 64 KB). Default method GET. Use to verify reachability, capture Server/Content-Type, or grab a small body sample. For reading a full webpage as plaintext, use web_fetch instead.",
+  "intel_action": "http_probe",
+  "auth": "none",
+  "rate_limit_per_min": 30,
+  "timeout_ms": 12000,
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": { "type": "string" },
+      "method": { "type": "string", "enum": ["GET", "HEAD"], "default": "GET" },
+      "max_bytes": { "type": "integer", "minimum": 512, "maximum": 65536, "default": 16384 }
+    },
+    "required": ["url"]
+  }
+}
