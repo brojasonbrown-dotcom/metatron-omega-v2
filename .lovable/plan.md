@@ -17,7 +17,43 @@
 
 **Other checked facts:** Zipf's law on 20k words gives H = 10.48, so the most common word is about 9.5% of all text, and frequency weighting is required. Memory fade times: φ⁻² → 2.08 ticks, φ⁻³ → 3.71, φ⁻⁵ → 10.58. The golden angle is 137.508°. Its closeness to α⁻¹ = 137.036 has no mechanism behind it and is not used.
 
+## How information flows today (traced in the code)
+
+```text
+senses (mic mel/MFCC/chroma 233 Hz, camera, IMU, screen) ─┐
+typed/chat text ──(lexeme → torus slots)─────────────────┤
+                                                          v
+field Ψ (60 Hz) → capture tick (~2 Hz) → layers L0–L6
+   L1 Hebbian co-activation  (the only learned weights, saved to IndexedDB)
+   pattern index (3-stage recall, rehearsal-weighted)
+   consolidation (cosine + energy gate) → prototypes
+   mind: concept store + self-model prediction (novelty, surprise)
+```
+
+- **Stored:** a pattern snapshot is kept at every capture. Hebbian weights change on each tick. Prototypes merge together during consolidation.
+- **Recalled:** by field similarity. Recall boosts a pattern's rehearsal count, and patterns fade with age.
+- **Saved:** Hebbian weights and the memory snapshot go to the browser's storage, written with a short delay.
+- **Missing for hearing words:** the microphone produces sound features but never *word identities*. So a sound pattern and the word it carries are never active together, and nothing can link them. Text links only to whatever else happens to be in the field when it's typed. Functions and meanings are linked to nothing.
+
+## What learning a word requires (three bindings)
+
+1. **Sound ↔ word.** A word label has to arrive together with the sound pattern that carries it, so Hebbian learning can link the two. The teacher is speech-to-text on the microphone stream (Lovable AI, off the tick path), with a timestamp for each word. Once enough pairs are learned, the field can predict the word straight from the sound features, and its guesses are scored against the teacher. The teacher can then be turned off.
+2. **Word ↔ pattern (vision, motion, context).** Links form between the word vector and whatever senses are active in the same φ-scaled time window, ±φ³ ≈ 4.2 captures. A link is weighted by surprise, so unexpected pairings learn faster (predictive-coding gain = surprise).
+3. **Word ↔ function / meaning.** Each grounded detector from the lexicon (for example `rise: ż>0`) fires a label when the field's own path meets its condition. That word is then linked to the field state that caused it. Its meaning is the set of states that turn it on. It can be checked: activating a word should call up states that satisfy its condition.
+
+## Methods used (each maps to an existing part)
+
+- **Fast + slow memory (complementary learning):** the pattern index is the fast store. Consolidation, plus replay during idle ticks, is the slow cortex. Replay uses the existing `MemoryStore.replay()`.
+- **Modern Hopfield recall** with the calibrated β, so a crisp pick is always possible.
+- **Sparse distributed addressing** (32 of 1597 active) for the lexicon, exact key = base-27.
+- **Reversible binding (circular convolution / phase binding)** on the complex field for role and filler slots, which gives sentences as structure.
+- **Assembly formation:** keep the top-k active units after each word. Repeated sets become assemblies, which are the compositional units.
+- **Next-word prediction:** a small linear state update driven by the existing self-model. Its surprise drives both learning rate and storage.
+- **New here — closure-gated learning:** a link is written only if adding it does not raise the torus closure residual over a Fibonacci window. Learning can then never make the field less stable.
+
 ## What gets built (all edits to existing files)
+
+**L0 — Hearing words.** The microphone stream is sent to Lovable speech-to-text in short chunks, and words come back with timestamps. Each word is placed into the field at its timestamp, lined up with the audio features captured at that moment. A running score shows how often the field's own word guess from sound matches the teacher.
 
 **L1 — Word-rate capture.** Separate word capture from the 2 Hz memory tick. Each token gets its own write when it arrives, placed on the field tick, so no words are lost at 20 words/s. Rate counters show up on the MEMORY deck.
 
