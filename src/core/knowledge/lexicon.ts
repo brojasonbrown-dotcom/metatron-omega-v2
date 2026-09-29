@@ -419,7 +419,7 @@ export interface SoundTrial {
 
 export interface SoundWordSnapshot {
   d: number; k: number; re: ArrayLike<number>; im: ArrayLike<number>;
-  trials: number; hits1: number; hits5: number; recent: number[];
+  trials: number; scored: number; hits1: number; hits5: number; recent: number[];
 }
 
 export class SoundWordMap {
@@ -430,6 +430,8 @@ export class SoundWordMap {
   trials = 0;
   hits1 = 0;
   hits5 = 0;
+  /** Trials that produced a guess before learning (the scored ones). */
+  scoredN = 0;
   /** 1 = top-1 hit, 0 = miss; last SOUND_WINDOW scored trials. */
   private recent: number[] = [];
   lastTrial: SoundTrial | null = null;
@@ -470,6 +472,7 @@ export class SoundWordMap {
       const top = g.hits.map((h) => h.word);
       const hit1 = heard.includes(top[0]);
       const hit5 = top.some((w) => heard.includes(w));
+      this.scoredN++;
       this.hits1 += hit1 ? 1 : 0;
       this.hits5 += hit5 ? 1 : 0;
       this.recent.push(hit1 ? 1 : 0);
@@ -501,7 +504,7 @@ export class SoundWordMap {
   stats() {
     const n = this.recent.length;
     const recentAcc = n > 0 ? this.recent.reduce((s, x) => s + x, 0) / n : 0;
-    const scored = Math.max(0, this.trials - 1);
+    const scored = this.scoredN;
     return {
       trials: this.trials,
       scored,
@@ -516,13 +519,13 @@ export class SoundWordMap {
   }
 
   snapshot(): SoundWordSnapshot {
-    return { d: this.d, k: this.k, re: this.re.slice(), im: this.im.slice(), trials: this.trials, hits1: this.hits1, hits5: this.hits5, recent: [...this.recent] };
+    return { d: this.d, k: this.k, re: this.re.slice(), im: this.im.slice(), trials: this.trials, scored: this.scoredN, hits1: this.hits1, hits5: this.hits5, recent: [...this.recent] };
   }
 
   load(s: SoundWordSnapshot): void {
     if (!s || s.d !== this.d || s.k !== this.k || s.re.length !== this.re.length || s.im.length !== this.im.length) return;
     this.re = Float32Array.from(s.re); this.im = Float32Array.from(s.im);
-    this.trials = s.trials | 0; this.hits1 = s.hits1 | 0; this.hits5 = s.hits5 | 0;
+    this.trials = s.trials | 0; this.scoredN = s.scored | 0; this.hits1 = s.hits1 | 0; this.hits5 = s.hits5 | 0;
     this.recent = Array.isArray(s.recent) ? s.recent.slice(-SOUND_WINDOW) : [];
   }
 }

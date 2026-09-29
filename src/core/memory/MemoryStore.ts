@@ -43,7 +43,7 @@ export interface MemoryRecall {
   trajectory: TrajectorySummary;
 }
 
-import { LexiconMemory } from '@/core/knowledge/lexicon';
+import { LexiconMemory, SoundWordMap, type LexiconSnapshot, type SoundWordSnapshot } from '@/core/knowledge/lexicon';
 
 export interface MemorySnapshot {
   hebbian: HebbianSnapshot;
@@ -52,6 +52,10 @@ export interface MemorySnapshot {
   journal: JournalRecord[];
   /** L2 episodes. Optional so pre-existing saves still restore. */
   episodes?: Episode[];
+  /** Learned word meanings. Optional so pre-lexicon saves still restore. */
+  lexicon?: LexiconSnapshot;
+  /** Learned sound→word map + its prequential score. */
+  soundWords?: SoundWordSnapshot;
   lastHash: string | null;
 }
 
@@ -79,6 +83,8 @@ export class MemoryStore {
   readonly kernel: MemoryCaptureKernel;
   /** Ω-LEXICON — learned word meaning vectors (spelling ⊕ context). */
   readonly lexicon = new LexiconMemory();
+  /** Sound→word map taught by the speech-to-text teacher. */
+  readonly soundWords = new SoundWordMap();
   /** Words heard/read since the last memory tick; drained losslessly. */
   private readonly wordQueue: { text: string; at: number }[] = [];
   /** Scalar witness-coherence path the grounded predicates read. */
@@ -100,6 +106,18 @@ export class MemoryStore {
     if (!text || !text.trim()) return;
     this.wordQueue.push({ text, at });
     this.wordsEnqueued += text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).length;
+  }
+
+  /**
+   * One teacher-labelled sound chunk: score the field's own guess from the
+   * sound, then learn the pair, then queue the words for the field.
+   */
+  hearWithSound(text: string, descriptor: ArrayLike<number> | null, at = Date.now()) {
+    const trial = descriptor ? this.soundWords.observe(descriptor, text, this.lexicon) : null;
+    // Words must be known before the next chunk can be guessed; learning
+    // them here (not only at the next tick) keeps the guess set current.
+    this.hear(text, at);
+    return trial;
   }
 
   /** Drain every queued utterance in arrival order. */
@@ -168,6 +186,8 @@ export class MemoryStore {
       pathway: this.pathway.snapshot(),
       journal: this.journal.snapshot(),
       episodes: this.episodic.snapshot(),
+      lexicon: this.lexicon.snapshot(),
+      soundWords: this.soundWords.snapshot(),
       lastHash: this.lastHash,
     };
   }
@@ -180,6 +200,8 @@ export class MemoryStore {
     // Absent on legacy snapshots: leave the live L2 store untouched rather
     // than clearing memories that the transport simply never carried.
     if (snap.episodes) this.episodic.restore(snap.episodes);
+    if (snap.lexicon) this.lexicon.load(snap.lexicon);
+    if (snap.soundWords) this.soundWords.load(snap.soundWords);
     this.lastHash = snap.lastHash;
   }
 
