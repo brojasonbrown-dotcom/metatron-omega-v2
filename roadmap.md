@@ -105,3 +105,9 @@ Notebook 4 what turns a rung off.
 - [x] Word pattern inspector (code, Zeckendorf address, torus spot, fingerprint, neighbours, meaning)
 - [x] Activity map (dormant vs live, saved time)
 - [ ] Live-speech trial by the user (needs a real listening session)
+
+## P0 — Foundation & governance (task arc: .lovable/plan/00-task-arc.md)
+- [x] P0.1 Baseline captured (docs/BASELINE.md) — lint red, decision pending
+- [ ] P0.2 Gate script
+- [ ] P0.3 Determinism freeze
+- [ ] P0.4 Branch/versioning policy

@@ -11,3 +11,6 @@ Canonical context: `.lovable/plan/00-project-context-sheet.md` (read before ever
 - Frozen unless a task says otherwise: vite.config.ts plugins, trnn-core constants/dmath/Neumaier kernels, dmd.ts/vsa.ts core math, live engine math dirs, persisted snapshot state.
 - Minimal diff; match the file's existing idiom; small edits over rewrites.
 - Save each task's plan as `.lovable/plan/ω-<topic>-<date>.md` before coding.
+- Every plan runs an information-flow review first: source, destination, what it indicates, storage layering, pattern-recognition/field use, improvement methods; enumerate all solutions per question, filter rigorously, keep the best combination — prevents unexamined designs.
+- Before any task, consult docs/BRAINMAP.md and scan existing files; extend, never duplicate — one home per concern.
+- Baseline and expected test counts live in docs/BASELINE.md — the gate compares against it.
