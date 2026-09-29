@@ -128,6 +128,30 @@ export function lexemeAddress(text: string): string {
   return parts.length === 0 ? 'z:0' : 'z:' + parts.join('|');
 }
 
+/** Where a lexeme lands on the (R=φ, r=1) torus with `rungs` major positions. */
+export interface LexemeTorus {
+  /** Largest Zeckendorf index of the code (the discrete class). */
+  readonly top: number;
+  /** Major-circle rung = top mod rungs. */
+  readonly rung: number;
+  /** Major angle θ = 2π·rung/rungs, radians. */
+  readonly theta: number;
+  /** Minor angle ϕ = 2π·frac(v·φ⁻¹), radians. */
+  readonly minor: number;
+}
+
+export function lexemeTorus(lx: Lexeme, rungs: number): LexemeTorus {
+  const top = lx.zeck.length > 0 ? lx.zeck[0] : 2;
+  const r = Math.max(1, Math.floor(rungs));
+  const rung = top % r;
+  return {
+    top,
+    rung,
+    theta: (2 * Math.PI * rung) / r,
+    minor: 2 * Math.PI * ((lx.value * PHI_INV) % 1),
+  };
+}
+
 export interface TextInjection {
   /** Tokens actually written into Ψ. */
   tokens: number;
@@ -160,12 +184,9 @@ export function injectTextPsi(psi: Float64Array, text: string): TextInjection {
     const lx = lexeme(tokens[r]);
     if (lx.value <= 0) continue;
     if (!lx.exact) inexact++;
-    // Major circle: Zeckendorf class of the exact integer (discrete, reversible).
-    const top = lx.zeck.length > 0 ? lx.zeck[0] : 2;
-    const n = top % rungs;
-    // Minor circle: golden-angle phase of the exact integer (equidistributed).
-    const minor = 2 * Math.PI * ((lx.value * PHI_INV) % 1);
-    const theta = (2 * Math.PI * n) / rungs;
+    // Major circle: Zeckendorf class (discrete, reversible); minor circle:
+    // golden-angle phase (equidistributed). One definition, shared with UI.
+    const { rung: n, theta, minor } = lexemeTorus(lx, rungs);
     const ringR = PHI + Math.cos(minor);
     const amp = PHI_INV ** Math.min(r, 12);
     const base = RUNG_STRIDE * n;
