@@ -259,23 +259,274 @@ export class LexiconMemory {
     return { hits: scored.slice(0, k), beta, topMass, crisp: topMass >= 0.6180339887498949 };
   }
 
-  snapshot(): { d: number; total: number; words: [string, number, number[], number[]][] } {
-    const words: [string, number, number[], number[]][] = [];
+  /**
+   * Lossless snapshot. Deltas stay Float32 (their working precision), so the
+   * saved state restores bit-identically; structured-clone storage keeps
+   * typed arrays without a number[] blow-up. Spelling signatures are NOT
+   * stored — they are recomputed from the word itself.
+   */
+  snapshot(): LexiconSnapshot {
+    const words: LexiconSnapshot['words'] = [];
     for (const [w, f] of this.freq) {
       const dl = this.delta.get(w);
-      words.push([w, f, dl ? Array.from(dl.re) : [], dl ? Array.from(dl.im) : []]);
+      words.push([w, f, dl ? dl.re.slice() : null, dl ? dl.im.slice() : null]);
     }
     return { d: this.d, total: this.total, words };
   }
 
-  static restore(s: ReturnType<LexiconMemory['snapshot']>): LexiconMemory {
-    const m = new LexiconMemory(s.d);
-    m.total = s.total;
+  /** Replace this memory's contents in place (the store holds a readonly ref). */
+  load(s: LexiconSnapshot): void {
+    this.freq.clear(); this.delta.clear(); this.total = 0;
+    if (!s || s.d !== this.d || !Array.isArray(s.words)) return;
+    this.total = Number.isFinite(s.total) ? s.total : 0;
     for (const [w, f, re, im] of s.words) {
-      m.freq.set(w, f);
-      if (re.length === s.d) m.delta.set(w, { re: Float32Array.from(re), im: Float32Array.from(im), n: f });
+      this.freq.set(w, f);
+      if (re && im && re.length === this.d && im.length === this.d) {
+        this.delta.set(w, { re: Float32Array.from(re), im: Float32Array.from(im), n: f });
+      }
     }
+  }
+
+  static restore(s: LexiconSnapshot): LexiconMemory {
+    const m = new LexiconMemory(s.d);
+    m.load(s);
     return m;
+  }
+}
+
+export interface LexiconSnapshot {
+  d: number;
+  total: number;
+  words: [string, number, ArrayLike<number> | null, ArrayLike<number> | null][];
+}
+
+// ─── 3b. Sound → word ─────────────────────────────────────────────────────
+//
+// The speech-to-text service is a TEACHER, not the hearer. For every chunk
+// it transcribes, the chunk's own acoustic descriptor a ∈ ℝᵏ is paired with
+// the bundle of the heard words' meaning vectors t ∈ ℂᵈ, and a linear map
+// W: ℝᵏ → ℂᵈ is learned by normalised LMS (the exact least-squares gradient
+// step, stable for 0 < μ < 2):  W ← W + μ (t − W a) aᵀ / ‖a‖².
+// The field's guess for a chunk is recall(W a) over the learned vocabulary.
+// Accuracy is PREQUENTIAL: the guess is made before the pair is learned, so
+// every scored trial is on unseen data — the score cannot be inflated by
+// memorisation of the chunk being scored.
+
+/** Log-spaced analysis bands (Hz). 24 bands ≈ critical-band resolution. */
+export const SOUND_BANDS = 24;
+const SOUND_LO = 80;
+const SOUND_HI = 7600;
+/** Descriptor = per-band mean + std of log energy, plus bias. */
+export const SOUND_DIM = SOUND_BANDS * 2 + 1;
+/** NLMS step μ = φ⁻³ (inside the stable interval (0, 2)). */
+const SOUND_MU = 0.2360679774997897;
+/** Scoring window: F8 trials. */
+export const SOUND_WINDOW = 21;
+
+function fftMag2(frame: Float64Array): Float64Array {
+  const n = frame.length;
+  const re = Float64Array.from(frame);
+  const im = new Float64Array(n);
+  for (let i = 1, j = 0; i < n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) { const t = re[i]; re[i] = re[j]; re[j] = t; }
+  }
+  for (let len = 2; len <= n; len <<= 1) {
+    const ang = (-2 * Math.PI) / len;
+    for (let i = 0; i < n; i += len) {
+      for (let k = 0; k < len / 2; k++) {
+        const wr = Math.cos(ang * k), wi = Math.sin(ang * k);
+        const ar = re[i + k + len / 2], ai = im[i + k + len / 2];
+        const xr = ar * wr - ai * wi, xi = ar * wi + ai * wr;
+        re[i + k + len / 2] = re[i + k] - xr; im[i + k + len / 2] = im[i + k] - xi;
+        re[i + k] += xr; im[i + k] += xi;
+      }
+    }
+  }
+  const out = new Float64Array(n / 2);
+  for (let i = 0; i < n / 2; i++) out[i] = re[i] * re[i] + im[i] * im[i];
+  return out;
+}
+
+/**
+ * Acoustic descriptor of a mono PCM chunk: Hann-windowed 1024-pt frames,
+ * 50 % hop, energy in 24 log-spaced bands → log → per-band mean and std
+ * over voiced frames (frames below −60 dB of the chunk peak are silence and
+ * excluded). Mean-removed and unit-normalised so loudness does not decide
+ * the word. Returns null when the chunk holds no signal.
+ */
+export function soundDescriptor(pcm: ArrayLike<number>, sampleRate: number): Float64Array | null {
+  const N = 1024, hop = 512;
+  if (!(sampleRate > 0) || pcm.length < N) return null;
+  const hann = new Float64Array(N);
+  for (let i = 0; i < N; i++) hann[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1));
+  const edges: number[] = [];
+  for (let b = 0; b <= SOUND_BANDS; b++) edges.push(SOUND_LO * Math.pow(SOUND_HI / SOUND_LO, b / SOUND_BANDS));
+  const binHz = sampleRate / N;
+  const frames: Float64Array[] = [];
+  const energy: number[] = [];
+  const buf = new Float64Array(N);
+  for (let s = 0; s + N <= pcm.length; s += hop) {
+    for (let i = 0; i < N; i++) buf[i] = pcm[s + i] * hann[i];
+    const p = fftMag2(buf);
+    const bands = new Float64Array(SOUND_BANDS);
+    let e = 0;
+    for (let b = 0; b < SOUND_BANDS; b++) {
+      const lo = Math.max(1, Math.floor(edges[b] / binHz));
+      const hi = Math.min(p.length - 1, Math.max(lo, Math.ceil(edges[b + 1] / binHz)));
+      let acc = 0;
+      for (let k = lo; k <= hi; k++) acc += p[k];
+      bands[b] = acc; e += acc;
+    }
+    frames.push(bands); energy.push(e);
+  }
+  const peak = Math.max(...energy);
+  if (!(peak > 0)) return null;
+  const voiced = frames.filter((_, i) => energy[i] >= peak * 1e-6);
+  if (voiced.length === 0) return null;
+  const out = new Float64Array(SOUND_DIM);
+  for (let b = 0; b < SOUND_BANDS; b++) {
+    let m = 0;
+    for (const f of voiced) m += Math.log(f[b] + 1e-12);
+    m /= voiced.length;
+    let v = 0;
+    for (const f of voiced) { const x = Math.log(f[b] + 1e-12) - m; v += x * x; }
+    out[b] = m; out[SOUND_BANDS + b] = Math.sqrt(v / voiced.length);
+  }
+  // Remove overall level from the means, then unit-normalise.
+  let mu = 0;
+  for (let b = 0; b < SOUND_BANDS; b++) mu += out[b];
+  mu /= SOUND_BANDS;
+  for (let b = 0; b < SOUND_BANDS; b++) out[b] -= mu;
+  let n2 = 0;
+  for (let i = 0; i < SOUND_DIM - 1; i++) n2 += out[i] * out[i];
+  const inv = n2 > 0 ? 1 / Math.sqrt(n2) : 0;
+  for (let i = 0; i < SOUND_DIM - 1; i++) out[i] *= inv;
+  out[SOUND_DIM - 1] = 1; // bias
+  return out;
+}
+
+export interface SoundTrial {
+  readonly guess: string | null;
+  readonly guessTop: readonly string[];
+  readonly heard: readonly string[];
+  readonly hit1: boolean;
+  readonly hit5: boolean;
+  readonly crisp: boolean;
+}
+
+export interface SoundWordSnapshot {
+  d: number; k: number; re: ArrayLike<number>; im: ArrayLike<number>;
+  trials: number; scored: number; hits1: number; hits5: number; recent: number[];
+}
+
+export class SoundWordMap {
+  readonly d: number;
+  readonly k = SOUND_DIM;
+  private re: Float32Array;
+  private im: Float32Array;
+  trials = 0;
+  hits1 = 0;
+  hits5 = 0;
+  /** Trials that produced a guess before learning (the scored ones). */
+  scoredN = 0;
+  /** 1 = top-1 hit, 0 = miss; last SOUND_WINDOW scored trials. */
+  private recent: number[] = [];
+  lastTrial: SoundTrial | null = null;
+
+  constructor(d = LEX_DIM) {
+    this.d = d;
+    this.re = new Float32Array(d * this.k);
+    this.im = new Float32Array(d * this.k);
+  }
+
+  predict(a: ArrayLike<number>): Phasor {
+    const out = zeros(this.d);
+    for (let i = 0; i < this.d; i++) {
+      let r = 0, m = 0;
+      const o = i * this.k;
+      for (let j = 0; j < this.k; j++) { r += this.re[o + j] * a[j]; m += this.im[o + j] * a[j]; }
+      out.re[i] = r; out.im[i] = m;
+    }
+    return out;
+  }
+
+  /** Guess from sound alone (no teacher). Null until any word is known. */
+  guess(a: ArrayLike<number>, lex: LexiconMemory, k = 5): RecallResult | null {
+    if (this.trials === 0 || lex.size === 0) return null;
+    return lex.recall(this.predict(a), k);
+  }
+
+  /**
+   * One teacher pair: score the guess first (prequential), then learn.
+   * Trials with no heard words are neither scored nor learned.
+   */
+  observe(a: ArrayLike<number>, heardText: string, lex: LexiconMemory): SoundTrial | null {
+    const heard = [...new Set(heardText.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean))];
+    if (heard.length === 0 || a.length !== this.k) return null;
+    const g = this.guess(a, lex);
+    let trial: SoundTrial | null = null;
+    if (g && g.hits.length > 0) {
+      const top = g.hits.map((h) => h.word);
+      const hit1 = heard.includes(top[0]);
+      const hit5 = top.some((w) => heard.includes(w));
+      this.scoredN++;
+      this.hits1 += hit1 ? 1 : 0;
+      this.hits5 += hit5 ? 1 : 0;
+      this.recent.push(hit1 ? 1 : 0);
+      if (this.recent.length > SOUND_WINDOW) this.recent.shift();
+      trial = { guess: top[0], guessTop: top, heard, hit1, hit5, crisp: g.crisp };
+    }
+    // Target: mean of the heard words' meaning vectors.
+    const t = zeros(this.d);
+    for (const w of heard) {
+      const s = lex.signature(w);
+      for (let i = 0; i < this.d; i++) { t.re[i] += s.re[i] / heard.length; t.im[i] += s.im[i] / heard.length; }
+    }
+    const y = this.predict(a);
+    let a2 = 0;
+    for (let j = 0; j < this.k; j++) a2 += a[j] * a[j];
+    if (a2 > 0) {
+      const step = SOUND_MU / a2;
+      for (let i = 0; i < this.d; i++) {
+        const er = (t.re[i] - y.re[i]) * step, ei = (t.im[i] - y.im[i]) * step;
+        const o = i * this.k;
+        for (let j = 0; j < this.k; j++) { this.re[o + j] += er * a[j]; this.im[o + j] += ei * a[j]; }
+      }
+    }
+    this.trials++;
+    this.lastTrial = trial ?? { guess: null, guessTop: [], heard, hit1: false, hit5: false, crisp: false };
+    return this.lastTrial;
+  }
+
+  stats() {
+    const n = this.recent.length;
+    const recentAcc = n > 0 ? this.recent.reduce((s, x) => s + x, 0) / n : 0;
+    const scored = this.scoredN;
+    return {
+      trials: this.trials,
+      scored,
+      top1: scored > 0 ? this.hits1 / scored : 0,
+      top5: scored > 0 ? this.hits5 / scored : 0,
+      recent: recentAcc,
+      recentN: n,
+      /** Teacher may be withdrawn only on a full window at ≥ φ⁻¹ top-1. */
+      selfSufficient: n === SOUND_WINDOW && recentAcc >= 0.6180339887498949,
+      last: this.lastTrial,
+    };
+  }
+
+  snapshot(): SoundWordSnapshot {
+    return { d: this.d, k: this.k, re: this.re.slice(), im: this.im.slice(), trials: this.trials, scored: this.scoredN, hits1: this.hits1, hits5: this.hits5, recent: [...this.recent] };
+  }
+
+  load(s: SoundWordSnapshot): void {
+    if (!s || s.d !== this.d || s.k !== this.k || s.re.length !== this.re.length || s.im.length !== this.im.length) return;
+    this.re = Float32Array.from(s.re); this.im = Float32Array.from(s.im);
+    this.trials = s.trials | 0; this.scoredN = s.scored | 0; this.hits1 = s.hits1 | 0; this.hits5 = s.hits5 | 0;
+    this.recent = Array.isArray(s.recent) ? s.recent.slice(-SOUND_WINDOW) : [];
   }
 }
 

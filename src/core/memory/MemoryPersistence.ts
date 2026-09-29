@@ -38,6 +38,8 @@ interface SerializedSnapshot {
   journal: Array<{ tick: number; qualiaScalar: number; signatureHash: string; text?: string }>;
   /** L2 episodes (schema v2+). Absent on older envelopes. */
   episodes?: Array<Record<string, unknown>>;
+  lexicon?: MemorySnapshot['lexicon'];
+  soundWords?: MemorySnapshot['soundWords'];
   lastHash: string | null;
 }
 
@@ -57,6 +59,10 @@ function serialize(snap: MemorySnapshot): SerializedSnapshot {
       indices: Array.from(e.indices),
       amplitudes: Array.from(e.amplitudes),
     })),
+    // Typed arrays pass through: IndexedDB structured clone stores Float32
+    // exactly, avoiding a ~10x number[] expansion of the meaning deltas.
+    lexicon: snap.lexicon,
+    soundWords: snap.soundWords,
     lastHash: snap.lastHash,
   };
 }
@@ -74,6 +80,8 @@ function deserialize(s: SerializedSnapshot): MemorySnapshot {
     journal: s.journal.map((r) => ({ ...r })),
     // Episode field shapes are restored tolerantly by EpisodicStore.restore.
     episodes: (s.episodes ?? []) as unknown as MemorySnapshot['episodes'],
+    lexicon: s.lexicon,
+    soundWords: s.soundWords,
     lastHash: s.lastHash,
   };
 }

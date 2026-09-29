@@ -604,6 +604,12 @@ function WordsStrip() {
         <span className="text-muted-foreground">{st.hearing}</span>
         {st.lastHeard && <span className="text-muted-foreground truncate">heard: “{st.lastHeard}”</span>}
       </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <Stat label="sound→word scored" value={String(st.sound.scored)} />
+        <Stat label="top-1 / top-5" value={st.sound.scored ? `${(st.sound.top1 * 100).toFixed(0)}% / ${(st.sound.top5 * 100).toFixed(0)}%` : "—"} />
+        <Stat label={`last ${st.sound.recentN} chunks`} value={st.sound.recentN ? `${(st.sound.recent * 100).toFixed(0)}%${st.sound.selfSufficient ? " · hears alone" : ""}` : "—"} />
+        <Stat label="field guessed" value={st.sound.last?.guess ? `${st.sound.last.guess} ${st.sound.last.hit1 ? "✓" : "✗"}` : "—"} />
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
         <Stat label="words known" value={String(st.words)} />
         <Stat label="tokens learned" value={String(st.tokens)} />

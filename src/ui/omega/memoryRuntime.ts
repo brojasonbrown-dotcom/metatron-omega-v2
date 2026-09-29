@@ -22,6 +22,20 @@ import { tickMemory, type TickMemoryResult } from '@/core/memory/tickMemory';
 import { LearningEngine, type LearningMetrics, type LearningOptions } from '@/core/memory/LearningEngine';
 import type { MetatronOutput } from '@/core/MetatronCore';
 import { registerFlush } from '@/lib/persist/flush';
+import { SoundWordMap, soundDescriptor } from '@/core/knowledge/lexicon';
+
+/** Decode one self-contained recorder chunk and compute its acoustic descriptor. */
+async function chunkDescriptor(blob: Blob): Promise<Float64Array | null> {
+  try {
+    const Ctx = (globalThis as unknown as { AudioContext?: typeof AudioContext }).AudioContext;
+    if (!Ctx) return null;
+    const ctx = new Ctx();
+    try {
+      const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+      return soundDescriptor(buf.getChannelData(0), buf.sampleRate);
+    } finally { void ctx.close(); }
+  } catch { return null; }
+}
 
 
 const ENABLED_KEY = 'metatron.v13.memory.enabled';
@@ -236,6 +250,7 @@ class MemoryRuntime {
       description: s.lastDescription,
       hearing: this.hearingStatus,
       lastHeard: this.lastHeard,
+      sound: s.soundWords.stats(),
     };
   }
 
@@ -272,7 +287,9 @@ class MemoryRuntime {
             if (res.status === 402 || res.status === 403 || res.status === 401) void this.setListening(false).then(() => { this.hearingStatus = body.error ?? 'stopped'; this.bump(); });
           } else if (body.text) {
             this.lastHeard = body.text;
-            this.store.hear(body.text);
+            const descriptor = await chunkDescriptor(e.data);
+            this.store.hearWithSound(body.text, descriptor);
+            this.dirty = true;
             this.hearingStatus = 'listening';
           }
         } catch { this.hearingStatus = 'network error'; }
@@ -318,7 +335,7 @@ class MemoryRuntime {
   async clear(): Promise<void> {
     try {
       await this.persistence.clear();
-      this.store.restore({ hebbian: { entries: [], dim: 0 }, patterns: [], pathway: [], journal: [], lastHash: null });
+      this.store.restore({ hebbian: { entries: [], dim: 0 }, patterns: [], pathway: [], journal: [], lexicon: { d: this.store.lexicon.d, total: 0, words: [] }, soundWords: new SoundWordMap(this.store.soundWords.d).snapshot(), lastHash: null });
       this.store.percepts.clear();
       this.learning.reset();
       this.tick = 0;
