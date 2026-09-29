@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DownloadRouteImport } from './routes/download'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiTranscribeRouteImport } from './routes/api/transcribe'
 import { Route as ApiOcrRouteImport } from './routes/api/ocr'
 import { Route as ApiKimiRouteImport } from './routes/api/kimi'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
@@ -24,6 +25,11 @@ const DownloadRoute = DownloadRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTranscribeRoute = ApiTranscribeRouteImport.update({
+  id: '/api/transcribe',
+  path: '/api/transcribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiOcrRoute = ApiOcrRouteImport.update({
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/kimi': typeof ApiKimiRoute
   '/api/ocr': typeof ApiOcrRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/api/public/omega-train': typeof ApiPublicOmegaTrainRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/kimi': typeof ApiKimiRoute
   '/api/ocr': typeof ApiOcrRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/api/public/omega-train': typeof ApiPublicOmegaTrainRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/kimi': typeof ApiKimiRoute
   '/api/ocr': typeof ApiOcrRoute
+  '/api/transcribe': typeof ApiTranscribeRoute
   '/api/public/omega-train': typeof ApiPublicOmegaTrainRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/kimi'
     | '/api/ocr'
+    | '/api/transcribe'
     | '/api/public/omega-train'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/kimi'
     | '/api/ocr'
+    | '/api/transcribe'
     | '/api/public/omega-train'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/kimi'
     | '/api/ocr'
+    | '/api/transcribe'
     | '/api/public/omega-train'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   ApiChatRoute: typeof ApiChatRoute
   ApiKimiRoute: typeof ApiKimiRoute
   ApiOcrRoute: typeof ApiOcrRoute
+  ApiTranscribeRoute: typeof ApiTranscribeRoute
   ApiPublicOmegaTrainRoute: typeof ApiPublicOmegaTrainRoute
 }
 
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/transcribe': {
+      id: '/api/transcribe'
+      path: '/api/transcribe'
+      fullPath: '/api/transcribe'
+      preLoaderRoute: typeof ApiTranscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/ocr': {
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiChatRoute: ApiChatRoute,
   ApiKimiRoute: ApiKimiRoute,
   ApiOcrRoute: ApiOcrRoute,
+  ApiTranscribeRoute: ApiTranscribeRoute,
   ApiPublicOmegaTrainRoute: ApiPublicOmegaTrainRoute,
 }
 export const routeTree = rootRouteImport
