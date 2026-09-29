@@ -109,6 +109,6 @@ Notebook 4 what turns a rung off.
 ## P0 — Foundation & governance (task arc: .lovable/plan/00-task-arc.md)
 - [x] P0.1 Baseline captured and all four gates green (docs/BASELINE.md)
 - [ ] Follow-up: zod schemas per intel tool, then drop the intel.server.ts `any` exemption
-- [ ] P0.2 Gate script
+- [x] P0.2 Gate script — `bun run gate` green: lint 0 · tsgo 0 · 1055/1055 · build OK
 - [ ] P0.3 Determinism freeze
 - [ ] P0.4 Branch/versioning policy
