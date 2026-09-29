@@ -226,13 +226,44 @@ class MemoryRuntime {
   // ── Ω-LEXICON: hearing and reading words ───────────────────────────────
   private recorder: MediaRecorder | null = null;
   private micStream: MediaStream | null = null;
+  private ownsMic = false;
+  private enabledAudio = false;
+  private flushTimer: ReturnType<typeof setInterval> | null = null;
   hearingStatus = 'off';
   lastHeard = '';
 
-  /** Feed read/typed words into the field at word rate. */
+  /** Typed words take the same review path as heard words. */
   hear(text: string): void {
-    this.store.hear(text);
+    this.store.submit(text, 'typed');
+    this.ensureFlushTimer();
     this.bump();
+  }
+
+  private ensureFlushTimer(): void {
+    if (this.flushTimer || typeof window === 'undefined') return;
+    this.flushTimer = setInterval(() => {
+      if (this.store.flushPending() > 0) { this.dirty = true; this.bump(); }
+    }, 500);
+  }
+
+  pendingWords() { return this.store.pending.list(); }
+  heardHistory() { return this.store.pending.history; }
+  correctWord(id: number, index: number, word: string): void { if (this.store.pending.edit(id, index, word)) this.bump(); }
+  dropPending(id: number): void { if (this.store.pending.drop(id)) this.bump(); }
+  confirmPending(id: number): void {
+    const u = this.store.pending.take(id);
+    if (u) { this.store.commitPending(u); this.dirty = true; this.bump(); }
+  }
+  confirmAll(): void {
+    for (const u of [...this.store.pending.list()]) this.confirmPending(u.id);
+  }
+  setHold(ms: number): void { this.store.pending.holdMs = Math.max(1000, Math.min(60000, ms)); this.bump(); }
+  setHoldPaused(p: boolean): void { this.store.pending.paused = p; this.bump(); }
+
+  inspectWord(w: string) {
+    const psi = this.lastResult?.psi;
+    const rungs = psi && psi.length > 4 ? Math.floor((psi.length - 4) / 4) : 9;
+    return this.store.lexicon.inspect(w, rungs);
   }
 
   recallWord(w: string) {
@@ -251,25 +282,82 @@ class MemoryRuntime {
       hearing: this.hearingStatus,
       lastHeard: this.lastHeard,
       sound: s.soundWords.stats(),
+      holdMs: s.pending.holdMs,
+      paused: s.pending.paused,
+      corrections: s.pending.corrections,
+      drops: s.pending.drops,
+      sharedMic: this.micStream !== null && !this.ownsMic,
     };
   }
 
-  /** Start/stop the microphone teacher: 4 s chunks → speech-to-text → hear(). */
+  /** Per-layer activity: current size, when it last changed, and whether it is saved. */
+  private activityPrev = new Map<string, number>();
+  private activityAt = new Map<string, number>();
+  activity() {
+    const st = this.store.stats();
+    const snd = this.store.soundWords.stats();
+    const rows: [string, string, number][] = [
+      ['tape', 'field tape frames written', st.tapeTotalWrites],
+      ['hebbian', 'Hebbian links', st.hebbianEntries],
+      ['episodes', 'episodes', st.episodes],
+      ['patterns', 'patterns', st.patternCount],
+      ['pathways', 'pathway edges', st.pathwayEdges],
+      ['journal', 'journal records', st.journalRecords],
+      ['lexicon', 'words learned (tokens)', this.store.lexicon.tokens],
+      ['sound', 'sound→word pairs', snd.trials],
+      ['sensory', 'sensory atoms', st.sensoryAtoms],
+    ];
+    const now = Date.now();
+    return {
+      rows: rows.map(([id, label, value]) => {
+        if (this.activityPrev.get(id) !== value) {
+          if (this.activityPrev.has(id)) this.activityAt.set(id, now);
+          this.activityPrev.set(id, value);
+        }
+        return { id, label, value, lastChange: this.activityAt.get(id) ?? null, dormant: value === 0 };
+      }),
+      savedAt: this.lastAutoSave || null,
+      unsaved: this.dirty,
+    };
+  }
+
+  /**
+   * Start/stop hearing. Both ears together: the spectral channel (sound
+   * features into the field) and the speech teacher (4 s chunks → words),
+   * sharing one microphone stream so sound and words sit on one clock.
+   */
   async setListening(on: boolean): Promise<void> {
     if (!on) {
-      this.recorder?.stop();
-      this.micStream?.getTracks().forEach((t) => t.stop());
-      this.recorder = null; this.micStream = null;
+      const rec = this.recorder;
+      this.recorder = null;
+      rec?.stop();
+      if (this.ownsMic) this.micStream?.getTracks().forEach((t) => t.stop());
+      this.micStream = null; this.ownsMic = false;
+      if (this.enabledAudio) {
+        const { getSensoryDriver } = await import('./sensoryDriver');
+        getSensoryDriver().disable('audio');
+        this.enabledAudio = false;
+      }
       this.hearingStatus = 'off'; this.bump();
       return;
     }
     if (this.recorder || typeof navigator === 'undefined' || !navigator.mediaDevices) return;
-    try {
-      this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      this.hearingStatus = 'microphone blocked'; this.bump();
-      return;
+    this.hearingStatus = 'starting'; this.bump();
+    const { getSensoryDriver } = await import('./sensoryDriver');
+    const drv = getSensoryDriver();
+    if (!drv.isLive('audio')) this.enabledAudio = await drv.enable('audio');
+    const shared = drv.audioStream();
+    if (shared) { this.micStream = shared; this.ownsMic = false; }
+    else {
+      try {
+        this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        this.ownsMic = true;
+      } catch {
+        this.hearingStatus = 'microphone blocked'; this.bump();
+        return;
+      }
     }
+    this.ensureFlushTimer();
     const startChunk = () => {
       if (!this.micStream) return;
       const rec = new MediaRecorder(this.micStream);
@@ -282,15 +370,14 @@ class MemoryRuntime {
           const res = await fetch('/api/transcribe', { method: 'POST', body: form });
           const body = (await res.json()) as { text?: string; error?: string };
           if (!res.ok) {
-            // 402/403 are terminal: stop listening and show why.
+            // 401/402/403 are terminal: stop listening and show why.
             this.hearingStatus = body.error ?? `error ${res.status}`;
             if (res.status === 402 || res.status === 403 || res.status === 401) void this.setListening(false).then(() => { this.hearingStatus = body.error ?? 'stopped'; this.bump(); });
           } else if (body.text) {
             this.lastHeard = body.text;
             const descriptor = await chunkDescriptor(e.data);
-            this.store.hearWithSound(body.text, descriptor);
-            this.dirty = true;
-            this.hearingStatus = 'listening';
+            this.store.submit(body.text, 'heard', descriptor);
+            if (this.recorder) this.hearingStatus = 'listening';
           }
         } catch { this.hearingStatus = 'network error'; }
         this.bump();

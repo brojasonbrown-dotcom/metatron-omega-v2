@@ -98,3 +98,10 @@ Notebook 4 what turns a rung off.
 - [ ] Ω-LEXICON plan: full memory/recall/learning wiring review (store, recall, save, word↔pattern↔function binding)
 
 - [x] Ω-LEXICON L0–L7 implemented (hearing route, word queue, lexicon memory, calibrated β, grounded catalog, sentence binding, field→words, tests)
+
+## Ω-HEAR
+- [x] HEAR tab: one switch for sound features + speech teacher on one mic
+- [x] Review strip: fix/remove/confirm words before they are learned
+- [x] Word pattern inspector (code, Zeckendorf address, torus spot, fingerprint, neighbours, meaning)
+- [x] Activity map (dormant vs live, saved time)
+- [ ] Live-speech trial by the user (needs a real listening session)

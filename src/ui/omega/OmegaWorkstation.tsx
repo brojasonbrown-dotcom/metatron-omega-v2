@@ -30,6 +30,7 @@ import WebDeckPanel from "./panels/WebDeckPanel";
 import SpectralDeckPanel from "./panels/SpectralDeckPanel";
 import ToroidScanPanel from "./panels/ToroidScanPanel";
 import SenseDeckPanel from "./panels/SenseDeckPanel";
+import HearDeckPanel from "./panels/HearDeckPanel";
 import MindDeckPanel from "./panels/MindDeckPanel";
 import CognitionPanel from "./panels/CognitionPanel";
 import SelfDeckPanel from "./panels/SelfDeckPanel";
@@ -40,7 +41,7 @@ import KokoroPanel from "./panels/KokoroPanel";
 import SourceChip from "./panels/SourceChip";
 import { ToolsPanel } from "@/components/v11/chat/ToolsPanel";
 
-type Tab = "engine" | "ladder" | "field" | "web" | "spectral" | "toroid" | "sense" | "mind" | "cognition" | "analysis" | "self" | "tools" | "integrations" | "runs";
+type Tab = "engine" | "ladder" | "field" | "web" | "spectral" | "toroid" | "sense" | "hear" | "mind" | "cognition" | "analysis" | "self" | "tools" | "integrations" | "runs";
 const TABS: { id: Tab; label: string }[] = [
   { id: "engine", label: "ENGINE" },
   { id: "ladder", label: "LADDER" },
@@ -49,6 +50,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "spectral", label: "SPECTRAL" },
   { id: "toroid", label: "TOROID" },
   { id: "sense", label: "SENSE" },
+  { id: "hear", label: "HEAR" },
   { id: "mind", label: "MIND" },
   { id: "cognition", label: "COGNITION" },
   { id: "analysis", label: "ANALYSIS" },
@@ -160,6 +162,7 @@ function Shell() {
               {tab === "spectral" && <SpectralDeckPanel />}
               {tab === "toroid" && <ToroidScanPanel />}
               {tab === "sense" && <SenseDeckPanel />}
+              {tab === "hear" && <HearDeckPanel />}
               {tab === "mind" && <MindDeckPanel />}
               {tab === "cognition" && <CognitionPanel />}
               {tab === "analysis" && <AnalysisDeckPanel />}
