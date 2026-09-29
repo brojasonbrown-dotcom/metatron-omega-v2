@@ -311,7 +311,7 @@ export function generalEigenvalues(
           set(i, k, A(i, k) - pp);
         }
       }
-    } while (true);
+    } while (true); // eslint-disable-line no-constant-condition -- QR sweep exits via deflation breaks
   }
   return { re: wr, im: wi };
 }
