@@ -61,6 +61,8 @@ export class AudioFrontend {
   isRunning(): boolean { return this.running; }
   setTickRef(ref: { v: number }): void { this.tickRef = ref; }
   recentFeatures() { return this.lastFeatures; }
+  /** The live microphone stream, shared with the speech teacher (owned here). */
+  mediaStream(): MediaStream | null { return this.stream; }
 
   async enable(gateway: SensoryGateway): Promise<void> {
     if (this.running) return;

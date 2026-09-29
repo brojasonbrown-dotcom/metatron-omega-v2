@@ -235,6 +235,12 @@ class SensoryDriver {
     else await this.enable(id);
   }
 
+  /** The audio channel's live microphone stream, so hearing uses one mic, one clock. */
+  audioStream(): MediaStream | null {
+    const fe = this.frontends.get('audio') as unknown as { mediaStream?: () => MediaStream | null } | undefined;
+    return fe?.mediaStream?.() ?? null;
+  }
+
   private async spawn(id: SensoryChannelId): Promise<AnyFrontend> {
     const gateway = this.gateway();
     switch (id) {
