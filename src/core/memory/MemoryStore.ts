@@ -43,7 +43,12 @@ export interface MemoryRecall {
   trajectory: TrajectorySummary;
 }
 
-import { LexiconMemory, SoundWordMap, type LexiconSnapshot, type SoundWordSnapshot } from '@/core/knowledge/lexicon';
+import {
+  LexiconMemory,
+  SoundWordMap,
+  type LexiconSnapshot,
+  type SoundWordSnapshot,
+} from '@/core/knowledge/lexicon';
 
 export interface MemorySnapshot {
   hebbian: HebbianSnapshot;
@@ -106,15 +111,36 @@ export class PendingTranscript {
   readonly history: HeardWord[] = [];
   static readonly HISTORY = 30;
 
-  push(text: string, source: 'heard' | 'typed', descriptor: Float64Array | null, guess: string | null, at: number): PendingUtterance | null {
-    const words = text.toLowerCase().split(/[^a-z0-9']+/).map((w) => w.replace(/'/g, '')).filter(Boolean);
+  push(
+    text: string,
+    source: 'heard' | 'typed',
+    descriptor: Float64Array | null,
+    guess: string | null,
+    at: number,
+  ): PendingUtterance | null {
+    const words = text
+      .toLowerCase()
+      .split(/[^a-z0-9']+/)
+      .map((w) => w.replace(/'/g, ''))
+      .filter(Boolean);
     if (words.length === 0) return null;
-    const u: PendingUtterance = { id: this.nextId++, words, original: text, source, at, descriptor, guess, edited: false };
+    const u: PendingUtterance = {
+      id: this.nextId++,
+      words,
+      original: text,
+      source,
+      at,
+      descriptor,
+      guess,
+      edited: false,
+    };
     this.items.push(u);
     return u;
   }
 
-  list(): readonly PendingUtterance[] { return this.items; }
+  list(): readonly PendingUtterance[] {
+    return this.items;
+  }
 
   /** Replace word `index` of utterance `id`; an empty string removes it. */
   edit(id: number, index: number, word: string): boolean {
@@ -122,7 +148,8 @@ export class PendingTranscript {
     if (!u || index < 0 || index >= u.words.length) return false;
     const w = word.toLowerCase().replace(/[^a-z0-9]/g, '');
     if (w === u.words[index]) return false;
-    if (w) u.words[index] = w; else u.words.splice(index, 1);
+    if (w) u.words[index] = w;
+    else u.words.splice(index, 1);
     if (!u.edited) this.corrections++;
     u.edited = true;
     if (u.words.length === 0) this.drop(id);
@@ -147,7 +174,10 @@ export class PendingTranscript {
     if (this.paused) return [];
     const out: PendingUtterance[] = [];
     this.items = this.items.filter((u) => {
-      if (now - u.at >= this.holdMs) { out.push(u); return false; }
+      if (now - u.at >= this.holdMs) {
+        out.push(u);
+        return false;
+      }
       return true;
     });
     return out;
@@ -155,25 +185,37 @@ export class PendingTranscript {
 
   record(u: PendingUtterance): void {
     for (const w of u.words) {
-      this.history.push({ word: w, source: u.source, at: u.at, corrected: u.edited, hit: u.guess === null ? null : u.guess === w });
+      this.history.push({
+        word: w,
+        source: u.source,
+        at: u.at,
+        corrected: u.edited,
+        hit: u.guess === null ? null : u.guess === w,
+      });
     }
-    if (this.history.length > PendingTranscript.HISTORY) this.history.splice(0, this.history.length - PendingTranscript.HISTORY);
+    if (this.history.length > PendingTranscript.HISTORY)
+      this.history.splice(0, this.history.length - PendingTranscript.HISTORY);
   }
 
-  clear(): void { this.items = []; this.history.length = 0; this.corrections = 0; this.drops = 0; }
+  clear(): void {
+    this.items = [];
+    this.history.length = 0;
+    this.corrections = 0;
+    this.drops = 0;
+  }
 }
 
 export class MemoryStore {
   readonly hebbian = new HebbianMatrix();
-  readonly patterns = new FibonacciPatterns();          // L3 (now semantic-consolidated)
+  readonly patterns = new FibonacciPatterns(); // L3 (now semantic-consolidated)
   readonly pathway = new PathwayGraph();
   readonly journal = new TextJournal();
-  readonly fieldTape = new FieldTape(1 << 16);           // L0 — 65 536 frames default
-  readonly episodic = new EpisodicStore(2048);           // L2
+  readonly fieldTape = new FieldTape(1 << 16); // L0 — 65 536 frames default
+  readonly episodic = new EpisodicStore(2048); // L2
   readonly reflective: ReflectiveIndex;
-  readonly sensory = new SensoryGateway(8192);           // L-S
-  readonly percepts = new PerceptRegistry(1024);         // L-S+ named recognition
-  readonly visionField = new VisionFieldIndex();         // L-V bidirectional image↔field cosine index
+  readonly sensory = new SensoryGateway(8192); // L-S
+  readonly percepts = new PerceptRegistry(1024); // L-S+ named recognition
+  readonly visionField = new VisionFieldIndex(); // L-V bidirectional image↔field cosine index
   readonly kernel: MemoryCaptureKernel;
   /** Ω-LEXICON — learned word meaning vectors (spelling ⊕ context). */
   readonly lexicon = new LexiconMemory();
@@ -199,7 +241,10 @@ export class MemoryStore {
   hear(text: string, at = Date.now()): void {
     if (!text || !text.trim()) return;
     this.wordQueue.push({ text, at });
-    this.wordsEnqueued += text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).length;
+    this.wordsEnqueued += text
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter(Boolean).length;
   }
 
   /**
@@ -222,7 +267,12 @@ export class MemoryStore {
   readonly pending = new PendingTranscript();
 
   /** Queue an utterance for review; the sound-only guess is made now, before any learning. */
-  submit(text: string, source: 'heard' | 'typed', descriptor: Float64Array | null = null, at = Date.now()): PendingUtterance | null {
+  submit(
+    text: string,
+    source: 'heard' | 'typed',
+    descriptor: Float64Array | null = null,
+    at = Date.now(),
+  ): PendingUtterance | null {
     const g = descriptor ? this.soundWords.guess(descriptor, this.lexicon, 1) : null;
     return this.pending.push(text, source, descriptor, g?.hits[0]?.word ?? null, at);
   }
@@ -279,9 +329,10 @@ export class MemoryStore {
     // tick when we have one (what the field was doing when the memory formed),
     // else on the caller's current tick.
     const anchor = patterns[0]?.pattern.tick ?? currentTick ?? null;
-    const trajectory = anchor === null
-      ? EMPTY_TRAJECTORY
-      : summariseTrajectory(this.fieldTape.window(anchor, 21, 21));
+    const trajectory =
+      anchor === null
+        ? EMPTY_TRAJECTORY
+        : summariseTrajectory(this.fieldTape.window(anchor, 21, 21));
     return {
       hebbian: this.hebbian.recall(cue),
       patterns,

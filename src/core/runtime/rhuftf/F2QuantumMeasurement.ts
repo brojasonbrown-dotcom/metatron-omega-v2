@@ -74,7 +74,9 @@ export class F2QuantumMeasurement implements ScaleMeasurement {
     this.refSeed = seedTag;
   }
 
-  get referenceSeedTag(): string { return this.refSeed; }
+  get referenceSeedTag(): string {
+    return this.refSeed;
+  }
 
   private static hashSeed(tag: string): number {
     // FNV-1a 32-bit for a stable numeric provenance stamp — not a security hash.
@@ -88,17 +90,24 @@ export class F2QuantumMeasurement implements ScaleMeasurement {
 
   measure(state: FieldStateN, _ctx: ScaleMeasurementContext): ScaleMeasurementResult {
     if (state.psi.length < NODES) {
-      return { scale: 1, closureResidual: NaN, closureScore: NaN, invariantScore: NaN, gamma: new Float64Array(NODES) };
+      return {
+        scale: 1,
+        closureResidual: NaN,
+        closureScore: NaN,
+        invariantScore: NaN,
+        gamma: new Float64Array(NODES),
+      };
     }
     const psi = state.psi;
     const ref = this.ref;
 
     // ‖ψ‖² compensated.
-    let normSq = 0, comp = 0;
+    let normSq = 0,
+      comp = 0;
     for (let i = 0; i < NODES; i++) {
       const x = psi[i] * psi[i];
       const t = normSq + x;
-      comp += Math.abs(normSq) >= x ? (normSq - t) + x : (x - t) + normSq;
+      comp += Math.abs(normSq) >= x ? normSq - t + x : x - t + normSq;
       normSq = t;
     }
     const norm = Math.sqrt(normSq + comp);
@@ -137,7 +146,8 @@ export class F2QuantumMeasurement implements ScaleMeasurement {
     }
 
     // Invariant witness: adjacent-mode φ-ratio geometric mean.
-    let invAcc = 0, invN = 0;
+    let invAcc = 0,
+      invN = 0;
     for (let i = 0; i < NODES - 1; i++) {
       const denom = psi[i + 1];
       if (denom !== 0 && Number.isFinite(denom)) {

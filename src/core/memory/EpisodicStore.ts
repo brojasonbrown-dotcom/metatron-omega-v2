@@ -69,9 +69,15 @@ export class EpisodicStore {
     if (this.store.length > this.cap) this.evictTo(this.cap, this.lastTick());
   }
 
-  capacity(): number { return this.cap; }
-  size(): number { return this.store.length; }
-  all(): readonly Episode[] { return this.store; }
+  capacity(): number {
+    return this.cap;
+  }
+  size(): number {
+    return this.store.length;
+  }
+  all(): readonly Episode[] {
+    return this.store;
+  }
 
   append(ep: Episode): void {
     this.store.push(ep);
@@ -93,17 +99,22 @@ export class EpisodicStore {
   }
 
   /** Cosine-match top-N episodes against a top-K cue signature. */
-  recall(cue: { indices: Int32Array; amplitudes: Float64Array; norm: number }, topN: number): Array<{ ep: Episode; cosine: number }> {
+  recall(
+    cue: { indices: Int32Array; amplitudes: Float64Array; norm: number },
+    topN: number,
+  ): Array<{ ep: Episode; cosine: number }> {
     if (this.store.length === 0) return [];
     const results: Array<{ ep: Episode; cosine: number }> = [];
     const map = new Map<number, number>();
     for (let i = 0; i < cue.indices.length; i++) map.set(cue.indices[i], cue.amplitudes[i]);
     let cueNorm = 0;
-    for (let i = 0; i < cue.amplitudes.length; i++) cueNorm += cue.amplitudes[i] * cue.amplitudes[i];
+    for (let i = 0; i < cue.amplitudes.length; i++)
+      cueNorm += cue.amplitudes[i] * cue.amplitudes[i];
     cueNorm = Math.sqrt(cueNorm);
     if (cueNorm === 0) return [];
     for (const ep of this.store) {
-      let dot = 0, epNorm = 0;
+      let dot = 0,
+        epNorm = 0;
       for (let i = 0; i < ep.indices.length; i++) {
         const a = map.get(ep.indices[i]);
         const b = ep.amplitudes[i];
@@ -136,7 +147,8 @@ export class EpisodicStore {
     for (const ep of this.store) {
       if (!ep.visionEmbedQ || ep.visionEmbedQ.length !== queryEmbed.length) continue;
       const dq = dequantizeInt8({ q: ep.visionEmbedQ, scale: ep.visionEmbedScale ?? 0 }, scratch);
-      let dot = 0, en = 0;
+      let dot = 0,
+        en = 0;
       for (let i = 0; i < queryEmbed.length; i++) {
         dot += queryEmbed[i] * dq[i];
         en += dq[i] * dq[i];
@@ -170,7 +182,10 @@ export class EpisodicStore {
         while (k > 0) {
           const parent = (k - 1) >> 1;
           if (heap[parent].p > heap[k].p) {
-            const t = heap[parent]; heap[parent] = heap[k]; heap[k] = t; k = parent;
+            const t = heap[parent];
+            heap[parent] = heap[k];
+            heap[k] = t;
+            k = parent;
           } else break;
         }
       } else if (p > heap[0].p) {
@@ -178,12 +193,16 @@ export class EpisodicStore {
         // sift down
         let k = 0;
         for (;;) {
-          const l = 2 * k + 1, r = l + 1;
+          const l = 2 * k + 1,
+            r = l + 1;
           let smallest = k;
           if (l < cap && heap[l].p < heap[smallest].p) smallest = l;
           if (r < cap && heap[r].p < heap[smallest].p) smallest = r;
           if (smallest === k) break;
-          const t = heap[k]; heap[k] = heap[smallest]; heap[smallest] = t; k = smallest;
+          const t = heap[k];
+          heap[k] = heap[smallest];
+          heap[smallest] = t;
+          k = smallest;
         }
       }
     }
@@ -223,7 +242,9 @@ export class EpisodicStore {
     }));
   }
 
-  clear(): void { this.store = []; }
+  clear(): void {
+    this.store = [];
+  }
 }
 
 function priority(e: Episode, now: number): number {

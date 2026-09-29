@@ -44,11 +44,19 @@ import { computeF1, type F1Input, type F1Output } from './frameworks/F1_Septenar
 import { computeF2, type F2Input, type F2Output } from './frameworks/F2_Quantum';
 import { computeF3, type F3Input, type F3Output } from './frameworks/F3_Atomic';
 import { computeF4, type F4Input, type F4Output } from './frameworks/F4_Geometric';
-import { computeF5, type F5Input, type ColorMusicOutput as F5Output } from './frameworks/F5_ColorMusic';
+import {
+  computeF5,
+  type F5Input,
+  type ColorMusicOutput as F5Output,
+} from './frameworks/F5_ColorMusic';
 import { computeF6, type F6Input, type F6OutputV11 as F6Output } from './frameworks/F6_Hebrew';
 import { computeF7, type F7Input, type F7OutputV11 as F7Output } from './frameworks/F7_Galactic';
 import { computeF8, type F8Input, type F8Output } from './frameworks/F8_SubPlanckian';
-import { computeF9, type F9Input, type F9OutputV11 as F9Output } from './frameworks/F9_HyperGalactic';
+import {
+  computeF9,
+  type F9Input,
+  type F9OutputV11 as F9Output,
+} from './frameworks/F9_HyperGalactic';
 import { PHI, PHI_INV } from './frameworks/constants';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -157,7 +165,7 @@ export interface MetatronOutput {
 }
 
 export interface ChainDiagnostic {
-  framework: 'F8'|'F1'|'F2'|'F3'|'F4'|'F5'|'F6'|'F7'|'F9';
+  framework: 'F8' | 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'F6' | 'F7' | 'F9';
   scale: string;
   chainUpCoupling: number;
   closureResidual: number;
@@ -199,7 +207,8 @@ function defaultSolfeggio(): number[] {
 
 export function computeMetatron(input: MetatronInput): MetatronOutput {
   const {
-    coherence, time,
+    coherence,
+    time,
     energy = coherence,
     phases = defaultPhases(time),
     pinealField = defaultPineal(time),
@@ -214,7 +223,12 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ── F8 — sub-Planckian floor (no upstream chain) ────────────────────────
   const f8In: F8Input = {
-    coherence, energy, pinealField, solfeggioCoherences, time, flowerCoherences,
+    coherence,
+    energy,
+    pinealField,
+    solfeggioCoherences,
+    time,
+    flowerCoherences,
     targetModes: extensions.subPlanckianModes,
     targetRings: extensions.subPlanckianRings,
     targetSpheres: extensions.subPlanckianSpheres,
@@ -223,7 +237,10 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ── F1 — septenary (chakras / 432 Hz) ──────────────────────────────────
   const f1In: F1Input = {
-    coherence, phases, time, flowerCoherences,
+    coherence,
+    phases,
+    time,
+    flowerCoherences,
     subPlanckianChainUp: F8.chainUpCoupling,
     targetModes: extensions.chakraModes,
   };
@@ -231,7 +248,12 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ── F2 — quantum (Standard Model · α⁻¹) ────────────────────────────────
   const f2In: F2Input = {
-    coherence, energy, pinealField, solfeggioCoherences, time, flowerCoherences,
+    coherence,
+    energy,
+    pinealField,
+    solfeggioCoherences,
+    time,
+    flowerCoherences,
     septenaryChainUp: F1.chainUpCoupling,
     extensionParticles: extensions.quantumParticles,
   };
@@ -239,7 +261,11 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ── F3 — atomic (Bohr/Aufbau · 417 Hz) ─────────────────────────────────
   const f3In: F3Input = {
-    coherence, nodeAmps, solfeggioCoherences, time, flowerCoherences,
+    coherence,
+    nodeAmps,
+    solfeggioCoherences,
+    time,
+    flowerCoherences,
     quantumChainUp: F2.chainUpCoupling,
     extensionShells: extensions.atomicShells,
   };
@@ -247,7 +273,11 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ── F4 — geometric (Metatron's Cube · 528 Hz) ──────────────────────────
   const f4In: F4Input = {
-    coherence, nodeCoherences, time, solfeggioCoherences, flowerCoherences,
+    coherence,
+    nodeCoherences,
+    time,
+    solfeggioCoherences,
+    flowerCoherences,
     atomicChainUp: F3.chainUpCoupling,
     extensionMetatronNodes: extensions.metatronNodes,
   };
@@ -255,7 +285,10 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ── F5 — color/music ───────────────────────────────────────────────────
   const f5In: F5Input = {
-    coherence, solfeggioCoherences, time, flowerCoherences,
+    coherence,
+    solfeggioCoherences,
+    time,
+    flowerCoherences,
     geometricChainUp: F4.chainUpCoupling,
     extensionChromaticSemitones: extensions.chromaticSemitones,
   };
@@ -263,7 +296,11 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ── F6 — Hebrew / Tree of Life (uses F1 central column too) ────────────
   const f6In: F6Input = {
-    coherence, pinealCoherences, time, flowerCoherences, solfeggioCoherences,
+    coherence,
+    pinealCoherences,
+    time,
+    flowerCoherences,
+    solfeggioCoherences,
     colorMusicChainUp: F5.chainUpCoupling,
     septenaryCentralColumn: F1.centralColumn,
     extensionLetters: extensions.letters,
@@ -272,7 +309,12 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ── F7 — galactic (planets / BAO) ──────────────────────────────────────
   const f7In: F7Input = {
-    coherence, energy, time, recursionDepth, flowerCoherences, solfeggioCoherences,
+    coherence,
+    energy,
+    time,
+    recursionDepth,
+    flowerCoherences,
+    solfeggioCoherences,
     hebrewChainUp: F6.chainUpCoupling,
     extensionBodies: extensions.bodies,
   };
@@ -280,8 +322,13 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ── F9 — hypergalactic (cosmic web / CMB) ──────────────────────────────
   const f9In: F9Input = {
-    coherence, energy, pinealField, solfeggioCoherences, time,
-    recursionDepth, flowerCoherences,
+    coherence,
+    energy,
+    pinealField,
+    solfeggioCoherences,
+    time,
+    recursionDepth,
+    flowerCoherences,
     galacticChainUp: F7.chainUpCoupling,
     extensionMultipoles: extensions.multipoles,
   };
@@ -291,17 +338,18 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
   // Weights are φ^(-rank) where rank counts outward from the geometric centre
   // (F4 = sacred geometry seed). This is the canonical V10 ladder weighting.
   const residuals: Array<{ r: number; w: number }> = [
-    { r: F4.closureResidual,       w: 1.0 },          // centre
-    { r: F3.closureResidual,       w: PHI_INV },      // φ⁻¹
-    { r: F5.closureResidual,       w: PHI_INV },
-    { r: F2.closureResidual,       w: PHI_INV * PHI_INV },
-    { r: F6.closureResidual,       w: PHI_INV * PHI_INV },
-    { r: F1.closureResidual,       w: Math.pow(PHI_INV, 3) },
-    { r: F7.closureResidual,       w: Math.pow(PHI_INV, 3) },
-    { r: F8.closureResidual,       w: Math.pow(PHI_INV, 4) },
-    { r: F9.closureResidual,       w: Math.pow(PHI_INV, 4) },
+    { r: F4.closureResidual, w: 1.0 }, // centre
+    { r: F3.closureResidual, w: PHI_INV }, // φ⁻¹
+    { r: F5.closureResidual, w: PHI_INV },
+    { r: F2.closureResidual, w: PHI_INV * PHI_INV },
+    { r: F6.closureResidual, w: PHI_INV * PHI_INV },
+    { r: F1.closureResidual, w: Math.pow(PHI_INV, 3) },
+    { r: F7.closureResidual, w: Math.pow(PHI_INV, 3) },
+    { r: F8.closureResidual, w: Math.pow(PHI_INV, 4) },
+    { r: F9.closureResidual, w: Math.pow(PHI_INV, 4) },
   ];
-  let logSum = 0, wSum = 0;
+  let logSum = 0,
+    wSum = 0;
   for (const { r, w } of residuals) {
     // Guard against log(0): floor at 1e-12.
     logSum += w * Math.log(Math.max(1e-12, r));
@@ -311,17 +359,18 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
 
   // ─── Master coherence = same φ-weighted mean over each rung's headline metric ───
   const masters: Array<{ m: number; w: number }> = [
-    { m: F4.geometricCoherence,    w: 1.0 },
-    { m: F3.atomicCoherence,       w: PHI_INV },
-    { m: F5.colorMusicCoherence,   w: PHI_INV },
-    { m: F2.quantumCoherence,      w: PHI_INV * PHI_INV },
-    { m: F6.hebrewCoherence,       w: PHI_INV * PHI_INV },
-    { m: F1.heptagonCoherence,     w: Math.pow(PHI_INV, 3) },
-    { m: F7.galacticCoherence,     w: Math.pow(PHI_INV, 3) },
+    { m: F4.geometricCoherence, w: 1.0 },
+    { m: F3.atomicCoherence, w: PHI_INV },
+    { m: F5.colorMusicCoherence, w: PHI_INV },
+    { m: F2.quantumCoherence, w: PHI_INV * PHI_INV },
+    { m: F6.hebrewCoherence, w: PHI_INV * PHI_INV },
+    { m: F1.heptagonCoherence, w: Math.pow(PHI_INV, 3) },
+    { m: F7.galacticCoherence, w: Math.pow(PHI_INV, 3) },
     { m: F8.superpositionMComposite, w: Math.pow(PHI_INV, 4) },
-    { m: F9.cosmicWebCoherence,    w: Math.pow(PHI_INV, 4) },
+    { m: F9.cosmicWebCoherence, w: Math.pow(PHI_INV, 4) },
   ];
-  let mLog = 0, mW = 0;
+  let mLog = 0,
+    mW = 0;
   for (const { m, w } of masters) {
     mLog += w * Math.log(Math.max(1e-12, m));
     mW += w;
@@ -348,7 +397,8 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
   // `metatronCoherence` is retained as a reported diagnostic for continuity of
   // the UI decks and the v10 parity goldens. It must not gate, score, or drive
   // learning; `metatronWitnessCoherence` is what does.
-  let wLog = 0, wW = 0;
+  let wLog = 0,
+    wW = 0;
   for (const { r, w } of residuals) {
     wLog += w * Math.log(Math.max(1e-12, Math.min(1, Math.max(0, 1 - r))));
     wW += w;
@@ -356,15 +406,69 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
   const metatronWitnessCoherence = wW > 0 ? Math.exp(wLog / wW) : 0;
 
   const chain: ChainDiagnostic[] = [
-    { framework: 'F8', scale: 'sub-Planck',     chainUpCoupling: F8.chainUpCoupling, closureResidual: F8.closureResidual, masterMetric: F8.superpositionMComposite },
-    { framework: 'F1', scale: 'septenary',      chainUpCoupling: F1.chainUpCoupling, closureResidual: F1.closureResidual, masterMetric: F1.heptagonCoherence },
-    { framework: 'F2', scale: 'quantum',        chainUpCoupling: F2.chainUpCoupling, closureResidual: F2.closureResidual, masterMetric: F2.quantumCoherence },
-    { framework: 'F3', scale: 'atomic',         chainUpCoupling: F3.chainUpCoupling, closureResidual: F3.closureResidual, masterMetric: F3.atomicCoherence },
-    { framework: 'F4', scale: 'geometric',      chainUpCoupling: F4.chainUpCoupling, closureResidual: F4.closureResidual, masterMetric: F4.geometricCoherence },
-    { framework: 'F5', scale: 'color/music',    chainUpCoupling: F5.chainUpCoupling, closureResidual: F5.closureResidual, masterMetric: F5.colorMusicCoherence },
-    { framework: 'F6', scale: 'Hebrew/tree',    chainUpCoupling: F6.chainUpCoupling, closureResidual: F6.closureResidual, masterMetric: F6.hebrewCoherence },
-    { framework: 'F7', scale: 'galactic',       chainUpCoupling: F7.chainUpCoupling, closureResidual: F7.closureResidual, masterMetric: F7.galacticCoherence },
-    { framework: 'F9', scale: 'hypergalactic',  chainUpCoupling: F9.chainUpCoupling, closureResidual: F9.closureResidual, masterMetric: F9.cosmicWebCoherence },
+    {
+      framework: 'F8',
+      scale: 'sub-Planck',
+      chainUpCoupling: F8.chainUpCoupling,
+      closureResidual: F8.closureResidual,
+      masterMetric: F8.superpositionMComposite,
+    },
+    {
+      framework: 'F1',
+      scale: 'septenary',
+      chainUpCoupling: F1.chainUpCoupling,
+      closureResidual: F1.closureResidual,
+      masterMetric: F1.heptagonCoherence,
+    },
+    {
+      framework: 'F2',
+      scale: 'quantum',
+      chainUpCoupling: F2.chainUpCoupling,
+      closureResidual: F2.closureResidual,
+      masterMetric: F2.quantumCoherence,
+    },
+    {
+      framework: 'F3',
+      scale: 'atomic',
+      chainUpCoupling: F3.chainUpCoupling,
+      closureResidual: F3.closureResidual,
+      masterMetric: F3.atomicCoherence,
+    },
+    {
+      framework: 'F4',
+      scale: 'geometric',
+      chainUpCoupling: F4.chainUpCoupling,
+      closureResidual: F4.closureResidual,
+      masterMetric: F4.geometricCoherence,
+    },
+    {
+      framework: 'F5',
+      scale: 'color/music',
+      chainUpCoupling: F5.chainUpCoupling,
+      closureResidual: F5.closureResidual,
+      masterMetric: F5.colorMusicCoherence,
+    },
+    {
+      framework: 'F6',
+      scale: 'Hebrew/tree',
+      chainUpCoupling: F6.chainUpCoupling,
+      closureResidual: F6.closureResidual,
+      masterMetric: F6.hebrewCoherence,
+    },
+    {
+      framework: 'F7',
+      scale: 'galactic',
+      chainUpCoupling: F7.chainUpCoupling,
+      closureResidual: F7.closureResidual,
+      masterMetric: F7.galacticCoherence,
+    },
+    {
+      framework: 'F9',
+      scale: 'hypergalactic',
+      chainUpCoupling: F9.chainUpCoupling,
+      closureResidual: F9.closureResidual,
+      masterMetric: F9.cosmicWebCoherence,
+    },
   ];
 
   // ─── Toroidal loop closure (F9 ↔ F8 wrap-around) ───────────────────────
@@ -376,16 +480,23 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
   const c8 = F8.chainUpCoupling;
   const c9 = F9.chainUpCoupling;
   const meanEnds = 0.5 * (c8 + c9);
-  const torusClosure = meanEnds > 1e-12
-    ? Math.min(1, Math.abs(c9 - c8) / meanEnds)
-    : 0;
+  const torusClosure = meanEnds > 1e-12 ? Math.min(1, Math.abs(c9 - c8) / meanEnds) : 0;
 
   // Phase circulation: total absolute coupling delta around the closed loop
   // (F8 → F1 → F2 → F3 → F4 → F5 → F6 → F7 → F9 → F8), normalized by max
   // possible variation (= 2 × N_edges, since each delta ∈ [-1, 1]).
-  const ladder = [c8, F1.chainUpCoupling, F2.chainUpCoupling, F3.chainUpCoupling,
-                  F4.chainUpCoupling, F5.chainUpCoupling, F6.chainUpCoupling,
-                  F7.chainUpCoupling, c9, c8]; // close the loop
+  const ladder = [
+    c8,
+    F1.chainUpCoupling,
+    F2.chainUpCoupling,
+    F3.chainUpCoupling,
+    F4.chainUpCoupling,
+    F5.chainUpCoupling,
+    F6.chainUpCoupling,
+    F7.chainUpCoupling,
+    c9,
+    c8,
+  ]; // close the loop
   let circ = 0;
   for (let i = 1; i < ladder.length; i++) circ += Math.abs(ladder[i] - ladder[i - 1]);
   const phaseCirculation = Math.min(1, circ / (2 * (ladder.length - 1)));
@@ -393,16 +504,29 @@ export function computeMetatron(input: MetatronInput): MetatronOutput {
   // φ keeps the import live + documents the weight basis.
   void PHI;
 
-  return { F1, F2, F3, F4, F5, F6, F7, F8, F9,
-           metatronClosure, metatronCoherence, metatronWitnessCoherence,
-           torusClosure, phaseCirculation, chain };
+  return {
+    F1,
+    F2,
+    F3,
+    F4,
+    F5,
+    F6,
+    F7,
+    F8,
+    F9,
+    metatronClosure,
+    metatronCoherence,
+    metatronWitnessCoherence,
+    torusClosure,
+    phaseCirculation,
+    chain,
+  };
 }
 
 // Phase 12: legacy `solveToroidalFixedPoint` / `ToroidalSolveOptions` /
 // `ToroidalSolveResult` removed — no live consumers. The chain already exposes
 // `torusClosure` + `phaseCirculation` on every `computeMetatron` call, which
 // is what UI and residuals actually read.
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  Memoisation layer — Section 3 (φ-throttle + LRU)
@@ -443,7 +567,9 @@ function fingerprintInput(input: MetatronInput): string {
     arrFingerprint(input.pinealCoherences),
     arrFingerprint(input.flowerCoherences),
     arrFingerprint(input.solfeggioCoherences),
-    e ? `${e.chakraModes ?? '_'},${e.atomicShells ?? '_'},${e.metatronNodes ?? '_'},${e.chromaticSemitones ?? '_'},${(e.multipoles ?? []).join('.')},${e.subPlanckianRings ?? '_'},${e.subPlanckianModes ?? '_'},${e.subPlanckianSpheres ?? '_'}` : '_',
+    e
+      ? `${e.chakraModes ?? '_'},${e.atomicShells ?? '_'},${e.metatronNodes ?? '_'},${e.chromaticSemitones ?? '_'},${(e.multipoles ?? []).join('.')},${e.subPlanckianRings ?? '_'},${e.subPlanckianModes ?? '_'},${e.subPlanckianSpheres ?? '_'}`
+      : '_',
   ].join('|');
 }
 
@@ -480,5 +606,6 @@ export function metatronMemoStats() {
 }
 
 /** Clears the LRU. Useful in tests, hot-reload, and resolution changes. */
-export function resetMetatronMemo() { metatronLru.clear(); }
-
+export function resetMetatronMemo() {
+  metatronLru.clear();
+}

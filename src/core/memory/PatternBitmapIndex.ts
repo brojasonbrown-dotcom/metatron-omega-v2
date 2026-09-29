@@ -17,9 +17,16 @@
 
 import type { PatternSignature } from './FibonacciPatterns';
 import {
-  encodeBitmapSparse, weightedDistance, bucketOf, bitmapWeight,
-  zeckAddress, fingerprint, crtModulus, collisionPValue,
-  resonanceSparse, type Fingerprint,
+  encodeBitmapSparse,
+  weightedDistance,
+  bucketOf,
+  bitmapWeight,
+  zeckAddress,
+  fingerprint,
+  crtModulus,
+  collisionPValue,
+  resonanceSparse,
+  type Fingerprint,
 } from '@/core/gematria';
 
 export interface IndexedPattern {
@@ -88,9 +95,15 @@ export class PatternBitmapIndex {
   private lastRescored = 0;
 
   /** Dense dimension the bitmaps are computed at. Set on first index(). */
-  dimension(): number { return this.dim; }
-  size(): number { return this.entries.size; }
-  get(hash: string): IndexedPattern | null { return this.entries.get(hash) ?? null; }
+  dimension(): number {
+    return this.dim;
+  }
+  size(): number {
+    return this.entries.size;
+  }
+  get(hash: string): IndexedPattern | null {
+    return this.entries.get(hash) ?? null;
+  }
 
   /** Index a pattern (idempotent by hash). `dim` is the live Ψ length. */
   index(sig: PatternSignature, dim: number): IndexedPattern {
@@ -114,7 +127,10 @@ export class PatternBitmapIndex {
     this.entries.set(sig.hash, entry);
 
     let b = this.buckets.get(entry.bucket);
-    if (!b) { b = new Set(); this.buckets.set(entry.bucket, b); }
+    if (!b) {
+      b = new Set();
+      this.buckets.set(entry.bucket, b);
+    }
     b.add(sig.hash);
 
     const seen = this.fpKeys.get(fp.key) ?? 0;
@@ -127,14 +143,18 @@ export class PatternBitmapIndex {
   /** Drop entries whose pattern no longer exists in the store. */
   sync(patterns: readonly PatternSignature[], dim: number): void {
     const live = new Set<string>();
-    for (const p of patterns) { live.add(p.hash); this.index(p, dim); }
+    for (const p of patterns) {
+      live.add(p.hash);
+      this.index(p, dim);
+    }
     for (const hash of Array.from(this.entries.keys())) {
       if (live.has(hash)) continue;
       const e = this.entries.get(hash)!;
       this.entries.delete(hash);
       this.buckets.get(e.bucket)?.delete(hash);
       const n = (this.fpKeys.get(e.fingerprint.key) ?? 1) - 1;
-      if (n <= 0) this.fpKeys.delete(e.fingerprint.key); else this.fpKeys.set(e.fingerprint.key, n);
+      if (n <= 0) this.fpKeys.delete(e.fingerprint.key);
+      else this.fpKeys.set(e.fingerprint.key, n);
     }
   }
 
@@ -172,7 +192,9 @@ export class PatternBitmapIndex {
     const dim = this.dim || cue.length;
     if (this.dim === 0) this.dim = dim;
     const cueBitmap = encodeBitmapSparse(
-      Int32Array.from({ length: cue.length }, (_, i) => i), cue, dim,
+      Int32Array.from({ length: cue.length }, (_, i) => i),
+      cue,
+      dim,
     );
 
     // Stage 0 — bucket gather with full-scan fallback.

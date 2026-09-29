@@ -51,17 +51,24 @@ export class F5ColorMusicMeasurement implements ScaleMeasurement {
 
   measure(state: FieldStateN, _ctx: ScaleMeasurementContext): ScaleMeasurementResult {
     if (state.psi.length < NODES) {
-      return { scale: 4, closureResidual: NaN, closureScore: NaN, invariantScore: NaN, gamma: new Float64Array(NODES) };
+      return {
+        scale: 4,
+        closureResidual: NaN,
+        closureScore: NaN,
+        invariantScore: NaN,
+        gamma: new Float64Array(NODES),
+      };
     }
     const psi = state.psi;
     const { ref, ratios } = this.eq;
 
     // Compensated ‖ψ‖².
-    let normSq = 0, comp = 0;
+    let normSq = 0,
+      comp = 0;
     for (let i = 0; i < NODES; i++) {
       const x = psi[i] * psi[i];
       const t = normSq + x;
-      comp += Math.abs(normSq) >= x ? (normSq - t) + x : (x - t) + normSq;
+      comp += Math.abs(normSq) >= x ? normSq - t + x : x - t + normSq;
       normSq = t;
     }
     const norm = Math.sqrt(normSq + comp);
@@ -92,7 +99,8 @@ export class F5ColorMusicMeasurement implements ScaleMeasurement {
     }
 
     // Invariant witness: octave-cycle preservation.
-    let invAcc = 0, invN = 0;
+    let invAcc = 0,
+      invN = 0;
     for (let i = 0; i < NODES - 1; i++) {
       const denom = psi[i];
       if (denom !== 0 && Number.isFinite(denom)) {

@@ -19,13 +19,22 @@ export const KAPPA_REFLECT = 1 / (PHI * PHI * PI);
 /** Scalar qualia summary used to modulate the reflect term. Reads only the
  *  five core axes, so callers may pass a partial qualia record. */
 export function qualiaScalar(q: Pick<QualiaVector, 'C' | 'N' | 'S' | 'V' | 'I'>): number {
-
   // Weighted mean: integration and coherence dominate, novelty and salience modulate, valence biases.
-  return 0.35 * q.C + 0.30 * q.I / Math.max(1e-9, 1 + q.I) + 0.15 * q.N + 0.15 * q.S / (1 + q.S) + 0.05 * (q.V * 0.5 + 0.5);
+  return (
+    0.35 * q.C +
+    (0.3 * q.I) / Math.max(1e-9, 1 + q.I) +
+    0.15 * q.N +
+    (0.15 * q.S) / (1 + q.S) +
+    0.05 * (q.V * 0.5 + 0.5)
+  );
 }
 
 /** In-place add of κ_r · scalar · psi_lattice into psi_total. Returns its magnitude. */
-export function applyReflect(psiTotal: Float64Array, psiLattice: Float64Array, qScalar: number): number {
+export function applyReflect(
+  psiTotal: Float64Array,
+  psiLattice: Float64Array,
+  qScalar: number,
+): number {
   const k = KAPPA_REFLECT * qScalar;
   let mag = 0;
   for (let i = 0; i < psiTotal.length; i++) {
@@ -81,7 +90,7 @@ export const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5)); // ≈ 2.39996 rad
 export function y11AtIndex(k: number, n: number, omegaT: number = 0): number {
   if (n <= 0) return 0;
   // Fibonacci-sphere parametrisation: uniform on S² in expectation.
-  const z = 1 - (2 * k + 1) / n;       // cos(θ) ∈ (−1,1)
+  const z = 1 - (2 * k + 1) / n; // cos(θ) ∈ (−1,1)
   const sinTheta = Math.sqrt(Math.max(0, 1 - z * z));
   const phi = k * GOLDEN_ANGLE + omegaT;
   return Y11_NORM * sinTheta * Math.cos(phi);

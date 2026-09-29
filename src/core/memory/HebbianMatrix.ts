@@ -31,8 +31,8 @@ import { PORT_FLAGS } from '@/core/runtime/portFlags';
 import { computeMemoryCaps } from './MemoryGovernor';
 import { memoryPolicy } from './MemoryPolicy';
 
-export const ETA = PHI_INV * PHI_INV * PHI_INV;        // φ⁻³
-export const DECAY = ETA * PHI_INV * PHI_INV;          // φ⁻⁵
+export const ETA = PHI_INV * PHI_INV * PHI_INV; // φ⁻³
+export const DECAY = ETA * PHI_INV * PHI_INV; // φ⁻⁵
 const ACTIVATION_THRESHOLD = 1e-4;
 
 export interface HebbianSnapshot {
@@ -51,11 +51,11 @@ export class HebbianMatrix {
   private cap: number;
   private globalScale = 1;
   private ticksSinceRenorm = 0;
-  private static readonly RENORM_PERIOD = 1024;          // ~34 s @ 30 Hz
-  private static readonly RENORM_FLOOR = 1e-6;           // raw float64 headroom
+  private static readonly RENORM_PERIOD = 1024; // ~34 s @ 30 Hz
+  private static readonly RENORM_FLOOR = 1e-6; // raw float64 headroom
   // Eviction slack: trigger only when size > cap*(1+SLACK), bulk-drop to cap.
   // Amortises O(N) quickselect cost across SLACK*cap ticks.
-  private static readonly EVICT_SLACK = 0.0625;          // 6.25 % headroom
+  private static readonly EVICT_SLACK = 0.0625; // 6.25 % headroom
 
   /**
    * Ω-REAL P5 — memristive plasticity port.
@@ -79,7 +79,9 @@ export class HebbianMatrix {
   }
 
   /** Current cap (entries). */
-  capacity(): number { return this.cap; }
+  capacity(): number {
+    return this.cap;
+  }
 
   private key(i: number, j: number): number {
     return i < j ? i * this.dim + j : j * this.dim + i;
@@ -88,7 +90,10 @@ export class HebbianMatrix {
   /** Materialise globalScale into raw weights and prune sub-threshold entries. */
   private renormalize(): void {
     const s = this.globalScale;
-    if (s === 1 && this.W.size === 0) { this.ticksSinceRenorm = 0; return; }
+    if (s === 1 && this.W.size === 0) {
+      this.ticksSinceRenorm = 0;
+      return;
+    }
     const cutoff = ACTIVATION_THRESHOLD; // compare effective magnitudes
     for (const [k, w] of this.W) {
       const eff = w * s;
@@ -111,7 +116,7 @@ export class HebbianMatrix {
     // historical behaviour exactly.
     const boost = memoryPolicy.hebbianDecayBoost();
     const effDecay = boost > 0 ? DECAY / boost : DECAY;
-    this.globalScale *= (1 - effDecay);
+    this.globalScale *= 1 - effDecay;
     this.ticksSinceRenorm++;
     if (
       this.globalScale < HebbianMatrix.RENORM_FLOOR ||
@@ -195,26 +200,33 @@ export class HebbianMatrix {
 
     // Quickselect: partition so absW[0..drop) ≤ pivot ≤ absW[drop..n).
     // Iterative Hoare partition, median-of-three pivot.
-    let lo = 0, hi = n - 1;
+    let lo = 0,
+      hi = n - 1;
     const target = drop - 1; // index of largest element to drop
     while (lo < hi) {
       // Median-of-three pivot.
       const mid = (lo + hi) >>> 1;
-      const a = absW[lo], b = absW[mid], c = absW[hi];
+      const a = absW[lo],
+        b = absW[mid],
+        c = absW[hi];
       // Pivot = median(a,b,c).
-      const pivot = a < b
-        ? (b < c ? b : (a < c ? c : a))
-        : (a < c ? a : (b < c ? c : b));
-      let i = lo, j = hi;
+      const pivot = a < b ? (b < c ? b : a < c ? c : a) : a < c ? a : b < c ? c : b;
+      let i = lo,
+        j = hi;
       while (i <= j) {
         while (absW[i] < pivot) i++;
         while (absW[j] > pivot) j--;
         if (i <= j) {
           if (i !== j) {
-            const tw = absW[i]; absW[i] = absW[j]; absW[j] = tw;
-            const tk = keys[i]; keys[i] = keys[j]; keys[j] = tk;
+            const tw = absW[i];
+            absW[i] = absW[j];
+            absW[j] = tw;
+            const tk = keys[i];
+            keys[i] = keys[j];
+            keys[j] = tk;
           }
-          i++; j--;
+          i++;
+          j--;
         }
       }
       if (target <= j) hi = j;
@@ -233,8 +245,12 @@ export class HebbianMatrix {
     return Math.sqrt(s) * Math.abs(this.globalScale);
   }
 
-  size(): number { return this.W.size; }
-  dimension(): number { return this.dim; }
+  size(): number {
+    return this.W.size;
+  }
+  dimension(): number {
+    return this.dim;
+  }
 
   snapshot(): HebbianSnapshot {
     // Materialise so the snapshot is portable / scale-independent.

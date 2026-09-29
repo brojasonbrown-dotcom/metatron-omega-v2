@@ -92,8 +92,12 @@ export class VisionEmbedFrontend {
   private lastPeriodMs = 1000 / FAST_HZ;
   private inflight = false;
 
-  isRunning(): boolean { return this.running; }
-  setTickRef(ref: { v: number }): void { this.tickRef = ref; }
+  isRunning(): boolean {
+    return this.running;
+  }
+  setTickRef(ref: { v: number }): void {
+    this.tickRef = ref;
+  }
 
   status(): VisionEmbedStatus {
     return {
@@ -132,9 +136,11 @@ export class VisionEmbedFrontend {
 
     // Kick off model load — non-blocking. The loop will wait for it
     // on first encode().
-    void getVisionEncoder().load().catch((e) => {
-      console.error('[VisionEmbedFrontend] encoder load failed:', e);
-    });
+    void getVisionEncoder()
+      .load()
+      .catch((e) => {
+        console.error('[VisionEmbedFrontend] encoder load failed:', e);
+      });
 
     const loop = () => {
       if (!this.running) return;
@@ -238,7 +244,10 @@ export class VisionEmbedFrontend {
 
   stop(): void {
     this.running = false;
-    if (this.timer !== null) { clearTimeout(this.timer); this.timer = null; }
+    if (this.timer !== null) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
     this.videoSource = null;
     this.gateway = null;
     this.canvas = null;

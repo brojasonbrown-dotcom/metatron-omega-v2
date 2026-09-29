@@ -80,10 +80,34 @@ interface ChannelSpec {
  */
 export const CHANNEL_SPECS: readonly ChannelSpec[] = [
   { id: 'imu', label: 'Inertial (device motion)', nominalHz: 377, modality: 'imu', requires: null },
-  { id: 'audio', label: 'Audio (mel · MFCC · chroma)', nominalHz: 233, modality: 'audio', requires: null },
-  { id: 'camera', label: 'Camera (video cortex)', nominalHz: 89, modality: 'video', requires: null },
-  { id: 'screen', label: 'Screen (video cortex)', nominalHz: 89, modality: 'video', requires: null },
-  { id: 'vision', label: 'Vision embedding (semantic)', nominalHz: 21, modality: 'vision-embed', requires: 'camera' },
+  {
+    id: 'audio',
+    label: 'Audio (mel · MFCC · chroma)',
+    nominalHz: 233,
+    modality: 'audio',
+    requires: null,
+  },
+  {
+    id: 'camera',
+    label: 'Camera (video cortex)',
+    nominalHz: 89,
+    modality: 'video',
+    requires: null,
+  },
+  {
+    id: 'screen',
+    label: 'Screen (video cortex)',
+    nominalHz: 89,
+    modality: 'video',
+    requires: null,
+  },
+  {
+    id: 'vision',
+    label: 'Vision embedding (semantic)',
+    nominalHz: 21,
+    modality: 'vision-embed',
+    requires: 'camera',
+  },
 ] as const;
 
 export function specFor(id: SensoryChannelId): ChannelSpec {
@@ -167,7 +191,9 @@ class SensoryDriver {
 
   subscribe = (fn: () => void): (() => void) => {
     this.listeners.add(fn);
-    return () => { this.listeners.delete(fn); };
+    return () => {
+      this.listeners.delete(fn);
+    };
   };
 
   getSnapshot = (): SensorySnapshot => this.snapshot;
@@ -223,7 +249,11 @@ class SensoryDriver {
     }
     const fe = this.frontends.get(id);
     if (fe) {
-      try { fe.stop(); } catch { /* teardown must never throw upward */ }
+      try {
+        fe.stop();
+      } catch {
+        /* teardown must never throw upward */
+      }
       this.frontends.delete(id);
     }
     this.setState(id, 'idle', null);
@@ -237,7 +267,9 @@ class SensoryDriver {
 
   /** The audio channel's live microphone stream, so hearing uses one mic, one clock. */
   audioStream(): MediaStream | null {
-    const fe = this.frontends.get('audio') as unknown as { mediaStream?: () => MediaStream | null } | undefined;
+    const fe = this.frontends.get('audio') as unknown as
+      | { mediaStream?: () => MediaStream | null }
+      | undefined;
     return fe?.mediaStream?.() ?? null;
   }
 

@@ -62,7 +62,11 @@ function alignmentOf(a: CField, b: CField): number {
  * Fuse `inputs` into `out` (must already be sized; channels of a different
  * node count are truncated to the overlap — callers transport first).
  */
-export function fuseChannels(inputs: readonly FusionInput[], out: CField, bound = SENSE_BOUND): FusionReport {
+export function fuseChannels(
+  inputs: readonly FusionInput[],
+  out: CField,
+  bound = SENSE_BOUND,
+): FusionReport {
   zeroField(out);
   const live = inputs.filter((c) => c.field.n > 0 && (c.gain ?? 1) > 0);
   const k = live.length;
@@ -93,7 +97,8 @@ export function fuseChannels(inputs: readonly FusionInput[], out: CField, bound 
 
   const channels: ChannelReport[] = live.map((c) => {
     let e = 0;
-    for (let i = 0; i < c.field.n; i++) e += c.field.re[i] * c.field.re[i] + c.field.im[i] * c.field.im[i];
+    for (let i = 0; i < c.field.n; i++)
+      e += c.field.re[i] * c.field.re[i] + c.field.im[i] * c.field.im[i];
     return {
       id: c.id,
       gain: Math.min(1, Math.max(0, c.gain ?? 1)),

@@ -76,7 +76,12 @@ describe('N0 — per-node organ coverage', () => {
   });
 
   it('stays bounded and finite when the radial organ drives the R slot', () => {
-    const e = new SingleTorusEngine({ nodes: 144, seed: 'drive', organs: { radialGain: RADIAL_GAIN_MAX }, drive: 0.5 });
+    const e = new SingleTorusEngine({
+      nodes: 144,
+      seed: 'drive',
+      organs: { radialGain: RADIAL_GAIN_MAX },
+      drive: 0.5,
+    });
     const r = e.run(1000);
     expect(r.finite).toBe(true);
     expect(r.clamped).toBe(0);
@@ -112,7 +117,11 @@ describe('N3 — stable-ratio chords', () => {
   });
 
   it('installs long-range offsets and still sums every row to exactly 1', () => {
-    const m = buildCoupling(rungs, { band: 3, chords: ['fibonacci', 'lucas', 'spiral'], chordGain: 0.618 });
+    const m = buildCoupling(rungs, {
+      band: 3,
+      chords: ['fibonacci', 'lucas', 'spiral'],
+      chordGain: 0.618,
+    });
     expect(m.chords.length).toBeGreaterThan(0);
     for (const d of m.chords) expect(d).toBeGreaterThan(3);
     expect(m.rowSumDefect).toBeLessThan(1e-15);
@@ -217,7 +226,12 @@ describe('N4 — permanent processing tape', () => {
 
   it('does not perturb the rung digests it observes', () => {
     const bare = new MultiTorusEngine({ rungs: DENSE_CORE.slice(0, 5), nodes: 55, seed: 'tap' });
-    const taped = new MultiTorusEngine({ rungs: DENSE_CORE.slice(0, 5), nodes: 55, seed: 'tap', tape: { capacity: 233 } });
+    const taped = new MultiTorusEngine({
+      rungs: DENSE_CORE.slice(0, 5),
+      nodes: 55,
+      seed: 'tap',
+      tape: { capacity: 233 },
+    });
     bare.run(150);
     taped.run(150);
     expect(taped.engines[0].digest()).toBe(bare.engines[0].digest());
@@ -239,7 +253,13 @@ describe('N6 — hosted build carries the whole stack', () => {
   });
 
   it('can be built without any of it, and then reports honest zeros', () => {
-    const host = new EngineHost({ profile: 'PICO', seed: 'n6-off', organs: null, chords: null, tape: null });
+    const host = new EngineHost({
+      profile: 'PICO',
+      seed: 'n6-off',
+      organs: null,
+      chords: null,
+      tape: null,
+    });
     for (let i = 0; i < 30; i++) host.stepOnce();
     const s = host.snapshot();
     expect(s.organNodes).toBe(0);

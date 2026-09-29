@@ -212,4 +212,6 @@ export function profileCost(p: Profile): ProfileCost {
 }
 
 /** Profiles ordered lightest → heaviest. */
-export const PROFILES_BY_TIER: readonly Profile[] = [...CAPACITY_PROFILES].sort((a, b) => a.tier - b.tier);
+export const PROFILES_BY_TIER: readonly Profile[] = [...CAPACITY_PROFILES].sort(
+  (a, b) => a.tier - b.tier,
+);

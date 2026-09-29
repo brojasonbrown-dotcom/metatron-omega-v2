@@ -136,7 +136,9 @@ export function l2NormalizeInPlace(vec: Float32Array): void {
  */
 export function cosine(a: Float32Array, b: Float32Array): number {
   const n = Math.min(a.length, b.length);
-  let dot = 0, na = 0, nb = 0;
+  let dot = 0,
+    na = 0,
+    nb = 0;
   for (let i = 0; i < n; i++) {
     dot += a[i] * b[i];
     na += a[i] * a[i];
@@ -187,7 +189,9 @@ export function dequantizeInt8(qv: QuantizedVector, dst?: Float32Array): Float32
  */
 export function cosineQ(qa: QuantizedVector, b: Float32Array): number {
   const n = Math.min(qa.q.length, b.length);
-  let dot = 0, na = 0, nb = 0;
+  let dot = 0,
+    na = 0,
+    nb = 0;
   for (let i = 0; i < n; i++) {
     const av = qa.q[i];
     dot += av * b[i];
@@ -204,7 +208,12 @@ export function cosineQ(qa: QuantizedVector, b: Float32Array): number {
  * coordinate space as a projected vision embedding for cosine comparison.
  * Indices out of [0, N) are wrapped mod N (matches injectPsi convention).
  */
-export function densifyTopK(indices: Int32Array | ArrayLike<number>, amps: Float64Array | Float32Array | ArrayLike<number>, N: number, dst?: Float32Array): Float32Array {
+export function densifyTopK(
+  indices: Int32Array | ArrayLike<number>,
+  amps: Float64Array | Float32Array | ArrayLike<number>,
+  N: number,
+  dst?: Float32Array,
+): Float32Array {
   const out = dst && dst.length === N ? dst : new Float32Array(N);
   if (dst) out.fill(0);
   const len = indices.length;

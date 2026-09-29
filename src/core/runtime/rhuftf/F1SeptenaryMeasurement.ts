@@ -60,11 +60,12 @@ export class F1SeptenaryMeasurement implements ScaleMeasurement {
     const psi = state.psi;
 
     // ‖ψ‖ (compensated).
-    let normSq = 0, comp = 0;
+    let normSq = 0,
+      comp = 0;
     for (let i = 0; i < NODES; i++) {
       const x = psi[i] * psi[i];
       const t = normSq + x;
-      comp += Math.abs(normSq) >= x ? (normSq - t) + x : (x - t) + normSq;
+      comp += Math.abs(normSq) >= x ? normSq - t + x : x - t + normSq;
       normSq = t;
     }
     const norm = Math.sqrt(normSq + comp);
@@ -92,7 +93,8 @@ export class F1SeptenaryMeasurement implements ScaleMeasurement {
     if (m && NODES - 1 < m.length) m[NODES - 1] = 0;
 
     // Invariant witness: geometric mean of |ratio − φ| across adjacent pairs.
-    let invAcc = 0, invN = 0;
+    let invAcc = 0,
+      invN = 0;
     for (let i = 0; i < NODES - 1; i++) {
       const denom = psi[i + 1];
       if (denom !== 0 && Number.isFinite(denom)) {

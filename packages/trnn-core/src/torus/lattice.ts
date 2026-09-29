@@ -31,7 +31,8 @@ const TWO_PI = 2 * Math.PI;
 
 export function createLattice(n: number, kind: LatticeKind = 'fibonacci'): Lattice {
   if (n <= 0) throw new RangeError(`createLattice: n must be positive, got ${n}`);
-  if (!isFibonacci(n)) throw new RangeError(`createLattice: node count ${n} is not Fibonacci (Law 2.2)`);
+  if (!isFibonacci(n))
+    throw new RangeError(`createLattice: node count ${n} is not Fibonacci (Law 2.2)`);
   const u = new Float64Array(n);
   const v = new Float64Array(n);
   for (let j = 0; j < n; j++) {

@@ -38,10 +38,19 @@ import { PHI_INV } from '../core/constants';
 import { GenomeLedger, leafBytes, verifyInclusion, type SealedRecord } from '../genome/record';
 import { toHex, hashLeaf, type Hash } from '../ledger/merkle';
 import {
-  CONSOLIDATION_COS, MIN_PAIRED, LUCAS_MOD13_PERIOD,
-  heartbeatSchedule, type HeartbeatKind,
+  CONSOLIDATION_COS,
+  MIN_PAIRED,
+  LUCAS_MOD13_PERIOD,
+  heartbeatSchedule,
+  type HeartbeatKind,
 } from '../substrate/phiSubstrate';
-import { bundle, similarity, CleanupMemory, CLEANUP_FAN_IN, type Hypervector } from '../substrate/vsa';
+import {
+  bundle,
+  similarity,
+  CleanupMemory,
+  CLEANUP_FAN_IN,
+  type Hypervector,
+} from '../substrate/vsa';
 import { fuseResonance, type BusChannel } from '../substrate/resonanceBus';
 
 export const SWEEP_NAMES: Readonly<Record<number, string>> = Object.freeze({
@@ -61,7 +70,9 @@ export const SWEEP_NAMES: Readonly<Record<number, string>> = Object.freeze({
 export const LONG_GAP_SWEEPS: readonly number[] = Object.freeze([1, 2, 3, 4, 5, 6, 7]);
 export const SHORT_GAP_SWEEPS: readonly number[] = Object.freeze([8, 9, 10]);
 
-export interface SweepMetric { readonly [k: string]: unknown }
+export interface SweepMetric {
+  readonly [k: string]: unknown;
+}
 
 export interface SweepReport {
   readonly n: number;
@@ -158,8 +169,15 @@ export function sweep1IntakeReplay(corpus: Corpus, ledger: GenomeLedger): Replay
   const failures: string[] = [];
   for (const it of corpus.items) {
     const rec = ledger.get(it.id);
-    if (!rec) { failures.push(`${it.id}: not in ledger`); it.trust = damp(it.trust); continue; }
-    if (ledger.isShredded(it.id)) { shredded++; continue; }
+    if (!rec) {
+      failures.push(`${it.id}: not in ledger`);
+      it.trust = damp(it.trust);
+      continue;
+    }
+    if (ledger.isShredded(it.id)) {
+      shredded++;
+      continue;
+    }
     let body: unknown;
     try {
       body = ledger.open(it.id);
@@ -169,7 +187,11 @@ export function sweep1IntakeReplay(corpus: Corpus, ledger: GenomeLedger): Replay
       it.trust = damp(it.trust);
       continue;
     }
-    if (body === null) { failures.push(`${it.id}: body unreadable`); it.trust = damp(it.trust); continue; }
+    if (body === null) {
+      failures.push(`${it.id}: body unreadable`);
+      it.trust = damp(it.trust);
+      continue;
+    }
     replayed++;
   }
   return { total: corpus.items.length, replayed, shredded, failures };
@@ -213,7 +235,10 @@ export function sweep2HdcBinding(
   let abstained = 0;
   members.forEach((m, i) => {
     const hit = cleanup.query(m.vector);
-    if (hit === null) { abstained++; return; }
+    if (hit === null) {
+      abstained++;
+      return;
+    }
     if (hit.label === `bundle:${Math.floor(i / fanIn)}`) recalled++;
   });
   return { members: members.length, bundles, fanIn, recalled, probed: members.length, abstained };
@@ -237,12 +262,20 @@ export function sweep3TemporalStamping(corpus: Corpus, now: number): StampMetric
   let closed = 0;
   const inverted: string[] = [];
   for (const it of corpus.items) {
-    if (it.validFrom === null) { it.validFrom = it.recordedAt; backfilled++; }
-    if (it.supersededBy !== null && it.validTo === null) { it.validTo = now; closed++; }
-    if (it.validTo !== null && it.validFrom !== null && it.validTo < it.validFrom) inverted.push(it.id);
+    if (it.validFrom === null) {
+      it.validFrom = it.recordedAt;
+      backfilled++;
+    }
+    if (it.supersededBy !== null && it.validTo === null) {
+      it.validTo = now;
+      closed++;
+    }
+    if (it.validTo !== null && it.validFrom !== null && it.validTo < it.validFrom)
+      inverted.push(it.id);
   }
   return {
-    backfilled, closed,
+    backfilled,
+    closed,
     openRecords: corpus.items.filter((i) => i.validTo === null).length,
     inverted,
   };
@@ -271,7 +304,10 @@ export function sweep4ContradictionPass(corpus: Corpus): ContradictionMetric {
   for (const it of corpus.items) {
     for (const otherId of it.contradicts) {
       const other = byId.get(otherId);
-      if (!other) { dangling.push(`${it.id}→${otherId}`); continue; }
+      if (!other) {
+        dangling.push(`${it.id}→${otherId}`);
+        continue;
+      }
       const key = it.id < otherId ? `${it.id}|${otherId}` : `${otherId}|${it.id}`;
       if (seen.has(key)) continue;
       seen.add(key);
@@ -341,9 +377,16 @@ export function sweep5PrototypeConsolidation(
     let target: CorpusItem | null = null;
     for (const p of keep) {
       const s = similarity(it.vector, p.vector);
-      if (Number.isFinite(s) && s >= threshold) { target = p; break; }
+      if (Number.isFinite(s) && s >= threshold) {
+        target = p;
+        break;
+      }
     }
-    if (target === null) { keep.push(it); memberIds.set(it.id, [it.id]); continue; }
+    if (target === null) {
+      keep.push(it);
+      memberIds.set(it.id, [it.id]);
+      continue;
+    }
 
     const members = [...(memberIds.get(target.id) ?? [target.id]), it.id];
     const protoId = `proto:${members[0]}:${members.length}`;
@@ -366,10 +409,15 @@ export function sweep5PrototypeConsolidation(
     it.supersededBy = protoId;
 
     const proto: CorpusItem = {
-      id: protoId, kind: 'Prototype', vector: hv,
+      id: protoId,
+      kind: 'Prototype',
+      vector: hv,
       trust: Math.max(finite(target.trust), finite(it.trust)),
-      contradicts: [], recordedAt: opts.now, validFrom: opts.now,
-      validTo: null, supersededBy: null,
+      contradicts: [],
+      recordedAt: opts.now,
+      validFrom: opts.now,
+      validTo: null,
+      supersededBy: null,
     };
     corpus.add(proto);
     keep.splice(keep.indexOf(target), 1, proto);
@@ -388,12 +436,17 @@ export function sweep5PrototypeConsolidation(
     }
   }
   return {
-    candidates: candidates.length, merged, survivors: keep.length,
-    prototypeIds, residualCos: keep.length > 1 ? residual : null,
+    candidates: candidates.length,
+    merged,
+    survivors: keep.length,
+    prototypeIds,
+    residualCos: keep.length > 1 ? residual : null,
   };
 }
 
-function finite(x: number): number { return Number.isFinite(x) ? x : 0; }
+function finite(x: number): number {
+  return Number.isFinite(x) ? x : 0;
+}
 
 export interface CausalEstimate {
   readonly theta: number;
@@ -426,11 +479,23 @@ export function sweep6CausalAttribution(
   const keys = Object.keys(estimates).sort();
   for (const k of keys) {
     const e = estimates[k];
-    if (!Number.isFinite(e.theta) || !Number.isFinite(e.se) || e.se < 0) { malformed.push(k); continue; }
-    if (!Number.isFinite(e.n) || e.n < minPaired) { abstained.push(k); continue; }
+    if (!Number.isFinite(e.theta) || !Number.isFinite(e.se) || e.se < 0) {
+      malformed.push(k);
+      continue;
+    }
+    if (!Number.isFinite(e.n) || e.n < minPaired) {
+      abstained.push(k);
+      continue;
+    }
     thetas[k] = e.theta;
   }
-  return { decisionTypes: keys.length, spoke: Object.keys(thetas).length, abstained, thetas, malformed };
+  return {
+    decisionTypes: keys.length,
+    spoke: Object.keys(thetas).length,
+    abstained,
+    thetas,
+    malformed,
+  };
 }
 
 export interface RescoreMetric extends SweepMetric {
@@ -458,20 +523,32 @@ export interface RescoreInput {
  * confident R̄ = 0. Here an unmeasurable corpus reports null.
  */
 export function sweep7CrossLevelRescoring(inputs: readonly RescoreInput[]): RescoreMetric {
-  let measured = 0, abstained = 0, gated = 0, dead = 0;
-  let sum = 0, min = Number.POSITIVE_INFINITY, max = Number.NEGATIVE_INFINITY;
+  let measured = 0,
+    abstained = 0,
+    gated = 0,
+    dead = 0;
+  let sum = 0,
+    min = Number.POSITIVE_INFINITY,
+    max = Number.NEGATIVE_INFINITY;
   for (const it of inputs) {
     const r = fuseResonance(it.channels, { phaseDev: it.phaseDev, coherence: it.coherence });
     if (r.gated) gated++;
     if (r.dead) dead++;
-    if (!Number.isFinite(r.value)) { abstained++; continue; }
+    if (!Number.isFinite(r.value)) {
+      abstained++;
+      continue;
+    }
     measured++;
     sum += r.value;
     if (r.value < min) min = r.value;
     if (r.value > max) max = r.value;
   }
   return {
-    items: inputs.length, measured, abstained, gated, dead,
+    items: inputs.length,
+    measured,
+    abstained,
+    gated,
+    dead,
     rMean: measured > 0 ? sum / measured : null,
     rMin: measured > 0 ? min : null,
     rMax: measured > 0 ? max : null,
@@ -514,7 +591,15 @@ export function sweep8RedTeam(
     const ev = ledger.prove(it.id, timestamp);
     if (!ev) continue;
     const leaf = hashLeaf(leafBytes(rec.header, rec.sealed));
-    if (verifyInclusion(leaf, ev.leafIndex, ev.treeSize, ev.proofHex.map(fromHex), fromHex(ev.rootHex))) {
+    if (
+      verifyInclusion(
+        leaf,
+        ev.leafIndex,
+        ev.treeSize,
+        ev.proofHex.map(fromHex),
+        fromHex(ev.rootHex),
+      )
+    ) {
       genuineVerified++;
     }
   }
@@ -578,7 +663,14 @@ export function sweep9GovernorCompression(
       projected -= perItem;
     }
   }
-  return { usage, total, budget: bounded ? budget : null, overBudget, evictionPlan: plan, projected };
+  return {
+    usage,
+    total,
+    budget: bounded ? budget : null,
+    overBudget,
+    evictionPlan: plan,
+    projected,
+  };
 }
 
 export interface ReflectionMetric extends SweepMetric {
@@ -653,68 +745,98 @@ export class TenSweepProtocol {
         },
       });
       reports.push({
-        n, name: SWEEP_NAMES[n], metric, ok: verdict.ok, reason: verdict.reason,
-        sealId, leafIndex: rec.leafIndex,
+        n,
+        name: SWEEP_NAMES[n],
+        metric,
+        ok: verdict.ok,
+        reason: verdict.reason,
+        sealId,
+        leafIndex: rec.leafIndex,
       });
     };
 
     const m1 = sweep1IntakeReplay(corpus, this.ledger);
-    go(1, m1, check(
-      m1.replayed + m1.shredded === m1.total,
-      `${m1.failures.length} envelope failure(s)`,
-    ));
+    go(
+      1,
+      m1,
+      check(m1.replayed + m1.shredded === m1.total, `${m1.failures.length} envelope failure(s)`),
+    );
 
     const m2 = sweep2HdcBinding(corpus, { kind: inputs.bindKind, fanIn: inputs.fanIn });
-    go(2, m2, check(
-      m2.probed === 0 || m2.recalled === m2.probed,
-      `recall ${m2.recalled}/${m2.probed} (${m2.abstained} abstained)`,
-    ));
+    go(
+      2,
+      m2,
+      check(
+        m2.probed === 0 || m2.recalled === m2.probed,
+        `recall ${m2.recalled}/${m2.probed} (${m2.abstained} abstained)`,
+      ),
+    );
 
     const m3 = sweep3TemporalStamping(corpus, at);
     go(3, m3, check(m3.inverted.length === 0, `${m3.inverted.length} inverted interval(s)`));
 
     const m4 = sweep4ContradictionPass(corpus);
-    go(4, m4, check(
-      m4.escalated.length === 0 && m4.dangling.length === 0,
-      `${m4.escalated.length} escalated, ${m4.dangling.length} dangling`,
-    ));
+    go(
+      4,
+      m4,
+      check(
+        m4.escalated.length === 0 && m4.dangling.length === 0,
+        `${m4.escalated.length} escalated, ${m4.dangling.length} dangling`,
+      ),
+    );
 
     const m5 = sweep5PrototypeConsolidation(corpus, this.ledger, {
-      now: at, attributedTo: this.owner,
+      now: at,
+      attributedTo: this.owner,
     });
-    go(5, m5, check(
-      m5.residualCos === null || m5.residualCos < CONSOLIDATION_COS,
-      `residual cos ${(m5.residualCos ?? NaN).toFixed(6)} ≥ threshold: pass is not idempotent`,
-    ));
+    go(
+      5,
+      m5,
+      check(
+        m5.residualCos === null || m5.residualCos < CONSOLIDATION_COS,
+        `residual cos ${(m5.residualCos ?? NaN).toFixed(6)} ≥ threshold: pass is not idempotent`,
+      ),
+    );
 
     const m6 = sweep6CausalAttribution(inputs.effectEstimates);
     go(6, m6, check(m6.malformed.length === 0, `${m6.malformed.length} malformed estimate(s)`));
 
     const m7 = sweep7CrossLevelRescoring(inputs.rescore ?? []);
-    go(7, m7, check(
-      m7.items === 0 || m7.measured > 0,
-      'every item abstained: no cross-level evidence at all',
-    ));
+    go(
+      7,
+      m7,
+      check(
+        m7.items === 0 || m7.measured > 0,
+        'every item abstained: no cross-level evidence at all',
+      ),
+    );
 
     const m8 = sweep8RedTeam(corpus, this.ledger, inputs.forgeries ?? [], at);
-    go(8, m8, check(
-      m8.accepted.length === 0 && m8.genuineVerified === m8.genuine,
-      `${m8.accepted.length} forgery accepted, ${m8.genuine - m8.genuineVerified} genuine rejected`,
-    ));
+    go(
+      8,
+      m8,
+      check(
+        m8.accepted.length === 0 && m8.genuineVerified === m8.genuine,
+        `${m8.accepted.length} forgery accepted, ${m8.genuine - m8.genuineVerified} genuine rejected`,
+      ),
+    );
 
     const m9 = sweep9GovernorCompression(
-      corpus, inputs.usage ?? { atoms: corpus.items.length }, inputs.budget ?? Number.POSITIVE_INFINITY,
+      corpus,
+      inputs.usage ?? { atoms: corpus.items.length },
+      inputs.budget ?? Number.POSITIVE_INFINITY,
     );
-    go(9, m9, check(
-      !m9.overBudget || m9.projected <= (m9.budget ?? Number.POSITIVE_INFINITY),
-      `no eviction plan reaches budget (${m9.projected} > ${m9.budget})`,
-    ));
+    go(
+      9,
+      m9,
+      check(
+        !m9.overBudget || m9.projected <= (m9.budget ?? Number.POSITIVE_INFINITY),
+        `no eviction plan reaches budget (${m9.projected} > ${m9.budget})`,
+      ),
+    );
 
     const m10 = sweep10Reflection(reports, at);
-    go(10, m10, check(
-      m10.sweepsOk === m10.sweepsTotal,
-      `failed sweeps: ${m10.failed.join(', ')}`,
-    ));
+    go(10, m10, check(m10.sweepsOk === m10.sweepsTotal, `failed sweeps: ${m10.failed.join(', ')}`));
 
     return {
       reports,

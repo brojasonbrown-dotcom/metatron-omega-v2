@@ -55,7 +55,8 @@ export function fibonacciBandedSelect<T extends Banded>(items: readonly T[], k: 
   for (const it of items) {
     const b = Math.max(0, Math.floor(it.band));
     const arr = buckets.get(b);
-    if (arr) arr.push(it); else buckets.set(b, [it]);
+    if (arr) arr.push(it);
+    else buckets.set(b, [it]);
   }
 
   const bands = [...buckets.keys()].sort((a, b) => a - b);

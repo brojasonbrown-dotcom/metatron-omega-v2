@@ -75,8 +75,16 @@ describe('G2 spherical shell', () => {
   it('projects an arbitrary field idempotently (P^2 = P)', () => {
     const basis = buildSphericalBasis(shell, 3);
     const f = noise(shell.n, 'sh-field');
-    const p1 = shtSynthesize(basis, shtAnalyze(basis, f, new Float64Array(16)), new Float64Array(shell.n));
-    const p2 = shtSynthesize(basis, shtAnalyze(basis, p1, new Float64Array(16)), new Float64Array(shell.n));
+    const p1 = shtSynthesize(
+      basis,
+      shtAnalyze(basis, f, new Float64Array(16)),
+      new Float64Array(shell.n),
+    );
+    const p2 = shtSynthesize(
+      basis,
+      shtAnalyze(basis, p1, new Float64Array(16)),
+      new Float64Array(shell.n),
+    );
     let m = 0;
     for (let i = 0; i < p1.length; i++) m = Math.max(m, Math.abs(p1[i] - p2[i]));
     expect(m).toBeLessThan(1e-12);

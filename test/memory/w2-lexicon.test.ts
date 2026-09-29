@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import {
-  spellingSignature, similarity, encodeSentence, decodeSentence, LexiconMemory,
-  compileCondition, evaluatePredicate, groundingStats, describeField, lexiconCatalog,
+  spellingSignature,
+  similarity,
+  encodeSentence,
+  decodeSentence,
+  LexiconMemory,
+  compileCondition,
+  evaluatePredicate,
+  groundingStats,
+  describeField,
+  lexiconCatalog,
 } from '@/core/knowledge/lexicon';
 import { calibratedBeta, hopfieldBeta } from '@/core/gematria/resonanceKernel';
 import { lexemeValue, unzeckendorf, lexeme } from '@/core/gematria';
@@ -10,7 +18,9 @@ import { MemoryStore } from '@/core/memory/MemoryStore';
 describe('Ω-LEXICON signatures', () => {
   it('similar spellings sit closer than unrelated words', () => {
     const run = spellingSignature('running');
-    expect(similarity(run, spellingSignature('runner'))).toBeGreaterThan(similarity(run, spellingSignature('galaxy')) + 0.1);
+    expect(similarity(run, spellingSignature('runner'))).toBeGreaterThan(
+      similarity(run, spellingSignature('galaxy')) + 0.1,
+    );
     expect(similarity(run, run)).toBeCloseTo(1, 12);
   });
   it('base-27 key stays exactly recoverable through Zeckendorf', () => {
@@ -36,7 +46,9 @@ describe('calibrated recall', () => {
     const lex = new LexiconMemory();
     const before = similarity(lex.signature('photon'), lex.signature('light'));
     for (let i = 0; i < 8; i++) lex.learn(['photon', 'light'], 1);
-    expect(similarity(lex.signature('photon'), lex.signature('light'))).toBeGreaterThan(before + 0.05);
+    expect(similarity(lex.signature('photon'), lex.signature('light'))).toBeGreaterThan(
+      before + 0.05,
+    );
   });
 });
 
@@ -45,7 +57,14 @@ describe('sentence binding', () => {
     const words = ['field', 'rise', 'wave', 'torus', 'now', 'slowly', 'cat', 'fall'];
     const v = encodeSentence({ agent: 'field', action: 'rise', object: 'wave', place: 'torus' });
     const dec = Object.fromEntries(decodeSentence(v, words).map((d) => [d.role, d.word]));
-    expect(dec).toMatchObject({ agent: 'field', action: 'rise', object: 'wave', place: 'torus', time: null, manner: null });
+    expect(dec).toMatchObject({
+      agent: 'field',
+      action: 'rise',
+      object: 'wave',
+      place: 'torus',
+      time: null,
+      manner: null,
+    });
   });
 });
 

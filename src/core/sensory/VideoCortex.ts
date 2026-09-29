@@ -17,7 +17,7 @@
  */
 
 export interface VideoFeatures {
-  feature: Float32Array;        // packed dense vector for gateway/lattice
+  feature: Float32Array; // packed dense vector for gateway/lattice
   motion: number;
   salience: number;
   /** Optical flow (u, v) in pixels/frame at 16×16 scale. */
@@ -29,10 +29,12 @@ export interface VideoFeatures {
   orientationHist: Float32Array;
 }
 
-const W = 32, H = 32;
+const W = 32,
+  H = 32;
 const N_PIX = W * H;
 const HOG_BINS = 8;
-const SCALE16 = 16, SCALE8 = 8;
+const SCALE16 = 16,
+  SCALE8 = 8;
 const HIST_BINS = 16;
 
 export class VideoCortex {
@@ -49,7 +51,9 @@ export class VideoCortex {
   private hist = new Float32Array(HIST_BINS);
   private histPrev = new Float32Array(HIST_BINS);
   // feature: 16×16 lum (256) + 8×8 lum (64) + 8 HOG + 16 hist + 10 scalars = 354
-  private feature = new Float32Array(SCALE16 * SCALE16 + SCALE8 * SCALE8 + HOG_BINS + HIST_BINS + 10);
+  private feature = new Float32Array(
+    SCALE16 * SCALE16 + SCALE8 * SCALE8 + HOG_BINS + HIST_BINS + 10,
+  );
   private hasPrev16 = false;
 
   /**
@@ -60,18 +64,31 @@ export class VideoCortex {
    * @param cb    optional Cb mean in [-0.5, 0.5] for skin estimate
    * @param cr    optional Cr mean in [-0.5, 0.5] for skin estimate
    */
-  process(lum: Float32Array, rMean: number, gMean: number, bMean: number, cb = 0, cr = 0): VideoFeatures {
+  process(
+    lum: Float32Array,
+    rMean: number,
+    gMean: number,
+    bMean: number,
+    cb = 0,
+    cr = 0,
+  ): VideoFeatures {
     // --- Sobel gradients on 32×32 ---
     let magSum = 0;
     for (let y = 1; y < H - 1; y++) {
       for (let x = 1; x < W - 1; x++) {
         const i = y * W + x;
-        const tl = lum[i - W - 1], tc = lum[i - W], tr = lum[i - W + 1];
-        const ml = lum[i - 1],     mr = lum[i + 1];
-        const bl = lum[i + W - 1], bc = lum[i + W], br = lum[i + W + 1];
-        const gx = (tr + 2 * mr + br) - (tl + 2 * ml + bl);
-        const gy = (bl + 2 * bc + br) - (tl + 2 * tc + tr);
-        this.gx[i] = gx; this.gy[i] = gy;
+        const tl = lum[i - W - 1],
+          tc = lum[i - W],
+          tr = lum[i - W + 1];
+        const ml = lum[i - 1],
+          mr = lum[i + 1];
+        const bl = lum[i + W - 1],
+          bc = lum[i + W],
+          br = lum[i + W + 1];
+        const gx = tr + 2 * mr + br - (tl + 2 * ml + bl);
+        const gy = bl + 2 * bc + br - (tl + 2 * tc + tr);
+        this.gx[i] = gx;
+        this.gy[i] = gy;
         const m = Math.hypot(gx, gy);
         this.mag[i] = m;
         magSum += m;
@@ -84,7 +101,7 @@ export class VideoCortex {
       const m = this.mag[i];
       if (m < 1e-3) continue;
       let a = Math.atan2(this.gy[i], this.gx[i]); // [-π, π]
-      if (a < 0) a += Math.PI;                    // unsigned
+      if (a < 0) a += Math.PI; // unsigned
       const bin = Math.min(HOG_BINS - 1, Math.floor((a / Math.PI) * HOG_BINS));
       this.hog[bin] += m;
     }
@@ -99,33 +116,49 @@ export class VideoCortex {
     // downsample to 16×16 (area average 2×2)
     for (let y = 0; y < SCALE16; y++) {
       for (let x = 0; x < SCALE16; x++) {
-        const s = (lum[(y * 2) * W + x * 2] + lum[(y * 2) * W + x * 2 + 1] +
-                   lum[(y * 2 + 1) * W + x * 2] + lum[(y * 2 + 1) * W + x * 2 + 1]) * 0.25;
+        const s =
+          (lum[y * 2 * W + x * 2] +
+            lum[y * 2 * W + x * 2 + 1] +
+            lum[(y * 2 + 1) * W + x * 2] +
+            lum[(y * 2 + 1) * W + x * 2 + 1]) *
+          0.25;
         this.lum16[y * SCALE16 + x] = s;
       }
     }
     // downsample to 8×8
     for (let y = 0; y < SCALE8; y++) {
       for (let x = 0; x < SCALE8; x++) {
-        const s = (this.lum16[(y * 2) * SCALE16 + x * 2] + this.lum16[(y * 2) * SCALE16 + x * 2 + 1] +
-                   this.lum16[(y * 2 + 1) * SCALE16 + x * 2] + this.lum16[(y * 2 + 1) * SCALE16 + x * 2 + 1]) * 0.25;
+        const s =
+          (this.lum16[y * 2 * SCALE16 + x * 2] +
+            this.lum16[y * 2 * SCALE16 + x * 2 + 1] +
+            this.lum16[(y * 2 + 1) * SCALE16 + x * 2] +
+            this.lum16[(y * 2 + 1) * SCALE16 + x * 2 + 1]) *
+          0.25;
         this.lum8[y * SCALE8 + x] = s;
       }
     }
 
     // --- Lucas–Kanade optical flow on 16×16 ---
     // Solve [Σ Ix² Σ IxIy; Σ IxIy Σ Iy²] [u;v] = -[Σ IxIt; Σ IyIt]
-    let flowU = 0, flowV = 0;
+    let flowU = 0,
+      flowV = 0;
     if (this.hasPrev16) {
-      let sIxx = 0, sIyy = 0, sIxy = 0, sIxt = 0, sIyt = 0;
+      let sIxx = 0,
+        sIyy = 0,
+        sIxy = 0,
+        sIxt = 0,
+        sIyt = 0;
       for (let y = 1; y < SCALE16 - 1; y++) {
         for (let x = 1; x < SCALE16 - 1; x++) {
           const i = y * SCALE16 + x;
           const ix = (this.lum16[i + 1] - this.lum16[i - 1]) * 0.5;
           const iy = (this.lum16[i + SCALE16] - this.lum16[i - SCALE16]) * 0.5;
           const it = this.lum16[i] - this.lum16Prev[i];
-          sIxx += ix * ix; sIyy += iy * iy; sIxy += ix * iy;
-          sIxt += ix * it; sIyt += iy * it;
+          sIxx += ix * ix;
+          sIyy += iy * iy;
+          sIxy += ix * iy;
+          sIxt += ix * it;
+          sIyt += iy * it;
         }
       }
       const det = sIxx * sIyy - sIxy * sIxy;
@@ -134,7 +167,10 @@ export class VideoCortex {
         flowV = -(-sIxy * sIxt + sIxx * sIyt) / det;
         // clamp absurd magnitudes (degenerate gradient frames)
         const mag = Math.hypot(flowU, flowV);
-        if (mag > 8) { flowU = (flowU / mag) * 8; flowV = (flowV / mag) * 8; }
+        if (mag > 8) {
+          flowU = (flowU / mag) * 8;
+          flowV = (flowV / mag) * 8;
+        }
       }
     }
     this.lum16Prev.set(this.lum16);
@@ -174,7 +210,7 @@ export class VideoCortex {
     const by = bMean - (rMean + gMean) * 0.5;
 
     // --- Skin saliency (YCbCr): canonical skin band is Cb ∈ [77,127]/255 - 0.5 → [-0.20,0.00] and Cr ∈ [133,173]/255 - 0.5 → [0.02, 0.18] ---
-    const skin = (cb >= -0.20 && cb <= 0.00 && cr >= 0.02 && cr <= 0.18) ? 1 : 0;
+    const skin = cb >= -0.2 && cb <= 0.0 && cr >= 0.02 && cr <= 0.18 ? 1 : 0;
 
     // --- Pack feature ---
     const f = this.feature;
@@ -198,8 +234,13 @@ export class VideoCortex {
     this.prev.set(lum);
 
     return {
-      feature: f, motion: me, salience: sal,
-      flowU, flowV, sceneCut: chi2, skin,
+      feature: f,
+      motion: me,
+      salience: sal,
+      flowU,
+      flowV,
+      sceneCut: chi2,
+      skin,
       orientationHist: this.hog,
     };
   }
@@ -209,12 +250,16 @@ function boxBlur(src: Float32Array, dst: Float32Array, w: number, r: number): vo
   const h = src.length / w;
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
-      let s = 0, n = 0;
+      let s = 0,
+        n = 0;
       for (let dy = -r; dy <= r; dy++) {
-        const yy = y + dy; if (yy < 0 || yy >= h) continue;
+        const yy = y + dy;
+        if (yy < 0 || yy >= h) continue;
         for (let dx = -r; dx <= r; dx++) {
-          const xx = x + dx; if (xx < 0 || xx >= w) continue;
-          s += src[yy * w + xx]; n++;
+          const xx = x + dx;
+          if (xx < 0 || xx >= w) continue;
+          s += src[yy * w + xx];
+          n++;
         }
       }
       dst[y * w + x] = s / Math.max(1, n);

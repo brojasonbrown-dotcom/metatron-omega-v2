@@ -55,15 +55,18 @@ describe('Ω-DEPTH Gate 3 — multi-scale signatures', () => {
     const b = sig(modes, (k) => (k < head ? [Math.cos(k), Math.sin(k)] : [-1, 0]));
     const coarse = signatureSimilarityCoarse(a, b);
     const full = signatureSimilarity(a, b);
-    expect(coarse).toBeCloseTo(1, 10);   // indistinguishable coarse
-    expect(full).toBeLessThan(coarse);   // distinguishable once the fine band is read
+    expect(coarse).toBeCloseTo(1, 10); // indistinguishable coarse
+    expect(full).toBeLessThan(coarse); // distinguishable once the fine band is read
   });
 
   it('coarse-first ranking refines the survivors and abstains honestly', () => {
     const q = sig(89, (k) => [Math.cos(k), Math.sin(k)]);
     const cands = new Map<string, Float64Array | null>();
     for (let i = 0; i < 50; i++) {
-      cands.set(`c${i}`, sig(89, (k) => [Math.cos(k + i * 0.01), Math.sin(k + i * 0.01)]));
+      cands.set(
+        `c${i}`,
+        sig(89, (k) => [Math.cos(k + i * 0.01), Math.sin(k + i * 0.01)]),
+      );
     }
     cands.set('absent', null);
     const scores = multiScaleScores(q, cands, REFINE_KEEP);

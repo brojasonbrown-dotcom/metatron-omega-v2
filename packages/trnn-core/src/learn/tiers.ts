@@ -31,7 +31,10 @@ export interface TierProbeOptions {
   readonly sidecarUrl?: string;
   /** Hosted training endpoint. */
   readonly hostedUrl?: string;
-  readonly fetchImpl?: (input: string, init?: { method?: string; signal?: AbortSignal }) => Promise<{
+  readonly fetchImpl?: (
+    input: string,
+    init?: { method?: string; signal?: AbortSignal },
+  ) => Promise<{
     ok: boolean;
     status: number;
     json: () => Promise<unknown>;
@@ -61,19 +64,32 @@ export async function probeTier1(opts: TierProbeOptions = {}): Promise<TierStatu
     | { gpu?: { requestAdapter(): Promise<unknown> } }
     | undefined;
   if (!nav?.gpu) {
-    return { id: 'T1', label: 'WebGPU training', available: false, reason: 'no navigator.gpu in this context' };
+    return {
+      id: 'T1',
+      label: 'WebGPU training',
+      available: false,
+      reason: 'no navigator.gpu in this context',
+    };
   }
   try {
-    const adapter = (await nav.gpu.requestAdapter()) as
-      | { limits?: Record<string, number>; info?: { vendor?: string; architecture?: string } }
-      | null;
+    const adapter = (await nav.gpu.requestAdapter()) as {
+      limits?: Record<string, number>;
+      info?: { vendor?: string; architecture?: string };
+    } | null;
     if (!adapter) {
-      return { id: 'T1', label: 'WebGPU training', available: false, reason: 'requestAdapter() returned null' };
+      return {
+        id: 'T1',
+        label: 'WebGPU training',
+        available: false,
+        reason: 'requestAdapter() returned null',
+      };
     }
     const limits = adapter.limits ?? {};
     const sb = Number(limits['maxStorageBufferBindingSize'] ?? 0);
     const wg = Number(limits['maxComputeWorkgroupSizeX'] ?? 0);
-    const ok = sb >= T1_MIN_LIMITS.maxStorageBufferBindingSize && wg >= T1_MIN_LIMITS.maxComputeWorkgroupSizeX;
+    const ok =
+      sb >= T1_MIN_LIMITS.maxStorageBufferBindingSize &&
+      wg >= T1_MIN_LIMITS.maxComputeWorkgroupSizeX;
     return {
       id: 'T1',
       label: 'WebGPU training',
@@ -98,7 +114,10 @@ export async function probeTier1(opts: TierProbeOptions = {}): Promise<TierStatu
   }
 }
 
-async function pingJson(url: string, opts: TierProbeOptions): Promise<{ ms: number; body: unknown }> {
+async function pingJson(
+  url: string,
+  opts: TierProbeOptions,
+): Promise<{ ms: number; body: unknown }> {
   const f = opts.fetchImpl ?? (globalThis.fetch as TierProbeOptions['fetchImpl']);
   if (!f) throw new Error('no fetch in this context');
   const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
@@ -116,7 +135,12 @@ async function pingJson(url: string, opts: TierProbeOptions): Promise<{ ms: numb
 export async function probeTier2(opts: TierProbeOptions = {}): Promise<TierStatus> {
   const base = opts.sidecarUrl;
   if (!base) {
-    return { id: 'T2', label: 'local sidecar', available: false, reason: 'no sidecar URL configured' };
+    return {
+      id: 'T2',
+      label: 'local sidecar',
+      available: false,
+      reason: 'no sidecar URL configured',
+    };
   }
   try {
     const { ms, body } = await pingJson(`${base.replace(/\/$/, '')}/health`, opts);
@@ -133,14 +157,24 @@ export async function probeTier2(opts: TierProbeOptions = {}): Promise<TierStatu
       },
     };
   } catch (e) {
-    return { id: 'T2', label: 'local sidecar', available: false, reason: `no answer: ${(e as Error).message}` };
+    return {
+      id: 'T2',
+      label: 'local sidecar',
+      available: false,
+      reason: `no answer: ${(e as Error).message}`,
+    };
   }
 }
 
 export async function probeTier3(opts: TierProbeOptions = {}): Promise<TierStatus> {
   const url = opts.hostedUrl;
   if (!url) {
-    return { id: 'T3', label: 'hosted training', available: false, reason: 'no hosted endpoint configured' };
+    return {
+      id: 'T3',
+      label: 'hosted training',
+      available: false,
+      reason: 'no hosted endpoint configured',
+    };
   }
   try {
     const { ms, body } = await pingJson(url, opts);
@@ -153,7 +187,12 @@ export async function probeTier3(opts: TierProbeOptions = {}): Promise<TierStatu
       evidence: { latencyMs: ms, version: String(info['version'] ?? 'unknown') },
     };
   } catch (e) {
-    return { id: 'T3', label: 'hosted training', available: false, reason: `no answer: ${(e as Error).message}` };
+    return {
+      id: 'T3',
+      label: 'hosted training',
+      available: false,
+      reason: `no answer: ${(e as Error).message}`,
+    };
   }
 }
 

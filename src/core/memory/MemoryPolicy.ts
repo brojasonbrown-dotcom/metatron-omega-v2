@@ -32,8 +32,8 @@ const BASE = {
 } as const;
 
 export interface MemoryPolicyState {
-  aggression: number;                                  // 0..1
-  modalities: Record<SensoryModality, boolean>;        // audio/video/imu/synthetic
+  aggression: number; // 0..1
+  modalities: Record<SensoryModality, boolean>; // audio/video/imu/synthetic
   /** Field-state captures (L0 tape + L2 episodic from non-sensory ticks). */
   fieldStateEnabled: boolean;
 }
@@ -48,7 +48,9 @@ class MemoryPolicy {
   };
   private listeners = new Set<Listener>();
 
-  get(): MemoryPolicyState { return this.state; }
+  get(): MemoryPolicyState {
+    return this.state;
+  }
 
   setAggression(a: number): void {
     const clamped = Math.max(0, Math.min(1, a));
@@ -75,21 +77,37 @@ class MemoryPolicy {
   }
 
   private emit(): void {
-    for (const l of this.listeners) { try { l(this.state); } catch { /* ignore */ } }
+    for (const l of this.listeners) {
+      try {
+        l(this.state);
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   // ─── Derived thresholds (used by MemoryCaptureKernel + HebbianMatrix) ──
   // aggression = 0   → scale = 1.0  → baseline (bit-identical to pre-policy)
   // aggression = 0.5 → scale = 0.6  → ~1.7× more captures
   // aggression = 1   → scale = 0.2  → ~5× more captures
-  private scale(): number { return 1 - 0.8 * this.state.aggression; }
+  private scale(): number {
+    return 1 - 0.8 * this.state.aggression;
+  }
 
-  episodicSalience(): number { return BASE.episodicSalience * this.scale(); }
-  noveltyGate(): number      { return BASE.noveltyGate * this.scale(); }
-  surpriseGate(): number     { return BASE.surpriseGate * this.scale(); }
+  episodicSalience(): number {
+    return BASE.episodicSalience * this.scale();
+  }
+  noveltyGate(): number {
+    return BASE.noveltyGate * this.scale();
+  }
+  surpriseGate(): number {
+    return BASE.surpriseGate * this.scale();
+  }
 
   /** Higher = remember longer. aggression 0 → 1.0× base τ (no change). */
-  hebbianDecayBoost(): number { return BASE.hebbianDecayBoost * (1 + this.state.aggression); }
+  hebbianDecayBoost(): number {
+    return BASE.hebbianDecayBoost * (1 + this.state.aggression);
+  }
 
   // ─── One dial: the φ-graded 1..13 face of the same aggression ─────────
   // The substrate has exactly one tuning knob. It is exposed as a Fibonacci
@@ -130,9 +148,12 @@ class MemoryPolicy {
     return 0.05625982094858675 * (1 - 0.5 * this.state.aggression);
   }
 
-
-  isModalityAllowed(m: SensoryModality): boolean { return this.state.modalities[m]; }
-  isFieldStateAllowed(): boolean { return this.state.fieldStateEnabled; }
+  isModalityAllowed(m: SensoryModality): boolean {
+    return this.state.modalities[m];
+  }
+  isFieldStateAllowed(): boolean {
+    return this.state.fieldStateEnabled;
+  }
 }
 
 export const memoryPolicy = new MemoryPolicy();
@@ -153,6 +174,8 @@ export function assertPolicyBaselineParity(): boolean {
 if (typeof import.meta !== 'undefined' && (import.meta as { env?: { DEV?: boolean } }).env?.DEV) {
   if (!assertPolicyBaselineParity()) {
     // eslint-disable-next-line no-console
-    console.error('[MemoryPolicy] baseline parity check FAILED — aggression=0 must equal BASE thresholds');
+    console.error(
+      '[MemoryPolicy] baseline parity check FAILED — aggression=0 must equal BASE thresholds',
+    );
   }
 }

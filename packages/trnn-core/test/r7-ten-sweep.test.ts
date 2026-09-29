@@ -8,12 +8,25 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  Corpus, TenSweepProtocol, sweepSchedule, SWEEP_NAMES,
-  LONG_GAP_SWEEPS, SHORT_GAP_SWEEPS,
-  sweep1IntakeReplay, sweep2HdcBinding, sweep3TemporalStamping,
-  sweep4ContradictionPass, sweep5PrototypeConsolidation, sweep6CausalAttribution,
-  sweep7CrossLevelRescoring, sweep8RedTeam, sweep9GovernorCompression,
-  sweep10Reflection, type CorpusItem, type Forgery, type SweepReport,
+  Corpus,
+  TenSweepProtocol,
+  sweepSchedule,
+  SWEEP_NAMES,
+  LONG_GAP_SWEEPS,
+  SHORT_GAP_SWEEPS,
+  sweep1IntakeReplay,
+  sweep2HdcBinding,
+  sweep3TemporalStamping,
+  sweep4ContradictionPass,
+  sweep5PrototypeConsolidation,
+  sweep6CausalAttribution,
+  sweep7CrossLevelRescoring,
+  sweep8RedTeam,
+  sweep9GovernorCompression,
+  sweep10Reflection,
+  type CorpusItem,
+  type Forgery,
+  type SweepReport,
 } from '../src/sweeps/tenSweep';
 import { GenomeLedger, leafBytes, type Provenance } from '../src/genome/record';
 import { keyPairFromSeed } from '../src/ledger/sth';
@@ -26,13 +39,25 @@ const PROV: Provenance = { attributedTo: 'test', generatedBy: 'r7', evidence: 'm
 const DIM = 512;
 
 function newLedger(): GenomeLedger {
-  return new GenomeLedger('r7-log', new Uint8Array(32).fill(9), keyPairFromSeed(new Uint8Array(32).fill(3)));
+  return new GenomeLedger(
+    'r7-log',
+    new Uint8Array(32).fill(9),
+    keyPairFromSeed(new Uint8Array(32).fill(3)),
+  );
 }
 
 function item(id: string, over: Partial<CorpusItem> = {}): CorpusItem {
   return {
-    id, kind: 'Episode', vector: randomHv(DIM, id), trust: 0.9, contradicts: [],
-    recordedAt: 100, validFrom: 100, validTo: null, supersededBy: null, ...over,
+    id,
+    kind: 'Episode',
+    vector: randomHv(DIM, id),
+    trust: 0.9,
+    contradicts: [],
+    recordedAt: 100,
+    validFrom: 100,
+    validTo: null,
+    supersededBy: null,
+    ...over,
   };
 }
 
@@ -60,7 +85,7 @@ function nudged(base: Hypervector, fraction: number, seed: string): Hypervector 
 describe('P7 — schedule derives from the stable-rung heartbeat', () => {
   it('fires sweeps 1–7 in long gaps and 8–10 in short gaps', () => {
     const slots = sweepSchedule(2);
-    expect(slots.length).toBe(8);              // 4 stable rungs × 2 cycles
+    expect(slots.length).toBe(8); // 4 stable rungs × 2 cycles
     for (const s of slots) {
       expect(isStableRung(s.tick)).toBe(true);
       expect(s.sweeps).toEqual(s.opens === 'long' ? LONG_GAP_SWEEPS : SHORT_GAP_SWEEPS);
@@ -80,7 +105,9 @@ describe('P7 — schedule derives from the stable-rung heartbeat', () => {
     const a = sweepSchedule(1, 0).map((s) => s.opens);
     const b = sweepSchedule(1, 28).map((s) => s.opens);
     expect(a).toEqual(b);
-    expect(sweepSchedule(1, 28).map((s) => s.tick)).toEqual(sweepSchedule(1, 0).map((s) => s.tick + 28));
+    expect(sweepSchedule(1, 28).map((s) => s.tick)).toEqual(
+      sweepSchedule(1, 0).map((s) => s.tick + 28),
+    );
   });
 
   it('names all ten operators', () => {
@@ -92,7 +119,11 @@ describe('P7 — schedule derives from the stable-rung heartbeat', () => {
 describe('P7/S1 — intake replay', () => {
   it('replays a healthy corpus and separates shredded from failed', () => {
     const { corpus, ledger } = seeded(5);
-    expect(sweep1IntakeReplay(corpus, ledger)).toMatchObject({ total: 5, replayed: 5, shredded: 0 });
+    expect(sweep1IntakeReplay(corpus, ledger)).toMatchObject({
+      total: 5,
+      replayed: 5,
+      shredded: 0,
+    });
 
     ledger.shred('e2');
     const m = sweep1IntakeReplay(corpus, ledger);
@@ -269,7 +300,13 @@ describe('P7/S6 — causal attribution abstains below the paired-sample floor', 
 describe('P7/S7 — cross-level re-scoring reports null, not zero, when unmeasured', () => {
   it('summarises measured resonance only', () => {
     const m = sweep7CrossLevelRescoring([
-      { id: 'a', channels: [{ id: 'x', value: 0.8 }, { id: 'y', value: 0.5 }] },
+      {
+        id: 'a',
+        channels: [
+          { id: 'x', value: 0.8 },
+          { id: 'y', value: 0.5 },
+        ],
+      },
       { id: 'b', channels: [{ id: 'x', value: NaN }] },
     ]);
     expect(m.measured).toBe(1);
@@ -292,7 +329,13 @@ describe('P7/S7 — cross-level re-scoring reports null, not zero, when unmeasur
     expect(gated.gated).toBe(1);
     expect(gated.rMean).toBeNull();
     const dead = sweep7CrossLevelRescoring([
-      { id: 'b', channels: [{ id: 'x', value: 0.9 }, { id: 'y', value: 0 }] },
+      {
+        id: 'b',
+        channels: [
+          { id: 'x', value: 0.9 },
+          { id: 'y', value: 0 },
+        ],
+      },
     ]);
     expect(dead.dead).toBe(1);
     expect(dead.rMean).toBe(0);
@@ -300,7 +343,12 @@ describe('P7/S7 — cross-level re-scoring reports null, not zero, when unmeasur
 });
 
 describe('P7/S8 — red team verifies the way an outside auditor would', () => {
-  function forge(ledger: GenomeLedger, id: string, label: string, mutate: (h: any, s: string) => { header: any; sealed: string }): Forgery {
+  function forge(
+    ledger: GenomeLedger,
+    id: string,
+    label: string,
+    mutate: (h: any, s: string) => { header: any; sealed: string },
+  ): Forgery {
     const rec = ledger.get(id)!;
     const m = mutate({ ...rec.header }, rec.sealed);
     return { label, header: m.header, sealed: m.sealed, leafIndex: rec.leafIndex };
@@ -317,8 +365,14 @@ describe('P7/S8 — red team verifies the way an outside auditor would', () => {
 
     const forgeries: Forgery[] = [
       forge(ledger, 'e3', 'body-swap', (h) => ({ header: h, sealed: ledger.get('e4')!.sealed })),
-      forge(ledger, 'e3', 'relabelled-kind', (h, s) => ({ header: { ...h, kind: 'Belief' }, sealed: s })),
-      forge(ledger, 'e3', 're-dated', (h, s) => ({ header: { ...h, recordedAt: h.recordedAt + 1 }, sealed: s })),
+      forge(ledger, 'e3', 'relabelled-kind', (h, s) => ({
+        header: { ...h, kind: 'Belief' },
+        sealed: s,
+      })),
+      forge(ledger, 'e3', 're-dated', (h, s) => ({
+        header: { ...h, recordedAt: h.recordedAt + 1 },
+        sealed: s,
+      })),
       forge(ledger, 'e3', 're-identified', (h, s) => ({ header: { ...h, id: 'e9' }, sealed: s })),
       forge(ledger, 'e3', 'ciphertext-bitflip', (h) => ({ header: h, sealed: flipped })),
       forge(ledger, 'e3', 'wrong-index', (h, s) => ({ header: h, sealed: s })),
@@ -329,7 +383,7 @@ describe('P7/S8 — red team verifies the way an outside auditor would', () => {
 
     const m = sweep8RedTeam(corpus, ledger, forgeries, 1000);
     expect(m.genuine).toBe(9);
-    expect(m.genuineVerified).toBe(9);   // a verifier that rejects all proves nothing
+    expect(m.genuineVerified).toBe(9); // a verifier that rejects all proves nothing
     expect(m.attempted).toBe(6);
     expect(m.accepted).toEqual([]);
   });
@@ -338,7 +392,12 @@ describe('P7/S8 — red team verifies the way an outside auditor would', () => {
     // Control: proves the red team is not passing by rejecting unconditionally.
     const { corpus, ledger } = seeded(4);
     const rec = ledger.get('e1')!;
-    const honest: Forgery = { label: 'honest', header: rec.header, sealed: rec.sealed, leafIndex: rec.leafIndex };
+    const honest: Forgery = {
+      label: 'honest',
+      header: rec.header,
+      sealed: rec.sealed,
+      leafIndex: rec.leafIndex,
+    };
     expect(sweep8RedTeam(corpus, ledger, [honest], 1).accepted).toEqual(['honest']);
     // …and the leaf it recomputes is exactly the ledger's leaf.
     expect(toHex(hashLeaf(leafBytes(rec.header, rec.sealed)))).toBe(rec.leafHex);
@@ -358,9 +417,9 @@ describe('P7/S9 — compression emits a plan that actually reaches budget', () =
   it('evicts lowest trust first, oldest as the tiebreak, until under budget', () => {
     const c = new Corpus();
     c.add(item('keep', { trust: 0.99 }));
-    c.add(item('old', { trust: 0.10, recordedAt: 1 }));
-    c.add(item('new', { trust: 0.10, recordedAt: 9 }));
-    c.add(item('mid', { trust: 0.50 }));
+    c.add(item('old', { trust: 0.1, recordedAt: 1 }));
+    c.add(item('new', { trust: 0.1, recordedAt: 9 }));
+    c.add(item('mid', { trust: 0.5 }));
     const m = sweep9GovernorCompression(c, { atoms: 400 }, 250);
     expect(m.overBudget).toBe(true);
     expect(m.evictionPlan).toEqual(['old', 'new']);
@@ -380,7 +439,15 @@ describe('P7/S10 — reflection', () => {
   it('names the failures instead of only counting them', () => {
     const reports = [
       { n: 1, name: 'a', metric: {}, ok: true, reason: null, sealId: 's1', leafIndex: 0 },
-      { n: 4, name: 'contradiction_pass', metric: {}, ok: false, reason: 'tie', sealId: 's4', leafIndex: 1 },
+      {
+        n: 4,
+        name: 'contradiction_pass',
+        metric: {},
+        ok: false,
+        reason: 'tie',
+        sealId: 's4',
+        leafIndex: 1,
+      },
     ] as SweepReport[];
     const m = sweep10Reflection(reports, 7);
     expect(m).toMatchObject({ sweepsOk: 1, sweepsTotal: 2, ts: 7 });
@@ -401,7 +468,8 @@ describe('P7 — full protocol', () => {
     const res = protocol.run(corpus, {
       now: 1000,
       rescore: [{ id: 'e0', channels: [{ id: 'x', value: 0.7 }] }],
-      usage: { atoms: 12 }, budget: 1000,
+      usage: { atoms: 12 },
+      budget: 1000,
     });
     expect(res.reports.length).toBe(10);
     expect(res.reports.map((r) => r.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -419,14 +487,14 @@ describe('P7 — full protocol', () => {
 
   it('seals a FAILING sweep as failed rather than dropping it', () => {
     const { corpus, ledger, protocol } = scenario();
-    corpus.add(item('ghost'));                          // breaks sweep 1
-    corpus.byId().get('e0')!.contradicts.push('nope');  // breaks sweep 4
+    corpus.add(item('ghost')); // breaks sweep 1
+    corpus.byId().get('e0')!.contradicts.push('nope'); // breaks sweep 4
     const res = protocol.run(corpus, { now: 2000 });
     expect(res.ok).toBe(false);
     const failed = res.reports.filter((r) => !r.ok).map((r) => r.n);
     expect(failed).toContain(1);
     expect(failed).toContain(4);
-    expect(failed).toContain(10);                       // reflection inherits the failure
+    expect(failed).toContain(10); // reflection inherits the failure
     for (const n of failed) {
       const r = res.reports.find((x) => x.n === n)!;
       expect(r.reason).toBeTruthy();
@@ -441,10 +509,14 @@ describe('P7 — full protocol', () => {
     const rec = ledger.get('e5')!;
     const res = protocol.run(corpus, {
       now: 3000,
-      forgeries: [{
-        label: 'tampered', leafIndex: rec.leafIndex,
-        header: { ...rec.header, kind: 'Belief' }, sealed: rec.sealed,
-      }],
+      forgeries: [
+        {
+          label: 'tampered',
+          leafIndex: rec.leafIndex,
+          header: { ...rec.header, kind: 'Belief' },
+          sealed: rec.sealed,
+        },
+      ],
     });
     const s8 = res.reports.find((r) => r.n === 8)!;
     expect(s8.ok).toBe(true);
@@ -458,9 +530,12 @@ describe('P7 — full protocol', () => {
         now: 4000,
         rescore: [{ id: 'e0', channels: [{ id: 'x', value: 0.61 }] }],
         effectEstimates: { d: { theta: 0.3, se: 0.05, n: 100 } },
-        usage: { atoms: 12 }, budget: 1000,
+        usage: { atoms: 12 },
+        budget: 1000,
       });
-      return res.reports.map((r) => canonicalJson(ledger.open(r.sealId) as Record<string, unknown>));
+      return res.reports.map((r) =>
+        canonicalJson(ledger.open(r.sealId) as Record<string, unknown>),
+      );
     };
     expect(digest()).toEqual(digest());
   });
@@ -481,9 +556,15 @@ describe('P7 — full protocol', () => {
     const ledger = newLedger();
     const corpus = new Corpus();
     const base = randomHv(DIM, 'shared');
-    for (const [id, frac] of [['a', 0], ['b', 0.05], ['c', 0.05]] as const) {
+    for (const [id, frac] of [
+      ['a', 0],
+      ['b', 0.05],
+      ['c', 0.05],
+    ] as const) {
       ledger.append({ id, kind: 'FactChunk', body: { id }, recordedAt: 10, provenance: PROV });
-      corpus.add(item(id, { kind: 'FactChunk', vector: frac === 0 ? base : nudged(base, frac, id) }));
+      corpus.add(
+        item(id, { kind: 'FactChunk', vector: frac === 0 ? base : nudged(base, frac, id) }),
+      );
     }
     const protocol = new TenSweepProtocol(ledger);
     const first = protocol.run(corpus, { now: 100 });

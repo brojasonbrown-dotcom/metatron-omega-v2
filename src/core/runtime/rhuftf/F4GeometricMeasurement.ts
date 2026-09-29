@@ -32,16 +32,23 @@ export class F4GeometricMeasurement implements ScaleMeasurement {
 
   measure(state: FieldStateN, _ctx: ScaleMeasurementContext): ScaleMeasurementResult {
     if (state.psi.length < NODES) {
-      return { scale: 3, closureResidual: NaN, closureScore: NaN, invariantScore: NaN, gamma: new Float64Array(NODES) };
+      return {
+        scale: 3,
+        closureResidual: NaN,
+        closureScore: NaN,
+        invariantScore: NaN,
+        gamma: new Float64Array(NODES),
+      };
     }
     const psi = state.psi;
 
     // Compensated ‖ψ‖².
-    let normSq = 0, comp = 0;
+    let normSq = 0,
+      comp = 0;
     for (let i = 0; i < NODES; i++) {
       const x = psi[i] * psi[i];
       const t = normSq + x;
-      comp += Math.abs(normSq) >= x ? (normSq - t) + x : (x - t) + normSq;
+      comp += Math.abs(normSq) >= x ? normSq - t + x : x - t + normSq;
       normSq = t;
     }
     const nSq = normSq + comp;
@@ -82,9 +89,7 @@ export class F4GeometricMeasurement implements ScaleMeasurement {
     }
 
     // Invariant: mean should equal 1/√N under isotropy.
-    const invariantScore = Number.isFinite(mean)
-      ? Math.exp(-Math.abs(mean - REF_VAL))
-      : NaN;
+    const invariantScore = Number.isFinite(mean) ? Math.exp(-Math.abs(mean - REF_VAL)) : NaN;
 
     return {
       scale: 3,

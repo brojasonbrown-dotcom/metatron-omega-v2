@@ -19,7 +19,6 @@ import { readVisionEmbedding } from '@/core/sensory/sensoryFieldBridge';
 import { quantizeInt8 } from '@/core/sensory/VisionProjection';
 import { isFibonacciTick } from './FibonacciPatterns';
 
-
 export interface CaptureInput {
   tick: number;
   psi: Float64Array;
@@ -82,23 +81,39 @@ export class MemoryCaptureKernel {
   private registerJobs(): void {
     // L1 Hebbian — every tick (period=1, low depth → moderate priority)
     this.scheduler.register({
-      name: 'L1.hebbian', periodTicks: 1, depth: 1,
-      run: () => { if (this.lastPsi) this.store.hebbian.update(this.lastPsi); },
+      name: 'L1.hebbian',
+      periodTicks: 1,
+      depth: 1,
+      run: () => {
+        if (this.lastPsi) this.store.hebbian.update(this.lastPsi);
+      },
     });
     // L3 semantic consolidation — F12 (144 ticks)
     this.scheduler.register({
-      name: 'L3.semantic', periodTicks: 144, depth: 12,
-      run: (t) => { this.consolidateSemantic(t); },
+      name: 'L3.semantic',
+      periodTicks: 144,
+      depth: 12,
+      run: (t) => {
+        this.consolidateSemantic(t);
+      },
     });
     // L4 pathway transitions — every Fibonacci tick (period 13)
     this.scheduler.register({
-      name: 'L4.pathway', periodTicks: 13, depth: 7,
-      run: (t) => { this.tickPathway(t); },
+      name: 'L4.pathway',
+      periodTicks: 13,
+      depth: 7,
+      run: (t) => {
+        this.tickPathway(t);
+      },
     });
     // L6 reflective re-measurement — F11 (89 ticks ≈ 1.5 s at 60Hz)
     this.scheduler.register({
-      name: 'L6.reflect', periodTicks: 89, depth: 11,
-      run: (t) => { this.reflect(t); },
+      name: 'L6.reflect',
+      periodTicks: 89,
+      depth: 11,
+      run: (t) => {
+        this.reflect(t);
+      },
     });
   }
 
@@ -110,7 +125,9 @@ export class MemoryCaptureKernel {
     // novelty = 1 - cosine(psi, lastPsi)
     let novelty = 1;
     if (this.lastPsi && this.lastPsi.length === psi.length) {
-      let dot = 0, na = 0, nb = 0;
+      let dot = 0,
+        na = 0,
+        nb = 0;
       for (let i = 0; i < psi.length; i++) {
         dot += psi[i] * this.lastPsi[i];
         na += psi[i] * psi[i];
@@ -126,11 +143,11 @@ export class MemoryCaptureKernel {
     const salience = Math.min(
       8,
       Math.max(qualiaScalar, 0) * 1.0 +
-      deltaC * 2.0 +
-      deltaE * 1.0 +
-      novelty * 1.5 +
-      surprise * 0.5 +
-      arousal * 0.6180339887,
+        deltaC * 2.0 +
+        deltaE * 1.0 +
+        novelty * 1.5 +
+        surprise * 0.5 +
+        arousal * 0.6180339887,
     );
 
     // Vision co-occurrence — if a fresh vision slot exists, feed the
@@ -162,9 +179,16 @@ export class MemoryCaptureKernel {
 
     // L0 FieldTape — every tick
     this.store.fieldTape.write({
-      tick, psi, qualiaScalar, coherence, energy,
-      salience, novelty, surprise,
-      visionCosine, visionNovelty,
+      tick,
+      psi,
+      qualiaScalar,
+      coherence,
+      energy,
+      salience,
+      novelty,
+      surprise,
+      visionCosine,
+      visionNovelty,
     });
 
     // Update scheduler salience for every job (priority weighting)
@@ -183,8 +207,11 @@ export class MemoryCaptureKernel {
     const salienceGate = memoryPolicy.episodicSalience();
     const noveltyGate = memoryPolicy.noveltyGate();
     const surpriseGate = memoryPolicy.surpriseGate();
-    if (canEpisodic && allowFieldState &&
-        (forceReason || salience >= salienceGate || novelty > noveltyGate || surprise > surpriseGate)) {
+    if (
+      canEpisodic &&
+      allowFieldState &&
+      (forceReason || salience >= salienceGate || novelty > noveltyGate || surprise > surpriseGate)
+    ) {
       this.captureEpisode(input, salience, novelty, surprise, forceReason);
       episodicCaptured = true;
     }
@@ -206,7 +233,9 @@ export class MemoryCaptureKernel {
     target.set(psi);
     this.lastPsi = target;
     this.useBufA = !this.useBufA;
-    this.lastC = coherence; this.lastE = energy; this.lastSalience = salience;
+    this.lastC = coherence;
+    this.lastE = energy;
+    this.lastSalience = salience;
     const fired = this.scheduler.tick(tick);
 
     // L3 warm path — on every Fibonacci tick the semantic store ingests the
@@ -217,19 +246,30 @@ export class MemoryCaptureKernel {
       this.store.patterns.ingest(tick, psi, qualiaScalar);
     }
 
-
     this.salienceLog.push(salience);
     if (this.salienceLog.length > 256) this.salienceLog.splice(0, this.salienceLog.length - 256);
 
     const metrics: CaptureMetrics = {
-      tick, salience, novelty, surprise, deltaC, deltaE,
-      episodicCaptured, firedJobs: fired.map((f) => f.name),
+      tick,
+      salience,
+      novelty,
+      surprise,
+      deltaC,
+      deltaE,
+      episodicCaptured,
+      firedJobs: fired.map((f) => f.name),
     };
     this.lastMetrics = metrics;
     return metrics;
   }
 
-  private captureEpisode(input: CaptureInput, salience: number, novelty: number, surprise: number, forced?: EpisodeReason): void {
+  private captureEpisode(
+    input: CaptureInput,
+    salience: number,
+    novelty: number,
+    surprise: number,
+    forced?: EpisodeReason,
+  ): void {
     const { tick, psi, qualiaScalar, coherence, energy, text } = input;
     const { indices, amplitudes } = topKDouble(psi, TOPK_SIG);
     const norm = Math.sqrt(amplitudes.reduce((a, b) => a + b * b, 0));
@@ -241,17 +281,31 @@ export class MemoryCaptureKernel {
       return;
     }
 
-    const reason: EpisodeReason = forced ?? (
-      surprise > 0.5 ? 'surprise' :
-      novelty > 0.6 ? 'novelty' :
-      tick % 89 === 0 ? 'fibonacci' : 'salience'
-    );
+    const reason: EpisodeReason =
+      forced ??
+      (surprise > 0.5
+        ? 'surprise'
+        : novelty > 0.6
+          ? 'novelty'
+          : tick % 89 === 0
+            ? 'fibonacci'
+            : 'salience');
 
     const ep: Episode = {
-      tick, reason, hash, norm,
-      poloidal: 0, toroidal: 0,
-      qualiaScalar, coherence, energy, salience, novelty, surprise,
-      indices, amplitudes,
+      tick,
+      reason,
+      hash,
+      norm,
+      poloidal: 0,
+      toroidal: 0,
+      qualiaScalar,
+      coherence,
+      energy,
+      salience,
+      novelty,
+      surprise,
+      indices,
+      amplitudes,
       tapeIndex: 0,
       reinforcements: 0,
       lastReinforced: tick,
@@ -269,7 +323,10 @@ export class MemoryCaptureKernel {
 
     // L5 journal mirror
     this.store.journal.append({
-      tick, qualiaScalar, signatureHash: hash, text: text ?? `${reason} · sal=${salience.toFixed(2)}`,
+      tick,
+      qualiaScalar,
+      signatureHash: hash,
+      text: text ?? `${reason} · sal=${salience.toFixed(2)}`,
     });
 
     // L4 pathway link from prior hash
@@ -329,17 +386,29 @@ export class MemoryCaptureKernel {
     this.store.reflective.reflect(tick, 16, { indices, amplitudes, norm: 0 });
   }
 
-  recentSalience(n = 64): number[] { return this.salienceLog.slice(-n); }
-  metrics(): CaptureMetrics | null { return this.lastMetrics; }
-  schedulerStats() { return this.scheduler.stats(); }
+  recentSalience(n = 64): number[] {
+    return this.salienceLog.slice(-n);
+  }
+  metrics(): CaptureMetrics | null {
+    return this.lastMetrics;
+  }
+  schedulerStats() {
+    return this.scheduler.stats();
+  }
 }
 
 /* ─── helpers ─── */
 
-function topKDouble(psi: Float64Array, K: number): { indices: Int32Array; amplitudes: Float64Array } {
+function topKDouble(
+  psi: Float64Array,
+  K: number,
+): { indices: Int32Array; amplitudes: Float64Array } {
   const idx = new Int32Array(K);
   const amp = new Float64Array(K);
-  for (let i = 0; i < K; i++) { idx[i] = -1; amp[i] = 0; }
+  for (let i = 0; i < K; i++) {
+    idx[i] = -1;
+    amp[i] = 0;
+  }
   // Persistent min-slot tracking — re-scan K only after a replacement
   // (matches FieldTape Sec12 pattern). Branch-on-sign avoids Math.abs calls.
   let minSlot = 0;
@@ -351,10 +420,15 @@ function topKDouble(psi: Float64Array, K: number): { indices: Int32Array; amplit
       idx[minSlot] = i;
       amp[minSlot] = a;
       let ms = 0;
-      let mv = amp[0]; mv = mv < 0 ? -mv : mv;
+      let mv = amp[0];
+      mv = mv < 0 ? -mv : mv;
       for (let k = 1; k < K; k++) {
-        let x = amp[k]; x = x < 0 ? -x : x;
-        if (x < mv) { mv = x; ms = k; }
+        let x = amp[k];
+        x = x < 0 ? -x : x;
+        if (x < mv) {
+          mv = x;
+          ms = k;
+        }
       }
       minSlot = ms;
       minAbs = mv;

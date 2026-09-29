@@ -43,7 +43,8 @@ function bandLimitedField(n: number, k0: number): CField {
 }
 
 function relError(a: CField, b: CField): number {
-  let num = 0, den = 0;
+  let num = 0,
+    den = 0;
   for (let i = 0; i < a.n; i++) {
     const dr = a.re[i] - b.re[i];
     const di = a.im[i] - b.im[i];

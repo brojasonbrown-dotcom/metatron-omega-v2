@@ -20,7 +20,13 @@ const cache = new Map<string, MelBank>();
 const hzToMel = (f: number) => 2595 * Math.log10(1 + f / 700);
 const melToHz = (m: number) => 700 * (Math.pow(10, m / 2595) - 1);
 
-export function getMelBank(sampleRate: number, fftSize: number, nBands = 64, fMin = 50, fMax?: number): MelBank {
+export function getMelBank(
+  sampleRate: number,
+  fftSize: number,
+  nBands = 64,
+  fMin = 50,
+  fMax?: number,
+): MelBank {
   const top = fMax ?? sampleRate / 2;
   const key = `${sampleRate}|${fftSize}|${nBands}|${fMin}|${top}`;
   const hit = cache.get(key);
@@ -37,7 +43,9 @@ export function getMelBank(sampleRate: number, fftSize: number, nBands = 64, fMi
   }
   const bands: MelBank['bands'] = [];
   for (let b = 0; b < nBands; b++) {
-    const l = points[b], c = points[b + 1], r = points[b + 2];
+    const l = points[b],
+      c = points[b + 1],
+      r = points[b + 2];
     const start = Math.max(0, Math.floor(l));
     const end = Math.min(fftBins - 1, Math.ceil(r));
     const w = new Float32Array(Math.max(1, end - start + 1));

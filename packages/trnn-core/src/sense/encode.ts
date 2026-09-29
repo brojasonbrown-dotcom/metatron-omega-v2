@@ -45,7 +45,10 @@ export interface EncodeReport {
  * Clamp a field into the injection bound by uniform down-scaling.
  * Shape preserving: relative amplitudes and all phases survive exactly.
  */
-export function boundField(f: CField, bound = SENSE_BOUND): { rawPeak: number; peak: number; scale: number } {
+export function boundField(
+  f: CField,
+  bound = SENSE_BOUND,
+): { rawPeak: number; peak: number; scale: number } {
   const rawPeak = maxNorm(f);
   if (!(rawPeak > bound)) return { rawPeak, peak: rawPeak, scale: 1 };
   const scale = bound / rawPeak;
@@ -53,7 +56,11 @@ export function boundField(f: CField, bound = SENSE_BOUND): { rawPeak: number; p
   return { rawPeak, peak: bound, scale };
 }
 
-function finishReport(modality: Modality, f: CField, b: { rawPeak: number; peak: number; scale: number }): EncodeReport {
+function finishReport(
+  modality: Modality,
+  f: CField,
+  b: { rawPeak: number; peak: number; scale: number },
+): EncodeReport {
   let energy = 0;
   let support = 0;
   for (let i = 0; i < f.n; i++) {
@@ -61,7 +68,15 @@ function finishReport(modality: Modality, f: CField, b: { rawPeak: number; peak:
     energy += e;
     if (e > 0) support++;
   }
-  return { modality, nodes: f.n, rawPeak: b.rawPeak, peak: b.peak, scale: b.scale, energy, support };
+  return {
+    modality,
+    nodes: f.n,
+    rawPeak: b.rawPeak,
+    peak: b.peak,
+    scale: b.scale,
+    energy,
+    support,
+  };
 }
 
 /**
@@ -192,7 +207,12 @@ export function encodeText(text: string, out: CField): EncodeReport {
  * of the pixels that share a node; phase encodes the pixel's position, which is
  * what lets the braid distinguish two images with identical histograms.
  */
-export function encodeGrid(data: ArrayLike<number>, width: number, height: number, out: CField): EncodeReport {
+export function encodeGrid(
+  data: ArrayLike<number>,
+  width: number,
+  height: number,
+  out: CField,
+): EncodeReport {
   const n = out.n;
   out.re.fill(0);
   out.im.fill(0);

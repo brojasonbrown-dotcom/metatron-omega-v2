@@ -60,7 +60,9 @@ export class FieldWorkerPool {
     if (typeof Worker === 'undefined') return;
     try {
       for (let i = 0; i < Math.max(1, requestedSize); i++) {
-        const worker = new Worker(new URL('./fieldKernel.worker.ts', import.meta.url), { type: 'module' });
+        const worker = new Worker(new URL('./fieldKernel.worker.ts', import.meta.url), {
+          type: 'module',
+        });
         worker.onmessage = (event: MessageEvent<WorkerPacket>) => this.receive(event.data);
         worker.onerror = (event) => this.failAll(event.message || 'worker error');
         this.workers.push(worker);
@@ -80,7 +82,11 @@ export class FieldWorkerPool {
     };
   }
 
-  async configure(specs: FieldShardSpec[], carrierHz: number, bankCoefs?: (Float64Array | undefined)[]): Promise<void> {
+  async configure(
+    specs: FieldShardSpec[],
+    carrierHz: number,
+    bankCoefs?: (Float64Array | undefined)[],
+  ): Promise<void> {
     this.specs = specs;
     this.carrierHz = carrierHz;
     this.bankCoefs = bankCoefs ? specs.map((_, i) => bankCoefs[i]) : specs.map(() => undefined);
@@ -95,22 +101,30 @@ export class FieldWorkerPool {
       this.initialized = true;
       return;
     }
-    await Promise.all(specs.map((spec, index) => {
-      const coef = this.bankCoefs[index];
-      const payload: Record<string, unknown> = { type: 'init', ...spec, carrierHz };
-      const transfer: Transferable[] = [];
-      if (coef && coef.length === Math.max(0, spec.kEnd - spec.kStart + 1)) {
-        // Copy so the engine-side reference stays usable; transfer the copy.
-        const copy = new Float64Array(coef);
-        payload.bankCoef = copy.buffer;
-        transfer.push(copy.buffer);
-      }
-      return this.call(index, payload, transfer);
-    }));
+    await Promise.all(
+      specs.map((spec, index) => {
+        const coef = this.bankCoefs[index];
+        const payload: Record<string, unknown> = { type: 'init', ...spec, carrierHz };
+        const transfer: Transferable[] = [];
+        if (coef && coef.length === Math.max(0, spec.kEnd - spec.kStart + 1)) {
+          // Copy so the engine-side reference stays usable; transfer the copy.
+          const copy = new Float64Array(coef);
+          payload.bankCoef = copy.buffer;
+          transfer.push(copy.buffer);
+        }
+        return this.call(index, payload, transfer);
+      }),
+    );
     this.initialized = true;
   }
 
-  async compute(tSeconds: number, qScalar: number, reflectEnabled: boolean, computePressure: number, bankAlpha: number = 0): Promise<FieldShardResult[]> {
+  async compute(
+    tSeconds: number,
+    qScalar: number,
+    reflectEnabled: boolean,
+    computePressure: number,
+    bankAlpha: number = 0,
+  ): Promise<FieldShardResult[]> {
     if (!this.initialized) {
       // A rebuild race (slider drag / governor change) can destroy a pool while
       // its `configure` handshake is still in flight; the rejection used to
@@ -118,15 +132,30 @@ export class FieldWorkerPool {
       // in-flight handshake once, then fall back to the real in-thread kernel
       // rather than throwing — the numbers stay live, just unsharded.
       if (this.readyPromise) {
-        try { await this.readyPromise; } catch { /* handshake lost — fall through */ }
+        try {
+          await this.readyPromise;
+        } catch {
+          /* handshake lost — fall through */
+        }
       }
       if (!this.initialized) {
         return this.computeFallback(tSeconds, qScalar, reflectEnabled, computePressure, bankAlpha);
       }
     }
-    if (!this.workers.length) return this.computeFallback(tSeconds, qScalar, reflectEnabled, computePressure, bankAlpha);
+    if (!this.workers.length)
+      return this.computeFallback(tSeconds, qScalar, reflectEnabled, computePressure, bankAlpha);
     return Promise.all(
-      this.specs.map((_spec, index) => this.call(index, { type: 'compute', tSeconds, qScalar, reflectEnabled, computePressure, bankAlpha }) as Promise<FieldShardResult>),
+      this.specs.map(
+        (_spec, index) =>
+          this.call(index, {
+            type: 'compute',
+            tSeconds,
+            qScalar,
+            reflectEnabled,
+            computePressure,
+            bankAlpha,
+          }) as Promise<FieldShardResult>,
+      ),
     );
   }
 
@@ -143,7 +172,11 @@ export class FieldWorkerPool {
     this.inFlight = 0;
   }
 
-  private call(workerIndex: number, payload: Record<string, unknown>, transfer: Transferable[] = []): Promise<FieldShardResult | void> {
+  private call(
+    workerIndex: number,
+    payload: Record<string, unknown>,
+    transfer: Transferable[] = [],
+  ): Promise<FieldShardResult | void> {
     if (this.destroyed) return Promise.resolve();
     const worker = this.workers[workerIndex % this.workers.length];
     const id = ++this.seq;
@@ -187,12 +220,28 @@ export class FieldWorkerPool {
 
   private previous = new Map<string, Float64Array>();
 
-  private async computeFallback(tSeconds: number, qScalar: number, reflectEnabled: boolean, computePressure: number, bankAlpha: number = 0): Promise<FieldShardResult[]> {
+  private async computeFallback(
+    tSeconds: number,
+    qScalar: number,
+    reflectEnabled: boolean,
+    computePressure: number,
+    bankAlpha: number = 0,
+  ): Promise<FieldShardResult[]> {
     const { computeShardOnMainThread } = await import('./workerPoolFallback');
     return this.specs.map((spec, index) => {
       const key = `${spec.kStart}:${spec.kEnd}`;
       const coef = this.bankCoefs[index];
-      const result = computeShardOnMainThread(spec, this.carrierHz, tSeconds, qScalar, reflectEnabled, computePressure, this.previous.get(key), coef, bankAlpha);
+      const result = computeShardOnMainThread(
+        spec,
+        this.carrierHz,
+        tSeconds,
+        qScalar,
+        reflectEnabled,
+        computePressure,
+        this.previous.get(key),
+        coef,
+        bankAlpha,
+      );
       this.previous.set(key, result.nextPrev);
       this.completed++;
       return result;

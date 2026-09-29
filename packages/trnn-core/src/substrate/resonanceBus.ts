@@ -81,8 +81,16 @@ export interface BusFusionReport {
 }
 
 const BLANK: BusFusionReport = {
-  value: NaN, channels: [], counted: 0, abstained: 0, gamma: NaN,
-  vetoId: null, vetoValue: NaN, dead: false, gated: false, subFloor: false,
+  value: NaN,
+  channels: [],
+  counted: 0,
+  abstained: 0,
+  gamma: NaN,
+  vetoId: null,
+  vetoValue: NaN,
+  dead: false,
+  gated: false,
+  subFloor: false,
 };
 
 /** Clamp into [0,1]; non-finite input abstains (stays NaN). */
@@ -102,7 +110,7 @@ export function phaseClosureGamma(phaseDev: number, kappa = KAPPA_PHASE): number
   // phases carry no closure at all, so γ is a hard zero and vetoes.
   if (!Number.isFinite(phaseDev)) return 0;
   const z = Math.abs(phaseDev) / kappa;
-  if (z >= 40) return 0;               // exp(−1600) underflows to 0 anyway
+  if (z >= 40) return 0; // exp(−1600) underflows to 0 anyway
   return dexp(-(z * z));
 }
 
@@ -114,15 +122,19 @@ export function phaseClosureGamma(phaseDev: number, kappa = KAPPA_PHASE): number
 export function circularPhaseDev(phases: ArrayLike<number>): number {
   const n = phases.length;
   if (n < 2) return NaN;
-  let sx = 0, sy = 0, m = 0;
+  let sx = 0,
+    sy = 0,
+    m = 0;
   for (let i = 0; i < n; i++) {
     const p = phases[i];
     if (!Number.isFinite(p)) continue;
-    sx += dcos(p); sy += dsin(p); m++;
+    sx += dcos(p);
+    sy += dsin(p);
+    m++;
   }
   if (m < 2) return NaN;
   const r = Math.sqrt(sx * sx + sy * sy) / m;
-  if (r <= 1e-12) return Number.POSITIVE_INFINITY;   // fully scattered
+  if (r <= 1e-12) return Number.POSITIVE_INFINITY; // fully scattered
   if (r >= 1) return 0;
   return Math.sqrt(-2 * dlog(r));
 }
@@ -151,10 +163,19 @@ export function fuseResonance(
   let dead = false;
 
   for (const ch of all) {
-    if (!Number.isFinite(ch.value)) { abstained++; continue; }
+    if (!Number.isFinite(ch.value)) {
+      abstained++;
+      continue;
+    }
     counted++;
-    if (ch.value < vetoValue) { vetoValue = ch.value; vetoId = ch.id; }
-    if (ch.value <= 0) { dead = true; continue; }
+    if (ch.value < vetoValue) {
+      vetoValue = ch.value;
+      vetoId = ch.id;
+    }
+    if (ch.value <= 0) {
+      dead = true;
+      continue;
+    }
     logSum += dlog(ch.value);
   }
 

@@ -48,8 +48,10 @@ describe('G1 cell contraction', () => {
     for (let t = 0; t < 40; t++) {
       cellStep(a, ao, {});
       cellStep(b, bo, {});
-      a.re.set(ao.re); a.im.set(ao.im);
-      b.re.set(bo.re); b.im.set(bo.im);
+      a.re.set(ao.re);
+      a.im.set(ao.im);
+      b.re.set(bo.re);
+      b.im.set(bo.im);
     }
     expect(distance(a, b)).toBeLessThan(d0 * Math.pow(JURY_GAIN_REFERENCE, 40) * 1.001 + 1e-15);
   });

@@ -55,7 +55,12 @@ export class CorridorGate {
     else if (skill >= CORRIDOR.stress + up) next = 'STRESS';
     else next = 'CRITICAL';
     this.regime = next;
-    const scale = next === 'STABLE' ? CORRIDOR.gateScales[0] : next === 'STRESS' ? CORRIDOR.gateScales[1] : CORRIDOR.gateScales[2];
+    const scale =
+      next === 'STABLE'
+        ? CORRIDOR.gateScales[0]
+        : next === 'STRESS'
+          ? CORRIDOR.gateScales[1]
+          : CORRIDOR.gateScales[2];
     return { skill, regime: next, scale };
   }
 }

@@ -12,22 +12,31 @@
  * — the engine tick clamps `MetatronInput.coherence` to that floor when active.
  * Pure additive: when not engaged, returns 0 (no clamp).
  */
-import { CHAPTER_47, PHI_FLOOR_INV_SQ, F17_RESOLUTION, SILVER_GRID_SPOKES } from "@/core/constants/Chapter47";
-import { getGovernor } from "./governorSingleton";
+import {
+  CHAPTER_47,
+  PHI_FLOOR_INV_SQ,
+  F17_RESOLUTION,
+  SILVER_GRID_SPOKES,
+} from '@/core/constants/Chapter47';
+import { getGovernor } from './governorSingleton';
 
 interface Chapter47Snapshot {
   cpuThreads: number;
-  resolution: "auto" | number;
+  resolution: 'auto' | number;
 }
 
 let active = false;
 let snapshot: Chapter47Snapshot | null = null;
 let floor = 0;
 
-export function isChapter47Active(): boolean { return active; }
+export function isChapter47Active(): boolean {
+  return active;
+}
 
 /** Clamp value used by the engine tick — 0 when Ch.47 is disengaged. */
-export function chapter47CoherenceFloor(): number { return floor; }
+export function chapter47CoherenceFloor(): number {
+  return floor;
+}
 
 /**
  * Apply the live Ch.47 coherence floor. No-op when disengaged (floor = 0),
@@ -44,9 +53,9 @@ export function clampCoherence(c: number): number {
 
 export interface Chapter47Hooks {
   /** Current resolution (so we can restore it). */
-  getResolution: () => "auto" | number;
+  getResolution: () => 'auto' | number;
   /** Engine resolution setter (same one ResolutionPanel uses). */
-  setResolution: (r: "auto" | number) => void;
+  setResolution: (r: 'auto' | number) => void;
 }
 
 /** Engage Ch.47 — set workers/resolution/floor. Returns the new snapshot. */

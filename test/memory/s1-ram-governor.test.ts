@@ -20,7 +20,8 @@ import {
 } from '@/core/memory/MemoryGovernor';
 
 const CEILING = 64 * 1024 * 1024 * 1024;
-const base = () => computeMemoryCaps({ ceilingBytes: CEILING, provenance: 'fallback', pressure: 0 });
+const base = () =>
+  computeMemoryCaps({ ceilingBytes: CEILING, provenance: 'fallback', pressure: 0 });
 
 describe('Ω-DEPTH Gate 1 — RAM headroom', () => {
   it('working budget is 70% of the ceiling and reproducible', () => {
@@ -66,7 +67,8 @@ describe('Ω-DEPTH Gate 1 — RAM headroom', () => {
     expect(frozen.fractalFrozen).toBe(true);
     expect(frozen.maxEpisodes).toBeLessThan(nominal.maxEpisodes);
     expect(frozen.maxJournalRecords).toBeLessThan(
-      computeMemoryCaps({ ceilingBytes: CEILING, pressure: PRESSURE_TRIM + 0.01 }).maxJournalRecords,
+      computeMemoryCaps({ ceilingBytes: CEILING, pressure: PRESSURE_TRIM + 0.01 })
+        .maxJournalRecords,
     );
     expect(frozen.maxTapeFrames).toBe(nominal.maxTapeFrames);
     expect(frozen.maxSensoryAtoms).toBe(nominal.maxSensoryAtoms);

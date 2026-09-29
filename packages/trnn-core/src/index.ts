@@ -36,7 +36,6 @@ export * from './fractal/nest';
 export * from './fractal/pool';
 export * from './algebra/clifford';
 
-
 export { SingleTorusEngine } from './engine/SingleTorusEngine';
 export type { EngineOptions, TickReport, Checkpoint } from './engine/SingleTorusEngine';
 

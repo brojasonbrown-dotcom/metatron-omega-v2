@@ -20,7 +20,15 @@ import { LexicalIndex } from './LexicalIndex';
 import { BarcodeIndex } from './BarcodeIndex';
 import { ConceptGraph } from './ConceptGraph';
 import { LatentSpace, type LatentBuildReport, type LatentOptions } from './LatentSpace';
-import { tokenize, termCounts, featureCounts, hashVector, cosine, embed, VECTOR_DIM } from './tokenize';
+import {
+  tokenize,
+  termCounts,
+  featureCounts,
+  hashVector,
+  cosine,
+  embed,
+  VECTOR_DIM,
+} from './tokenize';
 import { measureResonance, ageBand, type FieldContext } from '@/core/memory/Resonance';
 import { fibonacciBandedSelect } from '@/core/memory/Banding';
 import {
@@ -39,7 +47,6 @@ import {
 } from './fieldSignature';
 
 import type { KChunk, KDocument, RecallHit, KnowledgeStats } from './types';
-
 
 const W_LEX = 1;
 const W_SEM = PHI_INV;
@@ -60,7 +67,11 @@ export const CHUNK_CHARS = 1200;
 export const CHUNK_OVERLAP = 200;
 
 export function chunkText(text: string, size = CHUNK_CHARS, overlap = CHUNK_OVERLAP): string[] {
-  const clean = text.replace(/\r/g, '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  const clean = text
+    .replace(/\r/g, '')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
   if (clean.length <= size) return clean ? [clean] : [];
   const out: string[] = [];
   let i = 0;
@@ -68,7 +79,11 @@ export function chunkText(text: string, size = CHUNK_CHARS, overlap = CHUNK_OVER
     let end = Math.min(clean.length, i + size);
     if (end < clean.length) {
       const window = clean.slice(i, end);
-      const cut = Math.max(window.lastIndexOf('\n\n'), window.lastIndexOf('. '), window.lastIndexOf('? '));
+      const cut = Math.max(
+        window.lastIndexOf('\n\n'),
+        window.lastIndexOf('. '),
+        window.lastIndexOf('? '),
+      );
       if (cut > size * 0.5) end = i + cut + 1;
     }
     const piece = clean.slice(i, end).trim();
@@ -81,7 +96,8 @@ export function chunkText(text: string, size = CHUNK_CHARS, overlap = CHUNK_OVER
 
 /** Stable content hash id — identical text never enters the corpus twice. */
 function contentId(prefix: string, s: string): string {
-  let h1 = 0x811c9dc5, h2 = 0x01000193;
+  let h1 = 0x811c9dc5,
+    h2 = 0x01000193;
   for (let i = 0; i < s.length; i++) {
     h1 = Math.imul(h1 ^ s.charCodeAt(i), 0x01000193) >>> 0;
     h2 = Math.imul(h2 + s.charCodeAt(i) + i, 0x85ebca6b) >>> 0;
@@ -118,7 +134,11 @@ export interface IngestInput {
  * the result is renormalised so no chunk gains score purely by having a
  * descriptor attached.
  */
-export function blendDescriptor(vec: Float64Array, desc: Float64Array, weight = PHI_INV): Float64Array {
+export function blendDescriptor(
+  vec: Float64Array,
+  desc: Float64Array,
+  weight = PHI_INV,
+): Float64Array {
   if (!desc || desc.length === 0) return vec;
   const out = Float64Array.from(vec);
   let dn = 0;
@@ -137,7 +157,6 @@ export function blendDescriptor(vec: Float64Array, desc: Float64Array, weight = 
   if (n > 0) for (let i = 0; i < out.length; i++) out[i] /= n;
   return out;
 }
-
 
 export interface IngestResult {
   docId: string;
@@ -171,7 +190,13 @@ export class KnowledgeBase {
     const docId = contentId('d', `${input.url}\u0000${text.slice(0, 4096)}`);
     const existing = this.docs.get(docId);
     if (existing) {
-      return { docId, duplicate: true, chunks: existing.chunkIds.length, newChunks: 0, chars: existing.chars };
+      return {
+        docId,
+        duplicate: true,
+        chunks: existing.chunkIds.length,
+        newChunks: 0,
+        chars: existing.chars,
+      };
     }
 
     const pieces = chunkText(text);
@@ -186,21 +211,32 @@ export class KnowledgeBase {
     pieces.forEach((piece, ord) => {
       const cid = contentId('c', piece);
       chunkIds.push(cid);
-      if (this.chunks.has(cid)) return;      // exact dedupe across documents
+      if (this.chunks.has(cid)) return; // exact dedupe across documents
       const toks = tokenize(piece);
       const counts = termCounts(toks);
       // Document vectors carry NO idf: they must stay byte-identical for the
       // life of the corpus. Rarity weighting is applied query-side (ltc.lnc).
-      const vec = input.descriptor && input.descriptor.length
-        ? blendDescriptor(hashVector(featureCounts(toks), VECTOR_DIM), input.descriptor)
-        : hashVector(featureCounts(toks), VECTOR_DIM);
+      const vec =
+        input.descriptor && input.descriptor.length
+          ? blendDescriptor(hashVector(featureCounts(toks), VECTOR_DIM), input.descriptor)
+          : hashVector(featureCounts(toks), VECTOR_DIM);
       const barcode = encodeBitmap(vec);
       const chunk: KChunk = {
-        id: cid, docId, field: input.field, ord, text: piece, vec, barcode, tokens: toks.length,
-        createdAt: stamp, rung, trust, modality: input.modality ?? 'text',
-        descriptor: input.descriptor && input.descriptor.length ? Array.from(input.descriptor) : undefined,
+        id: cid,
+        docId,
+        field: input.field,
+        ord,
+        text: piece,
+        vec,
+        barcode,
+        tokens: toks.length,
+        createdAt: stamp,
+        rung,
+        trust,
+        modality: input.modality ?? 'text',
+        descriptor:
+          input.descriptor && input.descriptor.length ? Array.from(input.descriptor) : undefined,
       };
-
 
       this.chunks.set(cid, chunk);
       this.lexical.add(cid, counts);
@@ -225,7 +261,9 @@ export class KnowledgeBase {
     return { docId, duplicate: false, chunks: pieces.length, newChunks: fresh, chars: text.length };
   }
 
-  hasUrl(url: string): boolean { return this.byUrl.has(url); }
+  hasUrl(url: string): boolean {
+    return this.byUrl.has(url);
+  }
 
   // ── recall cascade ────────────────────────────────────────────────────
   /**
@@ -250,9 +288,8 @@ export class KnowledgeBase {
     // the basis is live AND at least one chunk carries a signature. Otherwise
     // the channel abstains and the ranking is bit-identical to the five-channel
     // cascade.
-    const qsig = this.sigEncoder?.ready() && this.sigs.size > 0
-      ? this.sigEncoder.encode(query)
-      : null;
+    const qsig =
+      this.sigEncoder?.ready() && this.sigs.size > 0 ? this.sigEncoder.encode(query) : null;
 
     const bar = new Map(this.barcodes.query(qbar, 256).map((r) => [r.id, r.score]));
     const lex = new Map(this.lexical.search([...counts.keys()], 128).map((r) => [r.id, r.score]));
@@ -273,11 +310,11 @@ export class KnowledgeBase {
       const chunk = this.chunks.get(id);
       if (!chunk) continue;
       if (field && chunk.field !== field) continue;
-      const semantic = Math.max(0, cosine(qvec, chunk.vec));   // exact rescore
+      const semantic = Math.max(0, cosine(qvec, chunk.vec)); // exact rescore
       // Candidates that arrived via another channel still get an exact
       // bitmap reading — the barcode column is never a blank by omission.
       const cached = bar.get(id);
-      const barcode = cached ?? (1 - weightedDistance(qbar, chunk.barcode));
+      const barcode = cached ?? 1 - weightedDistance(qbar, chunk.barcode);
       const lexical = lex.get(id) ?? 0;
       const spread = spr.get(id) ?? 0;
       // Latent channel abstains (NaN) whenever the space is untrained or the
@@ -291,11 +328,19 @@ export class KnowledgeBase {
       const useFld = Number.isFinite(fieldSig);
       const wsum = W_SUM + (useLat ? W_LAT : 0) + (useFld ? W_FLD : 0);
       const textScore =
-        (W_LEX * lexical + W_SEM * semantic + W_BAR * barcode + W_SPR * spread +
-          (useLat ? W_LAT * latent : 0) + (useFld ? W_FLD * fieldSig : 0)) / wsum;
+        (W_LEX * lexical +
+          W_SEM * semantic +
+          W_BAR * barcode +
+          W_SPR * spread +
+          (useLat ? W_LAT * latent : 0) +
+          (useFld ? W_FLD * fieldSig : 0)) /
+        wsum;
 
       const res = ctx
-        ? measureResonance({ vector: chunk.vec, capturedAt: chunk.createdAt, rung: chunk.rung }, ctx)
+        ? measureResonance(
+            { vector: chunk.vec, capturedAt: chunk.createdAt, rung: chunk.rung },
+            ctx,
+          )
         : null;
       // Resonance MODULATES the text score, it never replaces it: a measured
       // resonance folds in as a φ-weighted geometric blend, an unmeasurable
@@ -308,7 +353,12 @@ export class KnowledgeBase {
       hits.push({
         chunk,
         doc: this.docs.get(chunk.docId),
-        barcode, lexical, semantic, spread, latent, fieldSig,
+        barcode,
+        lexical,
+        semantic,
+        spread,
+        latent,
+        fieldSig,
         resonance: res ? res.value : NaN,
         resonanceVeto: res ? res.vetoId : null,
         band: ageBand(chunk.createdAt, now),
@@ -327,7 +377,7 @@ export class KnowledgeBase {
       if (n >= 2) continue;
       perDoc.set(h.chunk.docId, n + 1);
       pool.push(h);
-      if (pool.length >= topN * 4) break;   // banding needs a pool to draw from
+      if (pool.length >= topN * 4) break; // banding needs a pool to draw from
     }
 
     // Fibonacci age quotas over the diversified pool.
@@ -337,7 +387,6 @@ export class KnowledgeBase {
     );
     return banded.map((b) => b.hit);
   }
-
 
   /**
    * Train the latent space (Phase 3). Deterministic and offline: it reads the
@@ -372,7 +421,7 @@ export class KnowledgeBase {
     const tier = tierId ? tierById(tierId) : recommendTier();
     if (!this.sigEncoder || this.sigEncoder.tier.id !== tier.id) {
       this.sigEncoder = new FieldSignatureEncoder(tier);
-      this.sigs.clear();      // widths differ across tiers — never mix them
+      this.sigs.clear(); // widths differ across tiers — never mix them
     }
     return this.sigEncoder.prepare();
   }
@@ -393,7 +442,7 @@ export class KnowledgeBase {
       if (this.sigs.has(c.id)) continue;
       const sig = enc.encode(c.text);
       if (sig) this.sigs.set(c.id, sig);
-      built++;                              // an abstention still consumes budget
+      built++; // an abstention still consumes budget
     }
     const t1 = typeof performance !== 'undefined' ? performance.now() : 0;
     return { built, covered: this.sigs.size, total: this.chunks.size, ms: t1 - t0 };
@@ -405,9 +454,13 @@ export class KnowledgeBase {
   }
 
   /** Does this chunk carry a measured field signature, or only a fingerprint? */
-  hasSignature(id: string): boolean { return this.sigs.has(id); }
+  hasSignature(id: string): boolean {
+    return this.sigs.has(id);
+  }
 
-  signatureFor(id: string): Float64Array | null { return this.sigs.get(id) ?? null; }
+  signatureFor(id: string): Float64Array | null {
+    return this.sigs.get(id) ?? null;
+  }
 
   signatureState(): {
     version: string;
@@ -439,7 +492,9 @@ export class KnowledgeBase {
   }
 
   /** Vector for arbitrary text — used to bridge recall into the field engine. */
-  vectorFor(text: string): Float64Array { return embed(text); }
+  vectorFor(text: string): Float64Array {
+    return embed(text);
+  }
 
   // ── views ─────────────────────────────────────────────────────────────
   documents(field?: string): KDocument[] {
@@ -451,12 +506,17 @@ export class KnowledgeBase {
     const m = new Map<string, { docs: number; chunks: number }>();
     for (const d of this.docs.values()) {
       const e = m.get(d.field) ?? { docs: 0, chunks: 0 };
-      e.docs++; e.chunks += d.chunkIds.length;
+      e.docs++;
+      e.chunks += d.chunkIds.length;
       m.set(d.field, e);
     }
-    return [...m.entries()].map(([field, v]) => ({ field, ...v })).sort((a, b) => b.chunks - a.chunks);
+    return [...m.entries()]
+      .map(([field, v]) => ({ field, ...v }))
+      .sort((a, b) => b.chunks - a.chunks);
   }
-  chunk(id: string): KChunk | undefined { return this.chunks.get(id); }
+  chunk(id: string): KChunk | undefined {
+    return this.chunks.get(id);
+  }
 
   /**
    * Every chunk in stable id order. Sorted, not insertion-ordered, so any
@@ -465,7 +525,6 @@ export class KnowledgeBase {
   chunkList(): KChunk[] {
     return [...this.chunks.values()].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   }
-
 
   /**
    * Consolidation pass (plane D). Clusters near-duplicate chunks into
@@ -499,7 +558,6 @@ export class KnowledgeBase {
     return report;
   }
 
-
   stats(): KnowledgeStats {
     return {
       fields: this.fields().length,
@@ -518,8 +576,15 @@ export class KnowledgeBase {
     return {
       docs: [...this.docs.values()],
       chunks: [...this.chunks.values()].map((c) => ({
-        id: c.id, docId: c.docId, field: c.field, ord: c.ord, text: c.text, tokens: c.tokens,
-        createdAt: c.createdAt, rung: c.rung, trust: c.trust,
+        id: c.id,
+        docId: c.docId,
+        field: c.field,
+        ord: c.ord,
+        text: c.text,
+        tokens: c.tokens,
+        createdAt: c.createdAt,
+        rung: c.rung,
+        trust: c.trust,
         modality: c.modality,
         descriptor: c.descriptor ? [...c.descriptor] : undefined,
         contradicts: c.contradicts ? [...c.contradicts] : undefined,
@@ -542,9 +607,10 @@ export class KnowledgeBase {
       // with: text-only re-encoding would silently drop the descriptor
       // binding and move the chunk in recall space after every reload.
       const base = hashVector(featureCounts(tokenize(c.text)), VECTOR_DIM);
-      const vec = c.descriptor && c.descriptor.length
-        ? blendDescriptor(base, Float64Array.from(c.descriptor))
-        : base;
+      const vec =
+        c.descriptor && c.descriptor.length
+          ? blendDescriptor(base, Float64Array.from(c.descriptor))
+          : base;
       const barcode = encodeBitmap(vec);
 
       // Saves written before scale/age tagging carry no stamps. They fall back
@@ -590,9 +656,15 @@ export class KnowledgeBase {
   }
 
   clear(): void {
-    this.docs.clear(); this.chunks.clear(); this.byUrl.clear();
-    this.lexical.clear(); this.barcodes.clear(); this.concepts.clear();
-    this.latent.clear(); this.latentVecs.clear(); this.sigs.clear();
+    this.docs.clear();
+    this.chunks.clear();
+    this.byUrl.clear();
+    this.lexical.clear();
+    this.barcodes.clear();
+    this.concepts.clear();
+    this.latent.clear();
+    this.latentVecs.clear();
+    this.sigs.clear();
     this.approxBytes = 0;
   }
 }

@@ -6,11 +6,11 @@
  * shared rung selection and the frame the stage already pulled. That keeps a
  * single puller and makes the selection survive tab switches.
  */
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useOmegaState } from "../useOmegaRuntime";
-import { useFieldView } from "../fieldViewStore";
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useOmegaState } from '../useOmegaRuntime';
+import { useFieldView } from '../fieldViewStore';
 
-const num = (x: number, d = 4) => (Number.isFinite(x) ? x.toFixed(d) : "—");
+const num = (x: number, d = 4) => (Number.isFinite(x) ? x.toFixed(d) : '—');
 
 export default function FieldDeckPanel() {
   const s = useOmegaState();
@@ -30,7 +30,7 @@ export default function FieldDeckPanel() {
       c.width = Math.round(w * dpr);
       c.height = Math.round(h * dpr);
     }
-    const g = c.getContext("2d");
+    const g = c.getContext('2d');
     if (!g) return;
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, w, h);
@@ -64,8 +64,8 @@ export default function FieldDeckPanel() {
           {frame
             ? `tick ${frame.tick} · ${frame.u.length}/${frame.nodes} nodes (÷${frame.stride}) · digest ${frame.digest}`
             : s.snapshot
-              ? "waiting for frame…"
-              : "no engine built"}
+              ? 'waiting for frame…'
+              : 'no engine built'}
         </span>
       </div>
 
@@ -99,34 +99,33 @@ export default function FieldDeckPanel() {
 
       <div className="rounded-md border border-border/40 bg-card/30 p-2 grid grid-cols-2 md:grid-cols-4 gap-x-4 text-[10px] font-mono">
         <span className="text-muted-foreground">peak |z|</span>
-        <span className="text-right tabular-nums">{frame ? frame.peak.toExponential(4) : "—"}</span>
+        <span className="text-right tabular-nums">{frame ? frame.peak.toExponential(4) : '—'}</span>
         <span className="text-muted-foreground">mean |z|</span>
-        <span className="text-right tabular-nums">{frame ? frame.mean.toExponential(4) : "—"}</span>
+        <span className="text-right tabular-nums">{frame ? frame.mean.toExponential(4) : '—'}</span>
         <span className="text-muted-foreground">coherence</span>
         <span className="text-right tabular-nums">
-          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].coherence, 6) : "—"}
+          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].coherence, 6) : '—'}
         </span>
         <span className="text-muted-foreground">regime</span>
-        <span className="text-right">{s.snapshot?.rungs[rank]?.regime ?? "—"}</span>
+        <span className="text-right">{s.snapshot?.rungs[rank]?.regime ?? '—'}</span>
         <span className="text-muted-foreground">clamped nodes</span>
-        <span className="text-right tabular-nums">{s.snapshot?.rungs[rank]?.clamped ?? "—"}</span>
+        <span className="text-right tabular-nums">{s.snapshot?.rungs[rank]?.clamped ?? '—'}</span>
         <span className="text-muted-foreground">closure γ</span>
         <span className="text-right tabular-nums">
-          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].closureQuality, 6) : "—"}
+          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].closureQuality, 6) : '—'}
         </span>
         <span className="text-muted-foreground">closure defect</span>
         <span className="text-right tabular-nums">
-          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].closureDefect, 6) : "—"}
+          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].closureDefect, 6) : '—'}
         </span>
         <span className="text-muted-foreground">corridor skill</span>
         <span className="text-right tabular-nums">
-          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].skill, 6) : "—"}
+          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].skill, 6) : '—'}
         </span>
         <span className="text-muted-foreground">obstruction (flux)</span>
         <span className="text-right tabular-nums">
-          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].obstruction, 6) : "—"}
+          {s.snapshot?.rungs[rank] ? num(s.snapshot.rungs[rank].obstruction, 6) : '—'}
         </span>
-
       </div>
     </div>
   );

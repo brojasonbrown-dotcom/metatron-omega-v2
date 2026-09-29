@@ -9,7 +9,10 @@
 const K1 = 1.2;
 const B = 0.75;
 
-interface Posting { id: string; tf: number; }
+interface Posting {
+  id: string;
+  tf: number;
+}
 
 export class LexicalIndex {
   private postings = new Map<string, Posting[]>();
@@ -22,7 +25,10 @@ export class LexicalIndex {
     for (const [term, tf] of counts) {
       len += tf;
       let p = this.postings.get(term);
-      if (!p) { p = []; this.postings.set(term, p); }
+      if (!p) {
+        p = [];
+        this.postings.set(term, p);
+      }
       p.push({ id, tf });
     }
     this.lengths.set(id, len);
@@ -75,8 +81,12 @@ export class LexicalIndex {
     return Math.max(0.25, Math.log(1 + (N - df + 0.5) / (df + 0.5)));
   }
 
-  termCount(): number { return this.postings.size; }
-  docCount(): number { return this.lengths.size; }
+  termCount(): number {
+    return this.postings.size;
+  }
+  docCount(): number {
+    return this.lengths.size;
+  }
 
   snapshot(): { postings: Array<[string, Posting[]]>; lengths: Array<[string, number]> } {
     return { postings: [...this.postings.entries()], lengths: [...this.lengths.entries()] };
@@ -89,5 +99,9 @@ export class LexicalIndex {
     for (const l of this.lengths.values()) this.totalLen += l;
   }
 
-  clear(): void { this.postings.clear(); this.lengths.clear(); this.totalLen = 0; }
+  clear(): void {
+    this.postings.clear();
+    this.lengths.clear();
+    this.totalLen = 0;
+  }
 }

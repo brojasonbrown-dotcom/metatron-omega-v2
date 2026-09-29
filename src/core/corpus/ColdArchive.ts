@@ -17,8 +17,13 @@ import { resample } from '@metatron/trnn-core/operator/resample';
 import type { BlobStore } from './storage';
 import type { CorpusLedger, SealRecord } from './CorpusLedger';
 import {
-  encodeShard, decodeShard, contentHashHex, framesOf,
-  FLAG_RESAMPLED, type CorpusFrame, type DecodedShard,
+  encodeShard,
+  decodeShard,
+  contentHashHex,
+  framesOf,
+  FLAG_RESAMPLED,
+  type CorpusFrame,
+  type DecodedShard,
 } from './types';
 
 /** Signature width of a cold frame. */
@@ -60,7 +65,6 @@ export function narrowerWidth(width: number): number | null {
     : null;
 }
 
-
 export interface SegmentIndexEntry {
   readonly key: string;
   readonly index: number;
@@ -95,7 +99,11 @@ export function isRefusal(r: ColdResult): r is ColdRefusal {
  */
 export function compactFrame(values: Float64Array, width = COLD_WIDTH): Float64Array {
   if (values.length === width) return Float64Array.from(values);
-  const f = { re: Float64Array.from(values), im: new Float64Array(values.length), n: values.length };
+  const f = {
+    re: Float64Array.from(values),
+    im: new Float64Array(values.length),
+    n: values.length,
+  };
   const g = resample(f, width);
   return Float64Array.from(g.re);
 }
@@ -124,18 +132,30 @@ export class ColdArchive {
     this.segmentShards = o.segmentShards ?? DEFAULT_SEGMENT_SHARDS;
   }
 
-  get segments(): readonly SegmentIndexEntry[] { return this.index; }
-  get numbers(): number { return this.index.reduce((a, s) => a + s.count * s.width, 0); }
-  get bytes(): number { return this.index.reduce((a, s) => a + s.bytes, 0); }
-  get refusedCount(): number { return this.refusals; }
+  get segments(): readonly SegmentIndexEntry[] {
+    return this.index;
+  }
+  get numbers(): number {
+    return this.index.reduce((a, s) => a + s.count * s.width, 0);
+  }
+  get bytes(): number {
+    return this.index.reduce((a, s) => a + s.bytes, 0);
+  }
+  get refusedCount(): number {
+    return this.refusals;
+  }
   /** Segments narrowed by the retention ladder rather than refused. */
-  get recompactedCount(): number { return this.recompactions; }
+  get recompactedCount(): number {
+    return this.recompactions;
+  }
 
   /**
    * Narrow the oldest segment that is not already at the narrowest rung.
    * Returns bytes reclaimed, or null when the ladder is exhausted.
    */
-  async relieve(timestamp: number): Promise<{ key: string; from: number; to: number; reclaimed: number } | null> {
+  async relieve(
+    timestamp: number,
+  ): Promise<{ key: string; from: number; to: number; reclaimed: number } | null> {
     const candidates = this.index
       .filter((s) => narrowerWidth(s.width) !== null)
       .sort((a, b) => a.tickFrom - b.tickFrom);
@@ -148,7 +168,10 @@ export class ColdArchive {
     const frames = await this.readFrames(target.key);
     if (frames.length === 0) return null;
 
-    const reduced: CorpusFrame[] = frames.map((f) => ({ ...f, values: compactFrame(f.values, to) }));
+    const reduced: CorpusFrame[] = frames.map((f) => ({
+      ...f,
+      values: compactFrame(f.values, to),
+    }));
     const bytes = encodeShard(reduced, to, FLAG_RESAMPLED);
     const hashHex = contentHashHex(bytes);
     const key = `cold:${String(target.index).padStart(8, '0')}:w${to}:${hashHex.slice(0, 16)}.bin`;
@@ -187,11 +210,11 @@ export class ColdArchive {
     return { key, from: target.width, to, reclaimed };
   }
 
-
   /** Headroom check. NaN quota means the host declined to say — we proceed. */
   async headroom(): Promise<{ ok: boolean; usage: number; quota: number }> {
     const e = await this.store.estimate();
-    if (!Number.isFinite(e.quota) || e.quota <= 0) return { ok: true, usage: e.usage, quota: e.quota };
+    if (!Number.isFinite(e.quota) || e.quota <= 0)
+      return { ok: true, usage: e.usage, quota: e.quota };
     return { ok: e.usage / e.quota < QUOTA_GUARD, usage: e.usage, quota: e.quota };
   }
 
@@ -214,7 +237,7 @@ export class ColdArchive {
       this.refusals++;
       return {
         refused: true,
-        reason: `storage quota guard: ${(100 * room.usage / room.quota).toFixed(1)}% used; retention ladder exhausted (all segments at width ${COLD_WIDTH_LADDER[COLD_WIDTH_LADDER.length - 1]})`,
+        reason: `storage quota guard: ${((100 * room.usage) / room.quota).toFixed(1)}% used; retention ladder exhausted (all segments at width ${COLD_WIDTH_LADDER[COLD_WIDTH_LADDER.length - 1]})`,
         usage: room.usage,
         quota: room.quota,
       };
@@ -246,10 +269,15 @@ export class ColdArchive {
     const sealed = this.ledger.seal(record, timestamp);
 
     const entry: SegmentIndexEntry = {
-      key, index,
-      tickFrom: record.tickFrom, tickTo: record.tickTo,
-      count: record.count, width: record.width,
-      bytes: record.bytes, hashHex, leafIndex: sealed.leafIndex,
+      key,
+      index,
+      tickFrom: record.tickFrom,
+      tickTo: record.tickTo,
+      count: record.count,
+      width: record.width,
+      bytes: record.bytes,
+      hashHex,
+      leafIndex: sealed.leafIndex,
     };
     this.index.push(entry);
     return entry;
@@ -275,7 +303,12 @@ export class ColdArchive {
   }
 
   toJSON() {
-    return { width: this.width, nextIndex: this.nextIndex, index: this.index, recompactions: this.recompactions };
+    return {
+      width: this.width,
+      nextIndex: this.nextIndex,
+      index: this.index,
+      recompactions: this.recompactions,
+    };
   }
 
   restore(data: { nextIndex: number; index: SegmentIndexEntry[]; recompactions?: number }): void {

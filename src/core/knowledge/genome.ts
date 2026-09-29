@@ -24,7 +24,15 @@ export const GENOME_CONTRACT = {
   version: 'omega-genome-1',
   dim: VECTOR_DIM,
   /** recall channels that read the genome, in fusion order */
-  channels: ['lexical', 'semantic', 'latent', 'barcode', 'fieldSig', 'spread', 'resonance'] as const,
+  channels: [
+    'lexical',
+    'semantic',
+    'latent',
+    'barcode',
+    'fieldSig',
+    'spread',
+    'resonance',
+  ] as const,
   /** cross-modal descriptor blend weight (φ⁻¹) */
   descriptorWeight: 0.6180339887498949,
   encoding: 'fnv1a-hashed feature counts (unigram+bigram), L2-normalised',
@@ -105,7 +113,10 @@ export function measureGenomeHealth(kb: KnowledgeBase, sampleSize = 160): Genome
       let same = fresh.length === c.vec.length;
       if (same) {
         for (let i = 0; i < fresh.length; i++) {
-          if (fresh[i] !== c.vec[i]) { same = false; break; }
+          if (fresh[i] !== c.vec[i]) {
+            same = false;
+            break;
+          }
         }
       }
       if (!same) drifted++;
@@ -228,7 +239,9 @@ export function measureSelfRetrieval(kb: KnowledgeBase, probes = 12): RetrievalR
 }
 
 /** Encoder determinism: the same text must encode identically, twice. */
-export function encoderIsDeterministic(sample = 'metatron omega φ ladder toroidal closure test'): boolean {
+export function encoderIsDeterministic(
+  sample = 'metatron omega φ ladder toroidal closure test',
+): boolean {
   const a = hashVector(featureCounts(tokenize(sample)), VECTOR_DIM);
   const b = hashVector(featureCounts(tokenize(sample)), VECTOR_DIM);
   if (a.length !== b.length) return false;

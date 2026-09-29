@@ -67,9 +67,7 @@ export function cloneFieldStateN(src: FieldStateN): FieldStateN {
  */
 export function copyFieldStateN(dst: FieldStateN, src: FieldStateN): void {
   if (dst.psi.length !== src.psi.length) {
-    throw new Error(
-      `copyFieldStateN: length mismatch dst=${dst.psi.length} src=${src.psi.length}`,
-    );
+    throw new Error(`copyFieldStateN: length mismatch dst=${dst.psi.length} src=${src.psi.length}`);
   }
   dst.psi.set(src.psi);
   dst.psiHat.set(src.psiHat);

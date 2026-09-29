@@ -166,8 +166,12 @@ export function runMemoryTool(
       returned: hits.length,
       workingSet: pack.pool.length,
       hits: hits.map((h) => ({
-        id: h.id, title: h.title, url: h.url, field: h.field,
-        band: h.band, score: Number(h.score.toFixed(4)),
+        id: h.id,
+        title: h.title,
+        url: h.url,
+        field: h.field,
+        band: h.band,
+        score: Number(h.score.toFixed(4)),
         text: h.text.slice(0, EVIDENCE_CHARS),
       })),
     };
@@ -211,7 +215,8 @@ export const MEMORY_TOOLS = [
     type: 'function' as const,
     function: {
       name: 'memory_read',
-      description: 'Read one memory chunk in full by its chunk id (as returned by memory_recall or the EVIDENCE block).',
+      description:
+        'Read one memory chunk in full by its chunk id (as returned by memory_recall or the EVIDENCE block).',
       parameters: {
         type: 'object',
         properties: { id: { type: 'string', description: 'chunk id, e.g. c1a2b3c4' } },
@@ -223,7 +228,8 @@ export const MEMORY_TOOLS = [
     type: 'function' as const,
     function: {
       name: 'memory_stats',
-      description: 'Counters for the on-device memory corpus: documents, chunks, concepts, terms, graph edges, fields.',
+      description:
+        'Counters for the on-device memory corpus: documents, chunks, concepts, terms, graph edges, fields.',
       parameters: { type: 'object', properties: {} },
     },
   },

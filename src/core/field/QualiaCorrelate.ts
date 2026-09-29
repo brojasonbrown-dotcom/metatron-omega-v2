@@ -16,7 +16,7 @@
  * Pure function, no React, no engine import.
  */
 
-import { HURWITZ_CONSTANT, PHI_FLOOR_INV_SQ } from "@/core/constants/Chapter47";
+import { HURWITZ_CONSTANT, PHI_FLOOR_INV_SQ } from '@/core/constants/Chapter47';
 
 /** √5 — the Hurwitz bound: the best possible approximability constant. */
 const SQRT5 = Math.sqrt(5);
@@ -35,10 +35,22 @@ export interface QualiaCorrelateMeasurement {
   incApprox: number;
 }
 
-export function computeQualiaCorrelate(modes: readonly number[] | Float64Array): QualiaCorrelateMeasurement {
+export function computeQualiaCorrelate(
+  modes: readonly number[] | Float64Array,
+): QualiaCorrelateMeasurement {
   const N = modes.length;
   if (N < 2) {
-    return { Q: 0, Q_inc: 0, Q_stab: 0, Q_res: 0, N, attractorK: 0, live: false, incRatio: NaN, incApprox: NaN };
+    return {
+      Q: 0,
+      Q_inc: 0,
+      Q_stab: 0,
+      Q_res: 0,
+      N,
+      attractorK: 0,
+      live: false,
+      incRatio: NaN,
+      incApprox: NaN,
+    };
   }
   const inc = hurwitzIncommensurability(modes);
   const Q_inc = inc.score;
@@ -46,7 +58,17 @@ export function computeQualiaCorrelate(modes: readonly number[] | Float64Array):
   const k = Math.max(1, Math.ceil(N * PHI_FLOOR_INV_SQ));
   const Q_res = phiAttractorEnergyFraction(modes, k);
   const Q = Math.cbrt(Math.max(0, Q_inc) * Math.max(0, Q_stab) * Math.max(0, Q_res));
-  return { Q, Q_inc, Q_stab, Q_res, N, attractorK: k, live: true, incRatio: inc.ratio, incApprox: inc.approx };
+  return {
+    Q,
+    Q_inc,
+    Q_stab,
+    Q_res,
+    N,
+    attractorK: k,
+    live: true,
+    incRatio: inc.ratio,
+    incApprox: inc.approx,
+  };
 }
 
 /**
@@ -68,14 +90,20 @@ export function computeQualiaCorrelate(modes: readonly number[] | Float64Array):
  * `HURWITZ_CONSTANT` (1/√5) is the reciprocal form of the same bound and
  * is used here as the normalising reference.
  */
-export function hurwitzIncommensurability(
-  modes: readonly number[] | Float64Array,
-): { score: number; ratio: number; approx: number } {
+export function hurwitzIncommensurability(modes: readonly number[] | Float64Array): {
+  score: number;
+  ratio: number;
+  approx: number;
+} {
   // Dominant amplitude.
-  let i1 = -1, e1 = -Infinity;
+  let i1 = -1,
+    e1 = -Infinity;
   for (let i = 0; i < modes.length; i++) {
     const e = modes[i] * modes[i];
-    if (e > e1) { e1 = e; i1 = i; }
+    if (e > e1) {
+      e1 = e;
+      i1 = i;
+    }
   }
   if (i1 < 0 || !(e1 > 0)) return { score: 0, ratio: NaN, approx: Infinity };
   const a1 = Math.abs(modes[i1]);
@@ -85,13 +113,17 @@ export function hurwitzIncommensurability(
   // is usually |a1| again; a ratio of exactly 1 would read as "commensurate"
   // when it is really a structural symmetry, not field dynamics.
   const degenerate = 1e-9 * a1;
-  let i2 = -1, e2 = -Infinity;
+  let i2 = -1,
+    e2 = -Infinity;
   for (let i = 0; i < modes.length; i++) {
     if (i === i1) continue;
     const a = Math.abs(modes[i]);
     if (Math.abs(a - a1) <= degenerate) continue;
     const e = a * a;
-    if (e > e2) { e2 = e; i2 = i; }
+    if (e > e2) {
+      e2 = e;
+      i2 = i;
+    }
   }
   if (i2 < 0 || !(e2 > 0)) return { score: 0, ratio: NaN, approx: Infinity };
 
@@ -103,9 +135,8 @@ export function hurwitzIncommensurability(
   if (x < 1) x = 1 / x;
 
   const approx = approximabilityConstant(x);
-  const score = Number.isFinite(approx) && approx > 0
-    ? Math.max(0, Math.min(1, SQRT5 / approx))
-    : 0;
+  const score =
+    Number.isFinite(approx) && approx > 0 ? Math.max(0, Math.min(1, SQRT5 / approx)) : 0;
   return { score, ratio: x, approx };
 }
 
@@ -117,12 +148,14 @@ export function hurwitzIncommensurability(
  * representation error for exact rationality.
  */
 const Q_PRECISION_LIMIT = 6.7e7; // ≈ 1/√ε_f64 — beyond this the residual is noise
-const Q_RATIONAL_LIMIT = 1e4;    // small enough that a zero residual is a real rational
+const Q_RATIONAL_LIMIT = 1e4; // small enough that a zero residual is a real rational
 
 export function approximabilityConstant(x: number, depth = 20): number {
   if (!Number.isFinite(x) || x <= 0) return Infinity;
-  let pPrev = 1, qPrev = 0;   // p_{-1}/q_{-1}
-  let p = Math.floor(x), q = 1;
+  let pPrev = 1,
+    qPrev = 0; // p_{-1}/q_{-1}
+  let p = Math.floor(x),
+    q = 1;
   let frac = x - Math.floor(x);
   let best = 0;
   for (let j = 0; j < depth; j++) {
@@ -139,15 +172,16 @@ export function approximabilityConstant(x: number, depth = 20): number {
     const pNext = nextA * p + pPrev;
     const qNext = nextA * q + qPrev;
     if (!Number.isFinite(pNext) || !Number.isFinite(qNext) || qNext > Q_PRECISION_LIMIT) break;
-    pPrev = p; qPrev = q; p = pNext; q = qNext;
+    pPrev = p;
+    qPrev = q;
+    p = pNext;
+    q = qNext;
   }
 
   // Never report better than the Hurwitz bound — A(x) ≥ √5 = 1/HURWITZ_CONSTANT
   // is a theorem, so a smaller measured value can only be truncation noise.
   return Math.max(best, 1 / HURWITZ_CONSTANT);
-
 }
-
 
 function gramConditioning(v: readonly number[] | Float64Array): number {
   const n = v.length;
@@ -164,7 +198,8 @@ function gramConditioning(v: readonly number[] | Float64Array): number {
   dot += v[last] * v[0];
   dot *= invN * invN;
   const c = dot < 0 ? -dot : dot;
-  const lamMax = 1 + c, lamMin = 1 - c;
+  const lamMax = 1 + c,
+    lamMin = 1 - c;
   return lamMax > 0 ? lamMin / lamMax : 0;
 }
 
@@ -187,21 +222,28 @@ function phiAttractorEnergyFraction(modes: readonly number[] | Float64Array, k: 
   // sum energies[i] >= pivot (with tie handling). O(N) expected vs
   // O(N log N) for a full sort.
   // Hoare-partition partial select on `energies` in place.
-  let lo = 0, hi = n - 1;
+  let lo = 0,
+    hi = n - 1;
   const target = n - kc; // index such that energies[target..n) are the kc largest
   while (lo < hi) {
     const mid = (lo + hi) >>> 1;
-    const a = energies[lo], b = energies[mid], c = energies[hi];
-    const pivot = a < b
-      ? (b < c ? b : (a < c ? c : a))
-      : (a < c ? a : (b < c ? c : b));
-    let i = lo, j = hi;
+    const a = energies[lo],
+      b = energies[mid],
+      c = energies[hi];
+    const pivot = a < b ? (b < c ? b : a < c ? c : a) : a < c ? a : b < c ? c : b;
+    let i = lo,
+      j = hi;
     while (i <= j) {
       while (energies[i] < pivot) i++;
       while (energies[j] > pivot) j--;
       if (i <= j) {
-        if (i !== j) { const t = energies[i]; energies[i] = energies[j]; energies[j] = t; }
-        i++; j--;
+        if (i !== j) {
+          const t = energies[i];
+          energies[i] = energies[j];
+          energies[j] = t;
+        }
+        i++;
+        j--;
       }
     }
     if (target <= j) hi = j;

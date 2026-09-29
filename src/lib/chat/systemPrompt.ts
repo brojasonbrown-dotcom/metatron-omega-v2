@@ -9,8 +9,8 @@
  * mathematics/physics. Never invent engine values or structural facts.
  */
 
-import type { EngineSnapshot } from "./types";
-import { listToolNames } from "./tools/registry";
+import type { EngineSnapshot } from './types';
+import { listToolNames } from './tools/registry';
 
 /**
  * Which tool-invocation protocol the caller uses.
@@ -20,7 +20,7 @@ import { listToolNames } from "./tools/registry";
  *                MUST NOT instruct marker emission.
  *   - "none":    Analysis-only turn.
  */
-export type ToolProtocol = "markers" | "native" | "none";
+export type ToolProtocol = 'markers' | 'native' | 'none';
 
 const CONTRACT = `You are the reasoning surface attached to a live computational engine.
 
@@ -195,31 +195,31 @@ Example correct behaviors:
     continued fraction identity. Never recite a memorized constant.`;
 
 function toolBlock(protocol: ToolProtocol): string {
-  if (protocol === "none") {
+  if (protocol === 'none') {
     return `Tool protocol — no tools are available this turn. Answer from ENGINE STATE alone, or say what you would need to fetch.`;
   }
-  if (protocol === "native") {
+  if (protocol === 'native') {
     return `Tool protocol — use the function-calling tools provided by the API. Do not write tool-call markers in your text content; the runtime ignores them. Invoke tools in parallel when their inputs are independent.`;
   }
   return `Tool protocol — emit one line per call, exactly:
   <<TOOL: name | arg1=value | arg2=value>>
 The client executes the call and feeds the result back on the next turn.
 
-Available tools (${listToolNames().length} total — this is the authoritative count, do not claim more): ${listToolNames().join(", ")}.`;
+Available tools (${listToolNames().length} total — this is the authoritative count, do not claim more): ${listToolNames().join(', ')}.`;
 }
 
 export function buildSystemPrompt(
   snapshot: EngineSnapshot,
-  toolProtocol: ToolProtocol = "markers",
+  toolProtocol: ToolProtocol = 'markers',
 ): string {
   return [
     CONTRACT,
-    "",
+    '',
     toolBlock(toolProtocol),
-    "",
-    "ENGINE STATE (live, this turn):",
-    "```json",
+    '',
+    'ENGINE STATE (live, this turn):',
+    '```json',
     JSON.stringify(snapshot, null, 2),
-    "```",
-  ].join("\n");
+    '```',
+  ].join('\n');
 }

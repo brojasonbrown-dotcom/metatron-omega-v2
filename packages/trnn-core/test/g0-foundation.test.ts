@@ -13,7 +13,14 @@ import {
   PHI_INV_7,
   phiPow,
 } from '../src/core/constants';
-import { DENSE_CORE, LADDER, closureObstructionHolds, isStableByLucas, isStableByResidue, lucasMod13 } from '../src/core/scaleLadder';
+import {
+  DENSE_CORE,
+  LADDER,
+  closureObstructionHolds,
+  isStableByLucas,
+  isStableByResidue,
+  lucasMod13,
+} from '../src/core/scaleLadder';
 import { PROFILES, fib, isFibonacci, lucasBig } from '../src/core/fibonacci';
 import { DigestChain, SeedStream } from '../src/core/determinism';
 import { at, wrapAt } from '../src/core/indexing';

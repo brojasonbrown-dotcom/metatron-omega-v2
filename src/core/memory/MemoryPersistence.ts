@@ -30,9 +30,16 @@ interface Envelope {
 interface SerializedSnapshot {
   hebbian: { entries: Array<[number, number, number]>; dim: number };
   patterns: Array<{
-    tick: number; fibIndex: number; indices: number[]; amplitudes: number[];
-    norm: number; poloidal: number; toroidal: number;
-    qualiaScalar: number; hash: string; lastSeen: number;
+    tick: number;
+    fibIndex: number;
+    indices: number[];
+    amplitudes: number[];
+    norm: number;
+    poloidal: number;
+    toroidal: number;
+    qualiaScalar: number;
+    hash: string;
+    lastSeen: number;
   }>;
   pathway: Array<{ from: string; to: string; count: number; lastTick: number }>;
   journal: Array<{ tick: number; qualiaScalar: number; signatureHash: string; text?: string }>;
@@ -47,10 +54,16 @@ function serialize(snap: MemorySnapshot): SerializedSnapshot {
   return {
     hebbian: { entries: snap.hebbian.entries.map(([i, j, w]) => [i, j, w]), dim: snap.hebbian.dim },
     patterns: snap.patterns.map((p) => ({
-      tick: p.tick, fibIndex: p.fibIndex,
-      indices: Array.from(p.indices), amplitudes: Array.from(p.amplitudes),
-      norm: p.norm, poloidal: p.poloidal, toroidal: p.toroidal,
-      qualiaScalar: p.qualiaScalar, hash: p.hash, lastSeen: p.lastSeen,
+      tick: p.tick,
+      fibIndex: p.fibIndex,
+      indices: Array.from(p.indices),
+      amplitudes: Array.from(p.amplitudes),
+      norm: p.norm,
+      poloidal: p.poloidal,
+      toroidal: p.toroidal,
+      qualiaScalar: p.qualiaScalar,
+      hash: p.hash,
+      lastSeen: p.lastSeen,
     })),
     pathway: snap.pathway.map((e) => ({ ...e })),
     journal: snap.journal.map((r) => ({ ...r })),
@@ -69,12 +82,21 @@ function serialize(snap: MemorySnapshot): SerializedSnapshot {
 
 function deserialize(s: SerializedSnapshot): MemorySnapshot {
   return {
-    hebbian: { entries: s.hebbian.entries.map(([i, j, w]) => [i, j, w] as [number, number, number]), dim: s.hebbian.dim },
+    hebbian: {
+      entries: s.hebbian.entries.map(([i, j, w]) => [i, j, w] as [number, number, number]),
+      dim: s.hebbian.dim,
+    },
     patterns: s.patterns.map((p) => ({
-      tick: p.tick, fibIndex: p.fibIndex,
-      indices: new Int32Array(p.indices), amplitudes: new Float64Array(p.amplitudes),
-      norm: p.norm, poloidal: p.poloidal, toroidal: p.toroidal,
-      qualiaScalar: p.qualiaScalar, hash: p.hash, lastSeen: p.lastSeen,
+      tick: p.tick,
+      fibIndex: p.fibIndex,
+      indices: new Int32Array(p.indices),
+      amplitudes: new Float64Array(p.amplitudes),
+      norm: p.norm,
+      poloidal: p.poloidal,
+      toroidal: p.toroidal,
+      qualiaScalar: p.qualiaScalar,
+      hash: p.hash,
+      lastSeen: p.lastSeen,
     })),
     pathway: s.pathway.map((e) => ({ ...e })),
     journal: s.journal.map((r) => ({ ...r })),
@@ -95,16 +117,24 @@ export interface PersistenceAdapter {
 // ─── In-memory adapter (SSR / Node / tests) ──────────────────────────────
 class InMemoryAdapter implements PersistenceAdapter {
   private store = new Map<string, Envelope>();
-  async save(k: string, e: Envelope) { this.store.set(k, e); }
-  async load(k: string) { return this.store.get(k) ?? null; }
-  async clear(k: string) { this.store.delete(k); }
+  async save(k: string, e: Envelope) {
+    this.store.set(k, e);
+  }
+  async load(k: string) {
+    return this.store.get(k) ?? null;
+  }
+  async clear(k: string) {
+    this.store.delete(k);
+  }
 }
 
 // ─── IndexedDB adapter (browser / Windows local) ─────────────────────────
 class IndexedDBAdapter implements PersistenceAdapter {
   private dbName: string;
   private storeName = 'snapshots';
-  constructor(dbName = DEFAULT_DB) { this.dbName = dbName; }
+  constructor(dbName = DEFAULT_DB) {
+    this.dbName = dbName;
+  }
 
   private open(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
@@ -118,14 +148,17 @@ class IndexedDBAdapter implements PersistenceAdapter {
   }
 
   private tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
-    return this.open().then((db) => new Promise<T>((resolve, reject) => {
-      const t = db.transaction(this.storeName, mode);
-      const s = t.objectStore(this.storeName);
-      const r = fn(s);
-      r.onsuccess = () => resolve(r.result);
-      r.onerror = () => reject(r.error);
-      t.oncomplete = () => db.close();
-    }));
+    return this.open().then(
+      (db) =>
+        new Promise<T>((resolve, reject) => {
+          const t = db.transaction(this.storeName, mode);
+          const s = t.objectStore(this.storeName);
+          const r = fn(s);
+          r.onsuccess = () => resolve(r.result);
+          r.onerror = () => reject(r.error);
+          t.oncomplete = () => db.close();
+        }),
+    );
   }
 
   async save(key: string, env: Envelope): Promise<void> {
@@ -143,7 +176,11 @@ class IndexedDBAdapter implements PersistenceAdapter {
 /** Pick the best adapter for the current runtime. Always local. */
 export function defaultAdapter(): PersistenceAdapter {
   if (typeof indexedDB !== 'undefined') {
-    try { return new IndexedDBAdapter(); } catch { /* fall through */ }
+    try {
+      return new IndexedDBAdapter();
+    } catch {
+      /* fall through */
+    }
   }
   return new InMemoryAdapter();
 }
@@ -177,15 +214,18 @@ export class MemoryPersistence {
       if (typeof p.aggression === 'number') memoryPolicy.setAggression(p.aggression);
       if (p.modalities) {
         (Object.keys(p.modalities) as SensoryModality[]).forEach((m) =>
-          memoryPolicy.setModality(m, !!p.modalities[m])
+          memoryPolicy.setModality(m, !!p.modalities[m]),
         );
       }
-      if (typeof p.fieldStateEnabled === 'boolean') memoryPolicy.setFieldStateEnabled(p.fieldStateEnabled);
+      if (typeof p.fieldStateEnabled === 'boolean')
+        memoryPolicy.setFieldStateEnabled(p.fieldStateEnabled);
     }
     return true;
   }
 
-  async clear(key = DEFAULT_KEY): Promise<void> { await this.adapter.clear(key); }
+  async clear(key = DEFAULT_KEY): Promise<void> {
+    await this.adapter.clear(key);
+  }
 }
 
 // Test-only export so harness can inject the in-memory adapter deterministically.

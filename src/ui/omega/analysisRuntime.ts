@@ -28,9 +28,7 @@ import {
 } from '@/core/analysis/channelSampler';
 
 import { FindingLedger, sessionSeed, type LedgerEntry } from '@/core/analysis/findingLedger';
-import {
-  FindingConsolidator, sweepLines, type SweepLine,
-} from '@/core/analysis/consolidation';
+import { FindingConsolidator, sweepLines, type SweepLine } from '@/core/analysis/consolidation';
 import { getOmegaRuntime } from './omegaRuntime';
 import { getMemoryRuntime } from './memoryRuntime';
 import { getSensoryDriver } from './sensoryDriver';
@@ -79,7 +77,6 @@ interface RetainedFrame {
   readonly id: AnalysisChannelId;
   readonly value: number;
 }
-
 
 export interface AnalysisState {
   version: number;
@@ -131,8 +128,6 @@ export interface AnalysisState {
     worthwhile: boolean;
   };
 
-
-
   /** Ω-P9.3 evidence ledger: sealed passes, current head, self-audit result. */
   ledger: {
     size: number;
@@ -168,23 +163,45 @@ const EMPTY: AnalysisState = {
   channels: [],
   calibration: [],
   retention: {
-    tiers: [], admitted: 0, rejected: 0, evicted: 0, numbers: 0, capacityNumbers: 0,
+    tiers: [],
+    admitted: 0,
+    rejected: 0,
+    evicted: 0,
+    numbers: 0,
+    capacityNumbers: 0,
   },
   throughput: {
-    cores: null, workers: false, webgpuApi: false, sharedMemory: false,
-    recommendedWorkers: 1, plannedWorkers: 1, projectedSpeedup: 1,
-    amdahlCeiling: 1, worthwhile: false,
+    cores: null,
+    workers: false,
+    webgpuApi: false,
+    sharedMemory: false,
+    recommendedWorkers: 1,
+    plannedWorkers: 1,
+    projectedSpeedup: 1,
+    amdahlCeiling: 1,
+    worthwhile: false,
   },
-
-
 
   ledger: {
-    size: 0, rootHex: '', headTimestamp: 0, publicKey: '',
-    verified: false, verifyReason: null, recent: [],
+    size: 0,
+    rootHex: '',
+    headTimestamp: 0,
+    publicKey: '',
+    verified: false,
+    verifyReason: null,
+    recent: [],
   },
   consolidation: {
-    cycles: 0, atoms: 0, open: 0, prototypes: 0, ingested: 0,
-    superseded: 0, contradictions: 0, sweeps: [], failed: 0, lastCycleMs: NaN,
+    cycles: 0,
+    atoms: 0,
+    open: 0,
+    prototypes: 0,
+    ingested: 0,
+    superseded: 0,
+    contradictions: 0,
+    sweeps: [],
+    failed: 0,
+    lastCycleMs: NaN,
   },
 };
 
@@ -205,7 +222,6 @@ class AnalysisRuntime {
   /** Ω-SCALE P2 — the live tiered corpus fed by calibrated surprise. */
   private readonly corpus = new operator.TieredCorpus<RetainedFrame>();
   private listeners = new Set<() => void>();
-
 
   private state: AnalysisState = EMPTY;
   private sampleTimer: ReturnType<typeof setInterval> | null = null;
@@ -250,13 +266,13 @@ class AnalysisRuntime {
     // Retention is derived from those same residuals, so it clears with them.
     this.corpus.clear();
     this.publish({ report: null, lastPassMs: NaN, calibration: [] });
-
   }
-
 
   subscribe = (fn: () => void): (() => void) => {
     this.listeners.add(fn);
-    return () => { this.listeners.delete(fn); };
+    return () => {
+      this.listeners.delete(fn);
+    };
   };
 
   getSnapshot = (): AnalysisState => this.state;
@@ -280,7 +296,9 @@ class AnalysisRuntime {
           tickRate: snap.tickRate,
         };
       }
-    } catch { /* engine not built: leave null */ }
+    } catch {
+      /* engine not built: leave null */
+    }
     try {
       const m = getMemoryRuntime().getStats();
       memory = {
@@ -288,21 +306,30 @@ class AnalysisRuntime {
         meanSurprise: m.meanSurprise,
         totalMerged: m.totalMerged,
       };
-    } catch { /* memory runtime not constructed yet */ }
+    } catch {
+      /* memory runtime not constructed yet */
+    }
     try {
       const s = getSensoryDriver().getSnapshot();
       sense = { totalIngests: s.totalIngests, arousal: s.arousal };
-    } catch { /* sensory driver not started */ }
+    } catch {
+      /* sensory driver not started */
+    }
     try {
       const c = getCognitiveDriver().getSnapshot();
       spectral = {
-        passes: c.passes, drift: c.drift, residual: c.residual, entropy: c.entropy,
+        passes: c.passes,
+        drift: c.drift,
+        residual: c.residual,
+        entropy: c.entropy,
         circulation: c.circulation,
         roughness: c.roughness,
         leakage: c.leakage,
         persistence: c.persistence,
       };
-    } catch { /* cognitive driver not started */ }
+    } catch {
+      /* cognitive driver not started */
+    }
     return { engine, memory, sense, spectral };
   }
 
@@ -361,10 +388,8 @@ class AnalysisRuntime {
         operator.surpriseOf(actual, predicted, half),
         this.frames,
       );
-
     }
   }
-
 
   /**
    * Ω-CORPUS — the durable offer, once per recorded frame.
@@ -387,7 +412,10 @@ class AnalysisRuntime {
       const predicted = band ? band.value : actual;
       const half = band ? band.halfWidth : NaN;
       const s = operator.surpriseOf(actual, predicted, half);
-      if (s > worst) { worst = s; pick = { predicted, half, actual }; }
+      if (s > worst) {
+        worst = s;
+        pick = { predicted, half, actual };
+      }
     }
     if (!pick) return;
     getCorpusRuntime().feed(values, pick.predicted, pick.half, pick.actual);
@@ -511,8 +539,6 @@ class AnalysisRuntime {
     };
     for (const fn of this.listeners) fn();
   }
-
-
 }
 
 let singleton: AnalysisRuntime | null = null;

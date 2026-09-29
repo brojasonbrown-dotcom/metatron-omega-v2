@@ -4,8 +4,8 @@
 //     componentTagger (dev-only), VITE_* env injection, @ path alias, React/TanStack dedupe,
 //     error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
-import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import path from "node:path";
+import { defineConfig } from '@lovable.dev/vite-tanstack-config';
+import path from 'node:path';
 
 // Vitest budget. The engine batteries are CPU-bound simulations; the 5 s default
 // measures machine load, not code health, so a busy box turns the suite red for
@@ -19,10 +19,10 @@ const vitestBudget = {
 // @cloudflare/vite-plugin builds from this — wrangler.jsonc main alone is insufficient.
 export default defineConfig({
   tanstackStart: {
-    server: { entry: "server" },
+    server: { entry: 'server' },
   },
   vite: {
-    worker: { format: "es" },
+    worker: { format: 'es' },
     ...vitestBudget,
     resolve: {
       alias: {
@@ -33,19 +33,12 @@ export default defineConfig({
         // prefix-alias correctly resolves both `@metatron/field-kernel-core`
         // (→ src/index.ts) and `@metatron/field-kernel-core/cos`
         // (→ src/cos.ts) without producing a `index.ts/cos` path.
-        "@metatron/field-kernel-core": path.resolve(
-          __dirname,
-          "packages/field-kernel-core/src",
-        ),
+        '@metatron/field-kernel-core': path.resolve(__dirname, 'packages/field-kernel-core/src'),
         // METATRON Omega certified core (Ω-P0/P1): pure TS, zero deps.
 
-        "@metatron/trnn-core/": path.resolve(__dirname, "packages/trnn-core/src") + "/",
-        "@metatron/trnn-core": path.resolve(
-          __dirname,
-          "packages/trnn-core/src/index.ts",
-        ),
+        '@metatron/trnn-core/': path.resolve(__dirname, 'packages/trnn-core/src') + '/',
+        '@metatron/trnn-core': path.resolve(__dirname, 'packages/trnn-core/src/index.ts'),
       },
     },
   },
 });
-

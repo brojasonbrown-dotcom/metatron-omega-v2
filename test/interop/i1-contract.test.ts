@@ -8,19 +8,51 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  encodeCbor, decodeCbor, toHex, fromHex, hash, hashHex, hashValueHex,
-  hashLegacySha256Hex, HASH_LAW, INTEROP_VERSION,
-  hlcZero, hlcTick, hlcMerge, hlcCompare, hlcEncode, hlcDecode,
-  deterministicId, type CborValue,
+  encodeCbor,
+  decodeCbor,
+  toHex,
+  fromHex,
+  hash,
+  hashHex,
+  hashValueHex,
+  hashLegacySha256Hex,
+  HASH_LAW,
+  INTEROP_VERSION,
+  hlcZero,
+  hlcTick,
+  hlcMerge,
+  hlcCompare,
+  hlcEncode,
+  hlcDecode,
+  deterministicId,
+  type CborValue,
 } from '../../src/core/interop/contract';
 import {
-  BN_ONE, U128_MAX, I128_MAX, I128_MIN,
-  PHI_SCALED, PHI_INV_SCALED, PHI_INV2_SCALED, PHI_INV3_SCALED,
-  bnFromNumber, bnToNumber, bnToDecimalString, bnClampUnit,
-  log2Fix, exp2Fix, exp2Frac, isqrt,
-  weightedGeometricMean, phiWeightedGeometricMean, mergeSubstrates,
-  satMulU128, satI128, satDivI128,
-  trustScoreMultiplier, trustTier, trustInvalidationQuorum,
+  BN_ONE,
+  U128_MAX,
+  I128_MAX,
+  I128_MIN,
+  PHI_SCALED,
+  PHI_INV_SCALED,
+  PHI_INV2_SCALED,
+  PHI_INV3_SCALED,
+  bnFromNumber,
+  bnToNumber,
+  bnToDecimalString,
+  bnClampUnit,
+  log2Fix,
+  exp2Fix,
+  exp2Frac,
+  isqrt,
+  weightedGeometricMean,
+  phiWeightedGeometricMean,
+  mergeSubstrates,
+  satMulU128,
+  satI128,
+  satDivI128,
+  trustScoreMultiplier,
+  trustTier,
+  trustInvalidationQuorum,
 } from '../../src/core/interop/bn128';
 import { SensoryGateway } from '../../src/core/sensory/SensoryGateway';
 
@@ -68,8 +100,9 @@ describe('R2 · canonical CBOR', () => {
   });
 
   it('drops undefined members but refuses non-finite numbers', () => {
-    expect(toHex(encodeCbor({ a: 1, b: undefined as unknown as CborValue })))
-      .toBe(toHex(encodeCbor({ a: 1 })));
+    expect(toHex(encodeCbor({ a: 1, b: undefined as unknown as CborValue }))).toBe(
+      toHex(encodeCbor({ a: 1 })),
+    );
     expect(() => encodeCbor(Number.NaN)).toThrow(/non-finite/);
     expect(() => encodeCbor({ x: Number.POSITIVE_INFINITY })).toThrow(/non-finite/);
   });
@@ -92,16 +125,19 @@ describe('R2 · one hash law', () => {
   it('declares SHA3-256 and matches the known-answer test', () => {
     expect(HASH_LAW).toBe('sha3-256');
     // NIST KAT: SHA3-256("") — proves we call SHA3, not SHA-256 or Keccak-256.
-    expect(hashHex(new Uint8Array(0)))
-      .toBe('a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a');
-    expect(hashHex(new TextEncoder().encode('abc')))
-      .toBe('3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532');
+    expect(hashHex(new Uint8Array(0))).toBe(
+      'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a',
+    );
+    expect(hashHex(new TextEncoder().encode('abc'))).toBe(
+      '3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532',
+    );
   });
 
   it('keeps the legacy digest strictly separate — no silent fallback', () => {
     const b = new TextEncoder().encode('abc');
-    expect(hashLegacySha256Hex(b))
-      .toBe('ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+    expect(hashLegacySha256Hex(b)).toBe(
+      'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+    );
     expect(hashLegacySha256Hex(b)).not.toBe(hashHex(b));
   });
 
@@ -184,7 +220,7 @@ describe('R2 · deterministic ids', () => {
 describe('R3 · BigNum128 fixed point is bit-identical to the host merge', () => {
   const PHI = (1 + Math.sqrt(5)) / 2;
 
-  it('pins the φ constants to the host\'s 10^18-scaled integers', () => {
+  it("pins the φ constants to the host's 10^18-scaled integers", () => {
     expect(PHI_SCALED).toBe(1_618_033_988_749_894_848n);
     expect(PHI_INV_SCALED).toBe(618_033_988_749_894_848n);
     expect(PHI_INV2_SCALED).toBe(381_966_011_250_105_151n);
@@ -251,16 +287,19 @@ describe('R3 · BigNum128 fixed point is bit-identical to the host merge', () =>
   });
 
   it('rejects out-of-range coherence rather than clamping it silently', () => {
-    expect(() => phiWeightedGeometricMean([BN_ONE + 1n, BN_ONE, BN_ONE]))
-      .toThrow(/out of range/);
+    expect(() => phiWeightedGeometricMean([BN_ONE + 1n, BN_ONE, BN_ONE])).toThrow(/out of range/);
   });
 
   it('ranks a strong brain above a weak one under φ weighting', () => {
     const strong = mergeSubstrates({
-      brain: bnFromNumber(0.9), metatron: bnFromNumber(0.6), rumf: bnFromNumber(0.5),
+      brain: bnFromNumber(0.9),
+      metatron: bnFromNumber(0.6),
+      rumf: bnFromNumber(0.5),
     });
     const weak = mergeSubstrates({
-      brain: bnFromNumber(0.4), metatron: bnFromNumber(0.6), rumf: bnFromNumber(0.5),
+      brain: bnFromNumber(0.4),
+      metatron: bnFromNumber(0.6),
+      rumf: bnFromNumber(0.5),
     });
     expect(strong > weak).toBe(true);
     expect(bnToNumber(strong)).toBeGreaterThan(0);

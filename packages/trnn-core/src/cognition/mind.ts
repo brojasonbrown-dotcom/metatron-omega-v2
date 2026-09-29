@@ -176,7 +176,10 @@ export class Mind {
 
   report(): MindReport {
     const records = this.store.records();
-    const top = records.slice().sort((a, b) => b.hits - a.hits || b.tick - a.tick).slice(0, 13);
+    const top = records
+      .slice()
+      .sort((a, b) => b.hits - a.hits || b.tick - a.tick)
+      .slice(0, 13);
     return {
       thoughts: this.count,
       meanNovelty: this.count ? this.noveltySum / this.count : 0,

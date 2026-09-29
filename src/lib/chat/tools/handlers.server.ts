@@ -8,7 +8,7 @@
  * Every handler returns a JSON-safe payload; network-only, no node-native deps.
  */
 
-import { INTEL_HANDLERS } from "./intel.server";
+import { INTEL_HANDLERS } from './intel.server';
 
 type Args = Record<string, unknown>;
 type Handler = (args: Args) => Promise<unknown>;

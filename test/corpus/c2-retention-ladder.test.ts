@@ -8,7 +8,10 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  CorpusLedger, ColdArchive, MemoryBlobStore, isRefusal,
+  CorpusLedger,
+  ColdArchive,
+  MemoryBlobStore,
+  isRefusal,
   type CorpusFrame,
 } from '@/core/corpus';
 import { COLD_WIDTH_LADDER, narrowerWidth } from '@/core/corpus/ColdArchive';

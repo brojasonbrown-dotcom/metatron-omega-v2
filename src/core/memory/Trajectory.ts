@@ -59,10 +59,16 @@ export const EMPTY_TRAJECTORY: TrajectorySummary = {
 function slope(xs: number[], ys: number[]): number {
   const n = xs.length;
   if (n < 2) return 0;
-  let sx = 0, sy = 0;
-  for (let i = 0; i < n; i++) { sx += xs[i]; sy += ys[i]; }
-  const mx = sx / n, my = sy / n;
-  let num = 0, den = 0;
+  let sx = 0,
+    sy = 0;
+  for (let i = 0; i < n; i++) {
+    sx += xs[i];
+    sy += ys[i];
+  }
+  const mx = sx / n,
+    my = sy / n;
+  let num = 0,
+    den = 0;
   for (let i = 0; i < n; i++) {
     const dx = xs[i] - mx;
     num += dx * (ys[i] - my);

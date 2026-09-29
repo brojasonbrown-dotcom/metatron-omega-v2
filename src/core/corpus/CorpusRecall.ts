@@ -92,14 +92,18 @@ export async function recall(src: RecallSources, q: RecallQuery): Promise<Recall
     }
     if (segs.length > 0) {
       return {
-        frames: [], tier: null, numbersRead: 0,
+        frames: [],
+        tier: null,
+        numbersRead: 0,
         abstained: `range needs ${cost} numbers, budget is ${q.budgetNumbers}`,
       };
     }
   }
 
   return {
-    frames: [], tier: null, numbersRead: 0,
+    frames: [],
+    tier: null,
+    numbersRead: 0,
     abstained: `no tier holds ticks [${from}, ${to}] within budget`,
   };
 }

@@ -75,13 +75,13 @@ export class LadderProjection {
     const table: ScatterEntry[] = new Array(this.psiDim);
     const perScale = new Map<number, number>();
     for (let i = 0; i < this.psiDim; i++) {
-      const scale = shapes[i % S].scale;                    // round-robin by index, not literal scale id
-      const node  = Math.floor(i / S);
-      const cap   = nodesByScale.get(scale) ?? 0;
+      const scale = shapes[i % S].scale; // round-robin by index, not literal scale id
+      const node = Math.floor(i / S);
+      const cap = nodesByScale.get(scale) ?? 0;
       if (node >= cap) {
         throw new Error(
           `LadderProjection: scatter target (scale=${scale}, node=${node}) ` +
-          `exceeds capacity ${cap}. Reduce psiDim or widen the ladder shape.`,
+            `exceeds capacity ${cap}. Reduce psiDim or widen the ladder shape.`,
         );
       }
       table[i] = Object.freeze({ psiIndex: i, scale, node });
@@ -92,10 +92,14 @@ export class LadderProjection {
   }
 
   /** Read-only view of the scatter table (audit / truth-suite use). */
-  scatter(): ReadonlyArray<ScatterEntry> { return this.table; }
+  scatter(): ReadonlyArray<ScatterEntry> {
+    return this.table;
+  }
 
   /** How many Ψ indices land on a given scale. */
-  countOnScale(scale: number): number { return this.perScaleCount.get(scale) ?? 0; }
+  countOnScale(scale: number): number {
+    return this.perScaleCount.get(scale) ?? 0;
+  }
 
   /**
    * Forward projection Π: write Ψ into the mapped ladder slots.
@@ -107,13 +111,16 @@ export class LadderProjection {
    */
   forward(psi: Readonly<Float64Array>, ladder: readonly FieldStateN[]): void {
     if (psi.length !== this.psiDim) {
-      throw new Error(`LadderProjection.forward: psi length ${psi.length} != psiDim ${this.psiDim}`);
+      throw new Error(
+        `LadderProjection.forward: psi length ${psi.length} != psiDim ${this.psiDim}`,
+      );
     }
     const byScale = indexLadder(ladder);
     for (let i = 0; i < this.psiDim; i++) {
       const e = this.table[i];
       const st = byScale.get(e.scale);
-      if (!st) throw new Error(`LadderProjection.forward: missing ladder entry for scale ${e.scale}`);
+      if (!st)
+        throw new Error(`LadderProjection.forward: missing ladder entry for scale ${e.scale}`);
       st.psi[e.node] = psi[i];
     }
   }
@@ -127,13 +134,16 @@ export class LadderProjection {
    */
   pullback(ladder: readonly FieldStateN[], psiOut: Float64Array): void {
     if (psiOut.length !== this.psiDim) {
-      throw new Error(`LadderProjection.pullback: psiOut length ${psiOut.length} != psiDim ${this.psiDim}`);
+      throw new Error(
+        `LadderProjection.pullback: psiOut length ${psiOut.length} != psiDim ${this.psiDim}`,
+      );
     }
     const byScale = indexLadder(ladder);
     for (let i = 0; i < this.psiDim; i++) {
       const e = this.table[i];
       const st = byScale.get(e.scale);
-      if (!st) throw new Error(`LadderProjection.pullback: missing ladder entry for scale ${e.scale}`);
+      if (!st)
+        throw new Error(`LadderProjection.pullback: missing ladder entry for scale ${e.scale}`);
       psiOut[i] = st.psi[e.node];
     }
   }

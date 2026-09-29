@@ -43,16 +43,23 @@ export class F6HebrewMeasurement implements ScaleMeasurement {
 
   measure(state: FieldStateN, _ctx: ScaleMeasurementContext): ScaleMeasurementResult {
     if (state.psi.length < NODES) {
-      return { scale: 5, closureResidual: NaN, closureScore: NaN, invariantScore: NaN, gamma: new Float64Array(NODES) };
+      return {
+        scale: 5,
+        closureResidual: NaN,
+        closureScore: NaN,
+        invariantScore: NaN,
+        gamma: new Float64Array(NODES),
+      };
     }
     const psi = state.psi;
 
     // Compensated Σψ² for probability normalization.
-    let sumSq = 0, comp = 0;
+    let sumSq = 0,
+      comp = 0;
     for (let i = 0; i < NODES; i++) {
       const x = psi[i] * psi[i];
       const t = sumSq + x;
-      comp += Math.abs(sumSq) >= x ? (sumSq - t) + x : (x - t) + sumSq;
+      comp += Math.abs(sumSq) >= x ? sumSq - t + x : x - t + sumSq;
       sumSq = t;
     }
     const total = sumSq + comp;
@@ -66,7 +73,9 @@ export class F6HebrewMeasurement implements ScaleMeasurement {
     // Entropy H = -Σ p log₂ p ; γ = per-letter probability.
     const g = state.gamma.length >= NODES ? state.gamma : new Float64Array(NODES);
     let H = 0;
-    let mMass = 0, dMass = 0, sMass = 0;
+    let mMass = 0,
+      dMass = 0,
+      sMass = 0;
     for (let i = 0; i < NODES; i++) {
       const p = (psi[i] * psi[i]) / total;
       g[i] = p;

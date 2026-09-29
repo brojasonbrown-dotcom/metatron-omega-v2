@@ -14,12 +14,17 @@
  * reloads and stays consistent across ChatTab, KimiTab and any future
  * launcher.
  */
-import { useMemo } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Slider } from "@/components/ui/slider";
-import { AVAILABLE_MODELS, type ModelOption } from "@/lib/chat/types";
-import { useChatSettings, setChatSettings, resetChatSettings, type ToolChoice } from "@/lib/chat/chatSettings";
-import { isAgenticModel } from "@/lib/chat/client";
+import { useMemo } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+import { AVAILABLE_MODELS, type ModelOption } from '@/lib/chat/types';
+import {
+  useChatSettings,
+  setChatSettings,
+  resetChatSettings,
+  type ToolChoice,
+} from '@/lib/chat/chatSettings';
+import { isAgenticModel } from '@/lib/chat/client';
 
 export function ChatSettingsPopover() {
   const s = useChatSettings();
@@ -43,7 +48,7 @@ export function ChatSettingsPopover() {
         >
           <span aria-hidden>⚙</span>
           <span className="hidden sm:inline text-[10px] text-muted-foreground">
-            {selected?.label.replace(/\s*\(.*\)$/, "") ?? s.model}
+            {selected?.label.replace(/\s*\(.*\)$/, '') ?? s.model}
           </span>
         </button>
       </PopoverTrigger>
@@ -54,12 +59,16 @@ export function ChatSettingsPopover() {
         className="w-[340px] p-0 bg-card/95 backdrop-blur border-border font-mono text-xs"
       >
         <div className="px-3 py-2 border-b border-border flex items-center justify-between">
-          <div className="text-[10px] font-display tracking-[0.25em] text-primary">◆ LLM SETTINGS</div>
+          <div className="text-[10px] font-display tracking-[0.25em] text-primary">
+            ◆ LLM SETTINGS
+          </div>
           <button
             onClick={resetChatSettings}
             className="text-[10px] text-muted-foreground hover:text-destructive"
             title="Restore defaults"
-          >reset</button>
+          >
+            reset
+          </button>
         </div>
 
         <div className="p-3 space-y-3">
@@ -75,16 +84,17 @@ export function ChatSettingsPopover() {
                 <optgroup key={g} label={g}>
                   {list.map((m) => (
                     <option key={m.id} value={m.id}>
-                      {m.label}{m.hint ? ` — ${m.hint}` : ""}
+                      {m.label}
+                      {m.hint ? ` — ${m.hint}` : ''}
                     </option>
                   ))}
                 </optgroup>
               ))}
             </select>
             <div className="mt-1 text-[10px] text-muted-foreground">
-              path:{" "}
-              <span className={agentic ? "text-primary" : "text-accent"}>
-                {agentic ? "native tool-loop (/api/kimi)" : "streaming markers (/api/chat)"}
+              path:{' '}
+              <span className={agentic ? 'text-primary' : 'text-accent'}>
+                {agentic ? 'native tool-loop (/api/kimi)' : 'streaming markers (/api/chat)'}
               </span>
             </div>
           </label>
@@ -108,7 +118,7 @@ export function ChatSettingsPopover() {
           </div>
 
           {/* Max iterations */}
-          <div className={agentic ? "" : "opacity-50"}>
+          <div className={agentic ? '' : 'opacity-50'}>
             <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
               <span>Max agent iterations</span>
               <span className="tabular-nums text-foreground">{s.maxIterations}</span>
@@ -126,10 +136,10 @@ export function ChatSettingsPopover() {
           </div>
 
           {/* Tool choice */}
-          <div className={agentic ? "" : "opacity-50"}>
+          <div className={agentic ? '' : 'opacity-50'}>
             <div className="text-[10px] text-muted-foreground mb-1">Tool choice</div>
             <div className="grid grid-cols-3 gap-1">
-              {(["auto", "required", "none"] as ToolChoice[]).map((c) => {
+              {(['auto', 'required', 'none'] as ToolChoice[]).map((c) => {
                 const on = s.toolChoice === c;
                 return (
                   <button
@@ -137,8 +147,8 @@ export function ChatSettingsPopover() {
                     onClick={() => setChatSettings({ toolChoice: c })}
                     className={`px-2 py-1 rounded border text-[10px] tabular-nums ${
                       on
-                        ? "border-primary text-primary bg-primary/10"
-                        : "border-border text-muted-foreground hover:border-primary/40"
+                        ? 'border-primary text-primary bg-primary/10'
+                        : 'border-border text-muted-foreground hover:border-primary/40'
                     }`}
                   >
                     {c}
@@ -147,7 +157,8 @@ export function ChatSettingsPopover() {
               })}
             </div>
             <div className="text-[9px] text-muted-foreground mt-1">
-              <b>auto</b>: model decides · <b>required</b>: must call a tool · <b>none</b>: pure text.
+              <b>auto</b>: model decides · <b>required</b>: must call a tool · <b>none</b>: pure
+              text.
             </div>
           </div>
         </div>

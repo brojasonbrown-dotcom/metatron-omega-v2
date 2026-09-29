@@ -20,7 +20,10 @@
 import type { MetatronOutput } from '@/core/MetatronCore';
 import type { MemoryStore } from './MemoryStore';
 import { isFibonacciTick } from './FibonacciPatterns';
-import { computeQualiaCorrelate, type QualiaCorrelateMeasurement } from '@/core/field/QualiaCorrelate';
+import {
+  computeQualiaCorrelate,
+  type QualiaCorrelateMeasurement,
+} from '@/core/field/QualiaCorrelate';
 import { qualiaScalar as reflectQualiaScalar } from '@/core/field/Reflect';
 import { PHI, PHI_INV } from '@/core/constants/WolframVerified';
 import { injectTextPsi, lexemeTokens, type TextInjection } from '@/core/gematria/lexeme';
@@ -96,11 +99,11 @@ export function projectPsi(out: MetatronOutput): Float64Array {
  * V10 framework goldens cannot regress.
  */
 export function projectPsiToroidal(out: MetatronOutput): Float64Array {
-  const N_RUNGS = out.chain.length;          // 9 in current chain
+  const N_RUNGS = out.chain.length; // 9 in current chain
   const TAIL = 4;
   const psi = new Float64Array(N_RUNGS * 4 + TAIL);
-  const R = PHI;     // major radius (golden)
-  const r = 1.0;     // minor radius
+  const R = PHI; // major radius (golden)
+  const r = 1.0; // minor radius
   for (let n = 0; n < N_RUNGS; n++) {
     const c = out.chain[n].chainUpCoupling;
     const m = out.chain[n].masterMetric;
@@ -112,7 +115,7 @@ export function projectPsiToroidal(out: MetatronOutput): Float64Array {
     psi[base + 0] = ringR * Math.cos(theta) * c;
     psi[base + 1] = ringR * Math.sin(theta) * c;
     psi[base + 2] = r * Math.sin(phi) * c;
-    psi[base + 3] = (m - 0.5) * 2;            // mean-centred master metric
+    psi[base + 3] = (m - 0.5) * 2; // mean-centred master metric
   }
   // Circulation invariant (Wolfram check #3 above).
   let circulation = 0;
@@ -151,7 +154,6 @@ export interface TickMemoryResult {
   textInjection: TextInjection | null;
 }
 
-
 export function tickMemory(
   out: MetatronOutput,
   store: MemoryStore,
@@ -159,8 +161,28 @@ export function tickMemory(
   text?: string,
 ): TickMemoryResult {
   if (!Number.isFinite(tick) || tick < 1) {
-    const zero: QualiaCorrelateMeasurement = { Q: 0, Q_inc: 0, Q_stab: 0, Q_res: 0, N: 0, attractorK: 0, live: false, incRatio: NaN, incApprox: NaN };
-    return { tick, isFibonacci: false, salience: 0, episodicCaptured: false, firedJobs: [], qualiaCorrelate: zero, qualiaScalar: 0, psi: new Float64Array(0), textInjection: null };
+    const zero: QualiaCorrelateMeasurement = {
+      Q: 0,
+      Q_inc: 0,
+      Q_stab: 0,
+      Q_res: 0,
+      N: 0,
+      attractorK: 0,
+      live: false,
+      incRatio: NaN,
+      incApprox: NaN,
+    };
+    return {
+      tick,
+      isFibonacci: false,
+      salience: 0,
+      episodicCaptured: false,
+      firedJobs: [],
+      qualiaCorrelate: zero,
+      qualiaScalar: 0,
+      psi: new Float64Array(0),
+      textInjection: null,
+    };
   }
   // True toroidal embedding (Gap #2): each rung occupies a (θ_n, φ_n) point
   // on the (R=φ, r=1) torus surface, amplitude-modulated by chainUpCoupling.
@@ -232,8 +254,12 @@ export function tickMemory(
     for (const t of toks) if (store.lexicon.count(t) === 0) unfamiliar++;
     store.lexicon.learn(toks, toks.length ? 0.25 + 0.75 * (unfamiliar / toks.length) : 0);
     textInjection = textInjection
-      ? { tokens: textInjection.tokens + inj.tokens, inexact: textInjection.inexact + inj.inexact,
-          norm: Math.hypot(textInjection.norm, inj.norm), address: inj.address }
+      ? {
+          tokens: textInjection.tokens + inj.tokens,
+          inexact: textInjection.inexact + inj.inexact,
+          norm: Math.hypot(textInjection.norm, inj.norm),
+          address: inj.address,
+        }
       : inj;
   }
   const allText = utterances.length ? utterances.join(' ') : text;
@@ -249,10 +275,10 @@ export function tickMemory(
   const witnessC = Math.max(0, Math.min(1, out.metatronWitnessCoherence || 0));
   const q = reflectQualiaScalar({
     C: witnessC,
-    N: 1 - correlate.Q_stab,        // novelty ≈ instability
-    S: correlate.Q_res,             // salience ≈ φ-attractor energy fraction
-    V: 0,                            // valence unknown in this path
-    I: correlate.Q,                  // integration ≈ overall Q
+    N: 1 - correlate.Q_stab, // novelty ≈ instability
+    S: correlate.Q_res, // salience ≈ φ-attractor energy fraction
+    V: 0, // valence unknown in this path
+    I: correlate.Q, // integration ≈ overall Q
   });
 
   // Ω-LEXICON L6: the grounded predicates read the witness-coherence path;
@@ -260,9 +286,10 @@ export function tickMemory(
   // those words are learned too — algorithm → word closes the loop.
   store.coherencePath.push(witnessC);
   if (store.coherencePath.length > 21) store.coherencePath.shift();
-  const recalledWord = store.lexicon.size > 0 && utterances.length > 0
-    ? lexemeTokens(utterances[utterances.length - 1]).at(-1) ?? null
-    : null;
+  const recalledWord =
+    store.lexicon.size > 0 && utterances.length > 0
+      ? (lexemeTokens(utterances[utterances.length - 1]).at(-1) ?? null)
+      : null;
   const desc = describeField({ x: store.coherencePath }, recalledWord ? [recalledWord] : []);
   store.lastDescription = desc ? desc.text : null;
 

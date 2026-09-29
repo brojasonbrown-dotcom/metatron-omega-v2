@@ -21,16 +21,23 @@ import { PHI } from '@metatron/field-kernel-core';
 
 const LN_PHI = Math.log(PHI);
 
-interface NAcc { s: number; c: number; }
-function nAcc(): NAcc { return { s: 0, c: 0 }; }
+interface NAcc {
+  s: number;
+  c: number;
+}
+function nAcc(): NAcc {
+  return { s: 0, c: 0 };
+}
 function nAdd(a: NAcc, x: number): void {
   if (!Number.isFinite(x)) return;
   const s = a.s;
   const t = s + x;
-  a.c += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+  a.c += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
   a.s = t;
 }
-function nVal(a: NAcc): number { return a.s + a.c; }
+function nVal(a: NAcc): number {
+  return a.s + a.c;
+}
 
 export interface PhiModeProjection {
   /** Coefficients c_0..c_{K−1}. */
@@ -68,10 +75,14 @@ export function projectResidual(residual: Float64Array, modes = 13): PhiModeProj
     coeff[k] = d > 0 ? nVal(acc) / Math.sqrt(d) : 0;
   }
 
-  let k = -1; let mag = 0;
+  let k = -1;
+  let mag = 0;
   for (let i = 1; i < K; i++) {
     const a = Math.abs(coeff[i]);
-    if (a > mag) { mag = a; k = i; }
+    if (a > mag) {
+      mag = a;
+      k = i;
+    }
   }
 
   const explainedAcc = nAcc();
@@ -122,7 +133,10 @@ export class StallDetector {
   private len = 0;
   private head = 0;
 
-  constructor(private readonly window = 21, private readonly tolerance = 1e-4) {
+  constructor(
+    private readonly window = 21,
+    private readonly tolerance = 1e-4,
+  ) {
     this.buf = new Float64Array(window);
   }
 
@@ -136,7 +150,10 @@ export class StallDetector {
   /** True when the residual has not shrunk meaningfully across the window. */
   get stalled(): boolean {
     if (this.len < this.buf.length) return false;
-    let min = Infinity, max = -Infinity, first = 0, last = 0;
+    let min = Infinity,
+      max = -Infinity,
+      first = 0,
+      last = 0;
     for (let i = 0; i < this.len; i++) {
       const idx = (this.head + i) % this.buf.length;
       const v = this.buf[idx];
@@ -149,5 +166,7 @@ export class StallDetector {
     return (first - last) / max < this.tolerance;
   }
 
-  get samples(): number { return this.len; }
+  get samples(): number {
+    return this.len;
+  }
 }

@@ -27,8 +27,12 @@
  */
 
 import {
-  PHI, PLANCK_LENGTH_M, SPEED_OF_LIGHT_M_S, HBAR_J_S,
-  BOLTZMANN_J_K, GRAVITATIONAL_CONSTANT,
+  PHI,
+  PLANCK_LENGTH_M,
+  SPEED_OF_LIGHT_M_S,
+  HBAR_J_S,
+  BOLTZMANN_J_K,
+  GRAVITATIONAL_CONSTANT,
 } from '@/core/constants/WolframVerified';
 import { closureRecord, type ClosureRecord } from './LucasClosure';
 
@@ -42,7 +46,8 @@ export const PLANCK_MASS_KG = Math.sqrt((HBAR_J_S * SPEED_OF_LIGHT_M_S) / GRAVIT
 /** Planck time t_P = ℓ_P/c (s). */
 export const PLANCK_TIME_S = PLANCK_LENGTH_M / SPEED_OF_LIGHT_M_S;
 /** Planck temperature T_P = m_P c²/k_B (K). */
-export const PLANCK_TEMPERATURE_K = (PLANCK_MASS_KG * SPEED_OF_LIGHT_M_S * SPEED_OF_LIGHT_M_S) / BOLTZMANN_J_K;
+export const PLANCK_TEMPERATURE_K =
+  (PLANCK_MASS_KG * SPEED_OF_LIGHT_M_S * SPEED_OF_LIGHT_M_S) / BOLTZMANN_J_K;
 
 // ───────────────────────── continuous ladder maps ─────────────────────────
 
@@ -116,7 +121,12 @@ export const LADDER_ANCHORS: readonly LadderAnchor[] = Object.freeze([
   anchor('Earth radius', 6.371e6, 'B'),
   anchor('astronomical unit', 1.495978707e11, 'B'),
   anchor('Milky Way radius', 4.7e20, 'B'),
-  anchor('observable universe radius', 4.4e26, 'B', 'within one ladder step of RHUFT canonical n = 292'),
+  anchor(
+    'observable universe radius',
+    4.4e26,
+    'B',
+    'within one ladder step of RHUFT canonical n = 292',
+  ),
 ]);
 
 function anchor(label: string, metres: number, cls: EpistemicClass, note?: string): LadderAnchor {
@@ -127,23 +137,27 @@ const _rungs: LadderRung[] = [];
 function buildRungs(): readonly LadderRung[] {
   if (_rungs.length) return _rungs;
   for (let n = 0; n <= LADDER_MAX_N; n++) {
-    const near = LADDER_ANCHORS.filter(a => Math.abs(a.rung - n) <= 0.5);
-    _rungs.push(Object.freeze({
-      n,
-      length: ladderLength(n),
-      time: ladderTime(n),
-      frequency: ladderFrequency(n),
-      mass: ladderMass(n),
-      temperature: ladderTemperature(n),
-      closure: closureRecord(n),
-      anchors: Object.freeze(near),
-    }));
+    const near = LADDER_ANCHORS.filter((a) => Math.abs(a.rung - n) <= 0.5);
+    _rungs.push(
+      Object.freeze({
+        n,
+        length: ladderLength(n),
+        time: ladderTime(n),
+        frequency: ladderFrequency(n),
+        mass: ladderMass(n),
+        temperature: ladderTemperature(n),
+        closure: closureRecord(n),
+        anchors: Object.freeze(near),
+      }),
+    );
   }
   return _rungs;
 }
 
 /** Full tabulated ladder, built once and cached. */
-export function ladder(): readonly LadderRung[] { return buildRungs(); }
+export function ladder(): readonly LadderRung[] {
+  return buildRungs();
+}
 
 /** Single rung record (integer n ∈ [0, LADDER_MAX_N]). */
 export function rung(n: number): LadderRung {
@@ -156,7 +170,8 @@ export function rung(n: number): LadderRung {
 export function nearestStableRung(n: number): number {
   const base = Math.round(n);
   for (let d = 0; d <= LADDER_MAX_N; d++) {
-    const lo = base - d, hi = base + d;
+    const lo = base - d,
+      hi = base + d;
     if (lo >= 0 && closureRecord(lo).stable) return lo;
     if (hi <= LADDER_MAX_N && closureRecord(hi).stable) return hi;
   }
@@ -184,12 +199,14 @@ export const LADDER_ERRATA: readonly LadderErratum[] = Object.freeze([
   {
     claim: 'α⁻¹ = 13φ/√13 + 1/2',
     status: 'FAILED',
-    correction: 'arithmetically broken; 360/φ² − 2/φ³ = 137.035628 is a 2.7 ppm coincidence (Class B), not a derivation',
+    correction:
+      'arithmetically broken; 360/φ² − 2/φ³ = 137.035628 is a 2.7 ppm coincidence (Class B), not a derivation',
   },
   {
     claim: 'Λ from φ⁻² ladder exponent',
     status: 'FAILED',
-    correction: 'fails by ~10¹¹; the required exponent is φ^-122.6 — the vacuum-catastrophe problem reappears as a ladder exponent',
+    correction:
+      'fails by ~10¹¹; the required exponent is φ^-122.6 — the vacuum-catastrophe problem reappears as a ladder exponent',
   },
   {
     claim: 'Ω_Λ/Ω_m = φ² = 2.618',
@@ -199,7 +216,8 @@ export const LADDER_ERRATA: readonly LadderErratum[] = Object.freeze([
   {
     claim: 'Titius–Bode φ-law',
     status: 'FAILED',
-    correction: 'errors 3.4% (Mercury) to 90.9% (Neptune); the classical 0.4 + 0.3·2ⁿ rule fits better',
+    correction:
+      'errors 3.4% (Mercury) to 90.9% (Neptune); the classical 0.4 + 0.3·2ⁿ rule fits better',
   },
 ]);
 
@@ -226,9 +244,19 @@ export function proveLadder(): LadderProof {
   let monotone = true;
   const t = buildRungs();
   for (let i = 1; i < t.length; i++) {
-    if (!(t[i].length > t[i - 1].length) || !(t[i].mass < t[i - 1].mass)) { monotone = false; break; }
+    if (!(t[i].length > t[i - 1].length) || !(t[i].mass < t[i - 1].mass)) {
+      monotone = false;
+      break;
+    }
   }
-  return { protonRung, electronRung, universeRung, anchorsMatch, monotone, valid: anchorsMatch && monotone };
+  return {
+    protonRung,
+    electronRung,
+    universeRung,
+    anchorsMatch,
+    monotone,
+    valid: anchorsMatch && monotone,
+  };
 }
 
 const _lproof = proveLadder();

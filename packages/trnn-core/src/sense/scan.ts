@@ -333,7 +333,9 @@ export function scanRung(engine: SingleTorusEngine, rank: number): RungScanRepor
       }
     }
     const closureDefect =
-      rep.circulation > 0 ? Math.abs(rep.divergenceSum) / rep.circulation : Math.abs(rep.divergenceSum);
+      rep.circulation > 0
+        ? Math.abs(rep.divergenceSum) / rep.circulation
+        : Math.abs(rep.divergenceSum);
     flux = {
       status: closureDefect > FLUX_CLOSURE_TOLERANCE ? 'DEFECT' : 'OK',
       divergenceSum: rep.divergenceSum,

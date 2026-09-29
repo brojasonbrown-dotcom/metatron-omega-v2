@@ -41,7 +41,14 @@ import {
   type CField,
 } from '../core/complex';
 import { createLattice, type Lattice, type LatticeKind } from '../torus/lattice';
-import { analyze, buildBasis, coeffBuffer, signature, synthesize, type ModeBasis } from '../torus/superposition';
+import {
+  analyze,
+  buildBasis,
+  coeffBuffer,
+  signature,
+  synthesize,
+  type ModeBasis,
+} from '../torus/superposition';
 import { cellStep, type CellTerms } from '../cell/update';
 import { memoryStep } from '../cell/memory';
 import { closureTarget } from '../cell/closure';
@@ -50,7 +57,11 @@ import { CorridorGate, readState, type GateReading, type FieldState } from '../m
 import { TranscriptionTape } from '../measure/transcription';
 import { dcos, dsin } from '../core/dmath';
 import { NodeOrgans, type OrganOptions, type OrganReport } from '../cell/organs';
-import { SensoryNodeArray, type SensoryNodeOptions, type SensoryNodeReport } from '../sense/nodeArray';
+import {
+  SensoryNodeArray,
+  type SensoryNodeOptions,
+  type SensoryNodeReport,
+} from '../sense/nodeArray';
 
 /** Local mirror of the sensory injection bound (Law L-S1) — φ. Declared here
  *  rather than imported from ../sense so the engine keeps zero dependency on
@@ -113,8 +124,6 @@ export interface EngineOptions {
   readonly sensors?: SensoryNodeOptions;
 }
 
-
-
 export interface TickReport {
   readonly tick: number;
   readonly coherence: number;
@@ -165,7 +174,6 @@ export class SingleTorusEngine {
   /** N1 per-node sensory array, or null when this rung was built without one. */
   readonly sensors: SensoryNodeArray | null;
 
-
   /** Frozen cos/sin of the modal rotation — precomputed, never re-derived. */
   private readonly cth: number;
   private readonly sth: number;
@@ -192,7 +200,6 @@ export class SingleTorusEngine {
   private senseBuffer: CField | null = null;
   /** Vacuum-drive staging buffer (allocated only when the drive is armed). */
   private driveBuffer: CField | null = null;
-
 
   constructor(opts: EngineOptions) {
     this.nodes = opts.nodes;

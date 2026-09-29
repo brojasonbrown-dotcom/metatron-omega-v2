@@ -187,7 +187,8 @@ describe('G3.6 MultiTorusEngine', () => {
     });
     const r = e.run(100);
     expect(r.finite).toBe(true);
-    for (const x of r.rungs) expect(x.peak).toBeLessThanOrEqual(Math.pow((1 + Math.sqrt(5)) / 2, 4) + 1e-9);
+    for (const x of r.rungs)
+      expect(x.peak).toBeLessThanOrEqual(Math.pow((1 + Math.sqrt(5)) / 2, 4) + 1e-9);
     expect(Math.abs(r.fluxImbalance)).toBeLessThanOrEqual(1e-12);
   });
 
@@ -201,7 +202,13 @@ describe('G3.6 MultiTorusEngine', () => {
   });
 
   it('honours multi-rate clocks', () => {
-    const e = new MultiTorusEngine({ rungs: LADDER.slice(0, 5), nodes: 89, seed: 'clk', clock: 'fibonacci', coherenceDelay: 8 });
+    const e = new MultiTorusEngine({
+      rungs: LADDER.slice(0, 5),
+      nodes: 89,
+      seed: 'clk',
+      clock: 'fibonacci',
+      coherenceDelay: 8,
+    });
     const r0 = e.step();
     expect([...r0.stepped]).toEqual([0, 1, 2, 3, 4]);
     const r1 = e.step();

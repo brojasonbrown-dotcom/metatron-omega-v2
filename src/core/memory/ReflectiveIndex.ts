@@ -31,7 +31,11 @@ export class ReflectiveIndex {
    * @param cue       live Ψ signature (top-K)
    * @returns         the reflections that fired (cosine > 0.05)
    */
-  reflect(tick: number, topN: number, cue: { indices: Int32Array; amplitudes: Float64Array; norm: number }): Reflection[] {
+  reflect(
+    tick: number,
+    topN: number,
+    cue: { indices: Int32Array; amplitudes: Float64Array; norm: number },
+  ): Reflection[] {
     if (topN <= 0 || this.episodic.size() === 0) return [];
     const candidates = this.episodic.prioritised(tick, topN);
     if (candidates.length === 0) return [];
@@ -40,15 +44,18 @@ export class ReflectiveIndex {
     const cueMap = new Map<number, number>();
     for (let i = 0; i < cue.indices.length; i++) cueMap.set(cue.indices[i], cue.amplitudes[i]);
     let cueNormSq = 0;
-    for (let i = 0; i < cue.amplitudes.length; i++) cueNormSq += cue.amplitudes[i] * cue.amplitudes[i];
+    for (let i = 0; i < cue.amplitudes.length; i++)
+      cueNormSq += cue.amplitudes[i] * cue.amplitudes[i];
     if (cueNormSq === 0) return [];
     const cueNorm = Math.sqrt(cueNormSq);
 
     const fired: Reflection[] = [];
     for (const ep of candidates) {
       // Inline cosine — avoids fn-call overhead and the per-candidate Map alloc.
-      let dot = 0, epNormSq = 0;
-      const idx = ep.indices, amp = ep.amplitudes;
+      let dot = 0,
+        epNormSq = 0;
+      const idx = ep.indices,
+        amp = ep.amplitudes;
       for (let i = 0; i < idx.length; i++) {
         const a = cueMap.get(idx[i]);
         const b = amp[i];

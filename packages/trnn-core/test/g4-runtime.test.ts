@@ -119,7 +119,10 @@ describe('G4.2 governor', () => {
   it('maxHz is the rate the budget actually sustains', () => {
     const p = profileById('NANO');
     const cost = profileCost(p);
-    const v = selectProfile(probeWith(cost.nodeTicks * 40, null), { targetHz: 8, maxProfile: 'NANO' });
+    const v = selectProfile(probeWith(cost.nodeTicks * 40, null), {
+      targetHz: 8,
+      maxProfile: 'NANO',
+    });
     expect(v.maxHz).toBeCloseTo(40 * 0.75, 9);
   });
 

@@ -179,7 +179,7 @@ describe('Gate E · cross-spectral phase attention', () => {
     const m = new Float64Array(2 * modes);
     for (let k = 0; k < modes; k++) {
       q[2 * k] = Math.exp(-((k - 3) ** 2) / 2);
-      m[2 * (k)] = Math.exp(-(((k - 3 + shift) % modes) ** 2) / 2);
+      m[2 * k] = Math.exp(-(((k - 3 + shift) % modes) ** 2) / 2);
     }
     const r = applySpectralAttention(q, m, modes, 0);
     expect(r.lag).toBe(shift);

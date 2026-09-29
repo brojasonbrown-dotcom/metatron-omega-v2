@@ -37,7 +37,7 @@ import { PHI_INV } from '../core/constants';
  * noise alone — and the temptation would then be to lower the gate. The
  * predictor aims above the gate instead, and the margin is measured.
  */
-export const ACI_ALPHA = 0.10;
+export const ACI_ALPHA = 0.1;
 
 /**
  * Default learning rate for the α recursion. φ⁻¹/16 ≈ 0.0386: fast enough to
@@ -123,7 +123,8 @@ export class AdaptiveConformal {
 
   constructor(opts: AciOptions = {}) {
     const alpha = opts.alpha ?? ACI_ALPHA;
-    if (!(alpha > 0 && alpha < 1)) throw new RangeError('AdaptiveConformal: alpha must be in (0,1)');
+    if (!(alpha > 0 && alpha < 1))
+      throw new RangeError('AdaptiveConformal: alpha must be in (0,1)');
     const gamma = opts.gamma ?? ACI_GAMMA;
     if (!(gamma > 0)) throw new RangeError('AdaptiveConformal: gamma must be > 0');
     this.alpha = alpha;
@@ -162,9 +163,8 @@ export class AdaptiveConformal {
     const nCalib = this.scores.length;
     const alphaT = this.alphaT;
     const hw = this.halfWidth();
-    const score = Number.isFinite(prediction) && Number.isFinite(truth)
-      ? Math.abs(truth - prediction)
-      : NaN;
+    const score =
+      Number.isFinite(prediction) && Number.isFinite(truth) ? Math.abs(truth - prediction) : NaN;
 
     let covered: boolean | null = null;
     let lo: number | null = null;
@@ -186,7 +186,15 @@ export class AdaptiveConformal {
     }
 
     const obs: AciObservation = {
-      prediction, truth, score, halfWidth: hw, lo, hi, covered, alphaT, nCalib,
+      prediction,
+      truth,
+      score,
+      halfWidth: hw,
+      lo,
+      hi,
+      covered,
+      alphaT,
+      nCalib,
     };
     this.log.push(obs);
     return obs;
@@ -198,10 +206,16 @@ export class AdaptiveConformal {
 
   /** Coverage over a suffix of the log (`from` inclusive, default all). */
   report(from = 0): CoverageReport {
-    let scored = 0, covered = 0, abstained = 0, widthSum = 0;
+    let scored = 0,
+      covered = 0,
+      abstained = 0,
+      widthSum = 0;
     for (let i = Math.max(0, from); i < this.log.length; i++) {
       const o = this.log[i];
-      if (o.covered === null) { abstained++; continue; }
+      if (o.covered === null) {
+        abstained++;
+        continue;
+      }
       scored++;
       if (o.covered) covered++;
       if (o.halfWidth !== null) widthSum += o.halfWidth;
@@ -267,9 +281,8 @@ export function recoveryAfterShift(
     }
   }
 
-  const tailCoverage = tail.length > 0
-    ? tail.reduce((a, b) => a + (b ? 1 : 0), 0) / tail.length
-    : null;
+  const tailCoverage =
+    tail.length > 0 ? tail.reduce((a, b) => a + (b ? 1 : 0), 0) / tail.length : null;
   let settledCoverage: number | null = null;
   if (settledFrom >= 0 && settledFrom < tail.length) {
     const rest = tail.slice(settledFrom);

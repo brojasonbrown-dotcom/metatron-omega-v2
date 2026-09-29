@@ -5,7 +5,13 @@
  *   • honesty     — unparseable input fails instead of producing empty chunks
  */
 import { describe, it, expect } from 'vitest';
-import { describeAsset, describeGeometry, parseGeometry, classifyAsset, sniffAsset } from '@/core/geometry';
+import {
+  describeAsset,
+  describeGeometry,
+  parseGeometry,
+  classifyAsset,
+  sniffAsset,
+} from '@/core/geometry';
 
 const SQUARE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <rect x="10" y="10" width="80" height="80"/>
@@ -92,8 +98,8 @@ describe('geometry — classification', () => {
 describe('geometry — parsing', () => {
   it('extracts real primitives from every supported format', () => {
     expect(parseGeometry(SQUARE_SVG, 'svg').segments.length).toBeGreaterThan(0);
-    expect(parseGeometry(DXF, 'dxf').segments.length).toBe(8);       // 2 lines × 4
-    expect(parseGeometry(OBJ, 'obj').segments.length).toBe(12);      // 3 edges × 4
+    expect(parseGeometry(DXF, 'dxf').segments.length).toBe(8); // 2 lines × 4
+    expect(parseGeometry(OBJ, 'obj').segments.length).toBe(12); // 3 edges × 4
     expect(parseGeometry(STL, 'stl').triangles).toBe(1);
     const ifc = parseGeometry(IFC, 'ifc');
     expect(ifc.entities.get('IFCWALL')).toBe(1);
@@ -123,7 +129,9 @@ describe('geometry — descriptors', () => {
   });
 
   it('measures axis-aligned drawings as orthogonal with closed loops', () => {
-    const d = describeGeometry(parseGeometry('<svg><rect x="0" y="0" width="10" height="10"/></svg>', 'svg'));
+    const d = describeGeometry(
+      parseGeometry('<svg><rect x="0" y="0" width="10" height="10"/></svg>', 'svg'),
+    );
     expect(d.orthogonality).toBeGreaterThan(0.9);
     expect(d.topology.loops).toBe(1);
     expect(d.topology.components).toBe(1);
@@ -141,7 +149,10 @@ describe('geometry — honesty', () => {
   it('fails loudly on unusable input instead of ingesting nothing', () => {
     expect(describeAsset('', 'x.dxf').ok).toBe(false);
     expect(describeAsset('just some prose about doors', 'notes.txt').ok).toBe(false);
-    const bad = describeAsset('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>', 'empty.svg');
+    const bad = describeAsset(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"></svg>',
+      'empty.svg',
+    );
     expect(bad.ok).toBe(false);
     expect(bad.reason).toMatch(/no primitives|unrecognised/);
   });

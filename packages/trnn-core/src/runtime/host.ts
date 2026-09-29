@@ -17,7 +17,11 @@
  */
 
 import { DENSE_CORE, type Rung } from '../core/scaleLadder';
-import { MultiTorusEngine, type WebCheckpoint, type WebTickReport } from '../engine/MultiTorusEngine';
+import {
+  MultiTorusEngine,
+  type WebCheckpoint,
+  type WebTickReport,
+} from '../engine/MultiTorusEngine';
 import { nodesForRank, profileById, profileCost, type Profile, type ProfileId } from './profiles';
 import { RunLedger, type RunMark } from './runLedger';
 import { SensoryPlane, type SensePlaneReport } from '../sense/plane';
@@ -82,9 +86,6 @@ export const DEFAULT_ORGANS: OrganOptions = { radialOrders: 8, radialGain: 0, st
  * a pure observer, so this changes no digest.
  */
 export const DEFAULT_SENSORS: SensoryNodeOptions = { bands: 10, depth: 233 };
-
-
-
 
 /** Default chord family for a hosted run — every stable ratio the ladder has. */
 export const DEFAULT_CHORDS: ChordKind[] = ['fibonacci', 'lucas', 'spiral'];
@@ -278,7 +279,16 @@ export class EngineHost {
 
   // ---- Ω-P6 sensory + braid memory ----
   private plane: SensoryPlane | null = null;
-  private readonly channelMeta = new Map<string, { modality: Modality; nodes: number; gain: number; report: EncodeReport | null; updatedAt: number }>();
+  private readonly channelMeta = new Map<
+    string,
+    {
+      modality: Modality;
+      nodes: number;
+      gain: number;
+      report: EncodeReport | null;
+      updatedAt: number;
+    }
+  >();
   private braid: TorusBraid | null = null;
   private lastRecall: Recall | null = null;
   private lastFoldTick = -1;
@@ -295,7 +305,6 @@ export class EngineHost {
   private lastMindTick = -1;
   /** Folds skipped because the ladder had nothing to report. */
   private quiescentFolds = 0;
-
 
   constructor(opts: HostOptions) {
     this.profile = typeof opts.profile === 'string' ? profileById(opts.profile) : opts.profile;
@@ -348,7 +357,6 @@ export class EngineHost {
     this.running = false;
     this.debt = 0;
   }
-
 
   isRunning(): boolean {
     return this.running;
@@ -603,7 +611,6 @@ export class EngineHost {
     const spent = this.clock() - t0;
     this.lastLoad = spent / this.sliceBudgetMs;
 
-
     // adaptive bus: back off on overrun, recover geometrically (φ-paced).
     if (done < wanted || this.lastLoad > 1) {
       this.overruns++;
@@ -713,7 +720,11 @@ export class EngineHost {
    * without an organ bank contributes 0 nodes, so `organNodes < totalNodes`
    * is visible in the UI instead of being papered over.
    */
-  private organSnapshot(): { organNodes: number; organResidual: number; organParticipation: number } {
+  private organSnapshot(): {
+    organNodes: number;
+    organResidual: number;
+    organParticipation: number;
+  } {
     let nodes = 0;
     let res = 0;
     let part = 0;
@@ -815,5 +826,3 @@ export interface LearnRun {
   readonly certificates: readonly Certificate[];
   readonly nodes: number;
 }
-
-

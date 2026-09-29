@@ -23,17 +23,17 @@ import { atomBytes } from './SensoryAtom';
 import { SensoryCortex, type CortexEvent, type CortexStats } from './SensoryCortex';
 import { memoryPolicy } from '@/core/memory/MemoryPolicy';
 
-const NEAR_THRESHOLD = 6;          // bits — counts as "same" percept
-const BUCKET_HASH_BITS = 12;        // 4096 buckets
+const NEAR_THRESHOLD = 6; // bits — counts as "same" percept
+const BUCKET_HASH_BITS = 12; // 4096 buckets
 const DEFAULT_TOPK = 32;
 const MIN_CAP = 64;
-const EVICT_SAMPLE = 24;            // tournament size per eviction
+const EVICT_SAMPLE = 24; // tournament size per eviction
 
 export interface SensoryInjection {
   modality: SensoryModality;
   hash: string;
-  novelty: number;       // 0..1
-  energy: number;        // ‖feature‖²
+  novelty: number; // 0..1
+  energy: number; // ‖feature‖²
   reinforcements: number;
   indices: Int32Array;
   amplitudes: Float32Array;
@@ -54,7 +54,7 @@ export interface SensoryStats {
 
 export class SensoryGateway {
   private atoms = new Map<string, SensoryAtom>();
-  private hashList: string[] = [];     // for O(1) sampling during eviction
+  private hashList: string[] = []; // for O(1) sampling during eviction
   /**
    * Ω-READY R1 — eviction sampling must be reproducible.
    *
@@ -70,7 +70,13 @@ export class SensoryGateway {
   private topK: number;
   private totalIngests = 0;
   private uniqueAtoms = 0;
-  private perModality: Record<SensoryModality, number> = { audio: 0, video: 0, imu: 0, synthetic: 0, 'vision-embed': 0 };
+  private perModality: Record<SensoryModality, number> = {
+    audio: 0,
+    video: 0,
+    imu: 0,
+    synthetic: 0,
+    'vision-embed': 0,
+  };
   readonly cortex = new SensoryCortex();
   /**
    * PER-MODALITY injection slots (multi-modal continuity fix).
@@ -90,13 +96,25 @@ export class SensoryGateway {
    * working unchanged.
    */
   private lastByModality: Record<SensoryModality, SensoryInjection | null> = {
-    audio: null, video: null, imu: null, synthetic: null, 'vision-embed': null,
+    audio: null,
+    video: null,
+    imu: null,
+    synthetic: null,
+    'vision-embed': null,
   };
   private genByModality: Record<SensoryModality, number> = {
-    audio: 0, video: 0, imu: 0, synthetic: 0, 'vision-embed': 0,
+    audio: 0,
+    video: 0,
+    imu: 0,
+    synthetic: 0,
+    'vision-embed': 0,
   };
   private lastConsumedGen: Record<SensoryModality, number> = {
-    audio: 0, video: 0, imu: 0, synthetic: 0, 'vision-embed': 0,
+    audio: 0,
+    video: 0,
+    imu: 0,
+    synthetic: 0,
+    'vision-embed': 0,
   };
 
   private mostRecentModality: SensoryModality | null = null;
@@ -149,9 +167,13 @@ export class SensoryGateway {
   }
 
   /** Peek without consuming — for telemetry/debug panels and arousal. */
-  peekLastInjection(): SensoryInjection | null { return this.lastInjection; }
+  peekLastInjection(): SensoryInjection | null {
+    return this.lastInjection;
+  }
   /** Peek a specific modality slot without consuming. */
-  peekByModality(m: SensoryModality): SensoryInjection | null { return this.lastByModality[m]; }
+  peekByModality(m: SensoryModality): SensoryInjection | null {
+    return this.lastByModality[m];
+  }
 
   constructor(cap: number, topK = DEFAULT_TOPK) {
     this.cap = Math.max(MIN_CAP, Math.floor(cap));
@@ -174,10 +196,18 @@ export class SensoryGateway {
     while (this.atoms.size > this.cap) this.evictOne();
   }
 
-  capacity(): number { return this.cap; }
-  size(): number { return this.atoms.size; }
-  bytesUsed(): number { return this.atoms.size * atomBytes(this.topK); }
-  bytesBudget(): number { return this.cap * atomBytes(this.topK); }
+  capacity(): number {
+    return this.cap;
+  }
+  size(): number {
+    return this.atoms.size;
+  }
+  bytesUsed(): number {
+    return this.atoms.size * atomBytes(this.topK);
+  }
+  bytesBudget(): number {
+    return this.cap * atomBytes(this.topK);
+  }
 
   ingest(feature: Float32Array, modality: SensoryModality, tick: number): SensoryInjection {
     this.totalIngests++;
@@ -198,14 +228,18 @@ export class SensoryGateway {
       for (let i = 0; i < feature.length; i++) energy += feature[i] * feature[i];
       this.lastByModality[modality] = null;
       return {
-        modality, hash: '', novelty: cortex.novelty, energy, reinforcements: 0,
-        indices: new Int32Array(0), amplitudes: new Float32Array(0), cortex,
+        modality,
+        hash: '',
+        novelty: cortex.novelty,
+        energy,
+        reinforcements: 0,
+        indices: new Int32Array(0),
+        amplitudes: new Float32Array(0),
+        cortex,
       };
     }
 
     const hash = simHash64(feature);
-
-
 
     // Identity fast-path — same simHash as the previous ingest *of the same
     // modality* means a bit-identical percept (within simHash's collision
@@ -220,10 +254,19 @@ export class SensoryGateway {
         atom.lastSeen = tick;
         let energy = 0;
         for (let i = 0; i < feature.length; i++) energy += feature[i] * feature[i];
-        const novelty = Math.max(0.02, cortex.novelty * (1 - Math.min(1, atom.reinforcements / 64)));
+        const novelty = Math.max(
+          0.02,
+          cortex.novelty * (1 - Math.min(1, atom.reinforcements / 64)),
+        );
         const inj: SensoryInjection = {
-          modality, hash, novelty, energy, reinforcements: atom.reinforcements,
-          indices: atom.topIndices, amplitudes: atom.topAmps, cortex,
+          modality,
+          hash,
+          novelty,
+          energy,
+          reinforcements: atom.reinforcements,
+          indices: atom.topIndices,
+          amplitudes: atom.topAmps,
+          cortex,
         };
         this.recordInjection(inj);
         this.pushRecent(hash);
@@ -241,11 +284,20 @@ export class SensoryGateway {
     let bestHd = NEAR_THRESHOLD + 1;
     if (bucket) {
       const q = parseHash64(hash);
-      const qHi = q.hi, qLo = q.lo;
+      const qHi = q.hi,
+        qLo = q.lo;
       for (const h of bucket) {
-        if (h === hash) { matchHash = h; bestHd = 0; break; }
+        if (h === hash) {
+          matchHash = h;
+          bestHd = 0;
+          break;
+        }
         const hd = hammingPre(qHi, qLo, h);
-        if (hd < bestHd) { bestHd = hd; matchHash = h; if (hd === 0) break; }
+        if (hd < bestHd) {
+          bestHd = hd;
+          matchHash = h;
+          if (hd === 0) break;
+        }
       }
     }
 
@@ -258,8 +310,14 @@ export class SensoryGateway {
       atom.lastSeen = tick;
       const novelty = Math.max(0.02, cortex.novelty * (1 - Math.min(1, atom.reinforcements / 64)));
       const inj: SensoryInjection = {
-        modality, hash: matchHash, novelty, energy, reinforcements: atom.reinforcements,
-        indices: atom.topIndices, amplitudes: atom.topAmps, cortex,
+        modality,
+        hash: matchHash,
+        novelty,
+        energy,
+        reinforcements: atom.reinforcements,
+        indices: atom.topIndices,
+        amplitudes: atom.topAmps,
+        cortex,
       };
       this.recordInjection(inj);
       this.pushRecent(matchHash);
@@ -269,18 +327,31 @@ export class SensoryGateway {
     // New atom — top-K-truncate feature
     const { indices, amplitudes } = topK(feature, this.topK);
     const atom: SensoryAtom = {
-      hash, modality, firstSeen: tick, lastSeen: tick, reinforcements: 1,
-      topIndices: indices, topAmps: amplitudes, energy,
+      hash,
+      modality,
+      firstSeen: tick,
+      lastSeen: tick,
+      reinforcements: 1,
+      topIndices: indices,
+      topAmps: amplitudes,
+      energy,
     };
     this.atoms.set(hash, atom);
     this.hashList.push(hash);
-    if (!bucket) this.buckets.set(key, [hash]); else bucket.push(hash);
+    if (!bucket) this.buckets.set(key, [hash]);
+    else bucket.push(hash);
     this.uniqueAtoms++;
     if (this.atoms.size > this.cap) this.evictOne();
 
     const inj: SensoryInjection = {
-      modality, hash, novelty: cortex.novelty, energy, reinforcements: 1,
-      indices, amplitudes, cortex,
+      modality,
+      hash,
+      novelty: cortex.novelty,
+      energy,
+      reinforcements: 1,
+      indices,
+      amplitudes,
+      cortex,
     };
     this.recordInjection(inj);
     this.pushRecent(hash);
@@ -330,7 +401,10 @@ export class SensoryGateway {
    */
   injectPsiFused(target: Float64Array, injections: SensoryInjection[]): void {
     if (injections.length === 0) return;
-    if (injections.length === 1) { this.injectPsi(target, injections[0]); return; }
+    if (injections.length === 1) {
+      this.injectPsi(target, injections[0]);
+      return;
+    }
     const N = target.length;
     const norm = 1 / Math.sqrt(injections.length);
     for (const inj of injections) {
@@ -357,11 +431,20 @@ export class SensoryGateway {
   }
 
   clear(): void {
-    this.atoms.clear(); this.buckets.clear(); this.hashList.length = 0;
-    this.totalIngests = 0; this.uniqueAtoms = 0;
+    this.atoms.clear();
+    this.buckets.clear();
+    this.hashList.length = 0;
+    this.totalIngests = 0;
+    this.uniqueAtoms = 0;
     this.perModality = { audio: 0, video: 0, imu: 0, synthetic: 0, 'vision-embed': 0 };
     this.cortex.reset();
-    this.lastByModality = { audio: null, video: null, imu: null, synthetic: null, 'vision-embed': null };
+    this.lastByModality = {
+      audio: null,
+      video: null,
+      imu: null,
+      synthetic: null,
+      'vision-embed': null,
+    };
     this.genByModality = { audio: 0, video: 0, imu: 0, synthetic: 0, 'vision-embed': 0 };
     this.lastConsumedGen = { audio: 0, video: 0, imu: 0, synthetic: 0, 'vision-embed': 0 };
     this.mostRecentModality = null;
@@ -390,7 +473,10 @@ export class SensoryGateway {
       const a = this.atoms.get(h);
       if (!a) continue;
       const p = a.reinforcements * 1000 + a.lastSeen;
-      if (p < worstPriority) { worstPriority = p; worstHash = h; }
+      if (p < worstPriority) {
+        worstPriority = p;
+        worstHash = h;
+      }
     }
     if (!worstHash) return;
     const atom = this.atoms.get(worstHash);
@@ -416,7 +502,10 @@ export class SensoryGateway {
 function topK(feature: Float32Array, K: number): { indices: Int32Array; amplitudes: Float32Array } {
   const idx = new Int32Array(K);
   const amp = new Float32Array(K);
-  for (let i = 0; i < K; i++) { idx[i] = -1; amp[i] = 0; }
+  for (let i = 0; i < K; i++) {
+    idx[i] = -1;
+    amp[i] = 0;
+  }
   // Persistent min-slot — only re-scan after a replacement (turns the inner
   // O(K) scan into amortised O(1) per feature element on average). Initial
   // minAbs=0 / minSlot=0 because every slot starts at amp=0.
@@ -433,7 +522,10 @@ function topK(feature: Float32Array, K: number): { indices: Int32Array; amplitud
       let ma = amp[0] < 0 ? -amp[0] : amp[0];
       for (let k = 1; k < K; k++) {
         const x = amp[k] < 0 ? -amp[k] : amp[k];
-        if (x < ma) { ma = x; ms = k; }
+        if (x < ma) {
+          ma = x;
+          ms = k;
+        }
       }
       minSlot = ms;
       minAbs = ma;

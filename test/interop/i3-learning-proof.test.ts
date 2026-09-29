@@ -15,7 +15,13 @@
 import { describe, it, expect } from 'vitest';
 import { MemoryStore } from '../../src/core/memory/MemoryStore';
 import {
-  encodeFact, encodeText, resonance, factKey, factTokens, FIELD_DIM, HOST_SUBJECTS,
+  encodeFact,
+  encodeText,
+  resonance,
+  factKey,
+  factTokens,
+  FIELD_DIM,
+  HOST_SUBJECTS,
 } from '../../src/core/interop/intake';
 import { EvidenceChain, verifyChain, type FactDraft } from '../../src/core/interop/evidence';
 import { decideTier } from '../../src/core/interop/tierGate';
@@ -37,22 +43,103 @@ function densify(p: PatternSignature): Float64Array {
 
 /** A small but real host-shaped book of business facts. */
 export const BOOK: FactDraft[] = [
-  { subject_type: 'org', subject_id: 'org-1', predicate: 'legal_name', object_json: { value: 'Raffy Holdings' }, confidence: 1, source: 'user' },
-  { subject_type: 'org', subject_id: 'org-1', predicate: 'jurisdiction', object_json: { value: 'ZA' }, confidence: 1, source: 'user' },
-  { subject_type: 'person', subject_id: 'p-1', predicate: 'role', object_json: { value: 'director' }, confidence: 0.95, source: 'import' },
-  { subject_type: 'person', subject_id: 'p-1', predicate: 'signing_limit_credits', object_json: { value: 250000 }, confidence: 0.9, source: 'user' },
-  { subject_type: 'account', subject_id: 'acc-1', predicate: 'balance_minor', object_json: { value: 184_2200 }, confidence: 0.8, source: 'import' },
-  { subject_type: 'counterparty', subject_id: 'cp-1', predicate: 'avg_payment_days', object_json: { value: 34 }, confidence: 0.7, source: 'system' },
-  { subject_type: 'contract', subject_id: 'ct-1', predicate: 'monthly_minor', object_json: { value: 89_0000 }, confidence: 0.9, source: 'user' },
-  { subject_type: 'contract', subject_id: 'ct-1', predicate: 'auto_renew', object_json: { value: true }, confidence: 1, source: 'user' },
-  { subject_type: 'transaction', subject_id: 'tx-1', predicate: 'amount_minor', object_json: { value: 21_0000 }, confidence: 1, source: 'import' },
-  { subject_type: 'policy', subject_id: 'pol-1', predicate: 'threshold_credits', object_json: { value: 100000 }, confidence: 1, source: 'user' },
-  { subject_type: 'kpi', subject_id: 'kpi-1', predicate: 'value', object_json: { value: 0.97, unit: 'ratio' }, confidence: 0.9, source: 'system' },
+  {
+    subject_type: 'org',
+    subject_id: 'org-1',
+    predicate: 'legal_name',
+    object_json: { value: 'Raffy Holdings' },
+    confidence: 1,
+    source: 'user',
+  },
+  {
+    subject_type: 'org',
+    subject_id: 'org-1',
+    predicate: 'jurisdiction',
+    object_json: { value: 'ZA' },
+    confidence: 1,
+    source: 'user',
+  },
+  {
+    subject_type: 'person',
+    subject_id: 'p-1',
+    predicate: 'role',
+    object_json: { value: 'director' },
+    confidence: 0.95,
+    source: 'import',
+  },
+  {
+    subject_type: 'person',
+    subject_id: 'p-1',
+    predicate: 'signing_limit_credits',
+    object_json: { value: 250000 },
+    confidence: 0.9,
+    source: 'user',
+  },
+  {
+    subject_type: 'account',
+    subject_id: 'acc-1',
+    predicate: 'balance_minor',
+    object_json: { value: 184_2200 },
+    confidence: 0.8,
+    source: 'import',
+  },
+  {
+    subject_type: 'counterparty',
+    subject_id: 'cp-1',
+    predicate: 'avg_payment_days',
+    object_json: { value: 34 },
+    confidence: 0.7,
+    source: 'system',
+  },
+  {
+    subject_type: 'contract',
+    subject_id: 'ct-1',
+    predicate: 'monthly_minor',
+    object_json: { value: 89_0000 },
+    confidence: 0.9,
+    source: 'user',
+  },
+  {
+    subject_type: 'contract',
+    subject_id: 'ct-1',
+    predicate: 'auto_renew',
+    object_json: { value: true },
+    confidence: 1,
+    source: 'user',
+  },
+  {
+    subject_type: 'transaction',
+    subject_id: 'tx-1',
+    predicate: 'amount_minor',
+    object_json: { value: 21_0000 },
+    confidence: 1,
+    source: 'import',
+  },
+  {
+    subject_type: 'policy',
+    subject_id: 'pol-1',
+    predicate: 'threshold_credits',
+    object_json: { value: 100000 },
+    confidence: 1,
+    source: 'user',
+  },
+  {
+    subject_type: 'kpi',
+    subject_id: 'kpi-1',
+    predicate: 'value',
+    object_json: { value: 0.97, unit: 'ratio' },
+    confidence: 0.9,
+    source: 'system',
+  },
 ];
 
 const UNSEEN: FactDraft = {
-  subject_type: 'kpi', subject_id: 'kpi-999', predicate: 'never_recorded',
-  object_json: { value: 'nothing like the book' }, confidence: 0.5, source: 'system',
+  subject_type: 'kpi',
+  subject_id: 'kpi-999',
+  predicate: 'never_recorded',
+  object_json: { value: 'nothing like the book' },
+  confidence: 0.5,
+  source: 'system',
 };
 
 describe('R9 · intake projection is sound', () => {
@@ -96,8 +183,9 @@ describe('R9 · intake projection is sound', () => {
   });
 
   it('projects text through the same space, and empty text to a zero vector', () => {
-    expect(resonance(encodeText('director signing limit'), encodeText('director signing limit')))
-      .toBeCloseTo(1, 12);
+    expect(
+      resonance(encodeText('director signing limit'), encodeText('director signing limit')),
+    ).toBeCloseTo(1, 12);
     const empty = encodeText('   ');
     expect(Array.from(empty).every((x) => x === 0)).toBe(true);
     expect(resonance(empty, encodeFact(BOOK[0]))).toBe(0);
@@ -120,7 +208,11 @@ describe('R9 · learning is measured end to end', () => {
       const psi = encodeFact(f);
       const tick = FIB[i];
       store.capture({
-        tick, psi, qualiaScalar: f.confidence, coherence: f.confidence, energy: 1,
+        tick,
+        psi,
+        qualiaScalar: f.confidence,
+        coherence: f.confidence,
+        energy: 1,
         text: factKey(f),
       });
       store.ingest({ tick, psi, qualiaScalar: f.confidence, text: factKey(f) });
@@ -181,8 +273,13 @@ describe('R9 · learning is measured end to end', () => {
     expect(frames).toBeGreaterThan(0);
 
     const gate = decideTier({
-      coherenceWarm: 0.9, warmRungs: 18, totalRungs: 18,
-      tapeFrames: frames, patterns, sealedFindings: BOOK.length, chainVerified: true,
+      coherenceWarm: 0.9,
+      warmRungs: 18,
+      totalRungs: 18,
+      tapeFrames: frames,
+      patterns,
+      sealedFindings: BOOK.length,
+      chainVerified: true,
     });
     expect(Number(gate.trust.slice(1))).toBeGreaterThan(0);
   });
@@ -200,7 +297,10 @@ describe('R9 · learning is measured end to end', () => {
       return {
         key: factKey(f),
         terms: {
-          keyword: 0.5, validity: f.confidence, recency: 0.5, importance: 0.5,
+          keyword: 0.5,
+          validity: f.confidence,
+          recency: 0.5,
+          importance: 0.5,
           resonance: memory ? resonance(cue, memory) : 0,
         },
       };
@@ -212,8 +312,10 @@ describe('R9 · learning is measured end to end', () => {
   });
 
   it('learning replays identically — two runs produce the same substrate readings', () => {
-    const a = new MemoryStore(); const ta = learn(a);
-    const b = new MemoryStore(); const tb = learn(b);
+    const a = new MemoryStore();
+    const ta = learn(a);
+    const b = new MemoryStore();
+    const tb = learn(b);
     expect(ta).toBe(tb);
     expect(a.patterns.snapshot().length).toBe(b.patterns.snapshot().length);
     const ra = a.recall(encodeFact(BOOK[2]), ta, 3);
@@ -235,7 +337,12 @@ describe('R9 · the learned facts leave Ω in host form', () => {
       hlc = hlcTick(hlc, 1_700_000_000_000 + i);
       const d = exportMemory({
         layer: 'L6',
-        item: { st: f.subject_type, si: f.subject_id, p: f.predicate, o: f.object_json } as CborValue,
+        item: {
+          st: f.subject_type,
+          si: f.subject_id,
+          p: f.predicate,
+          o: f.object_json,
+        } as CborValue,
         context: { key: factKey(f), source: f.source } as CborValue,
         trust: 'T2',
         hlc,

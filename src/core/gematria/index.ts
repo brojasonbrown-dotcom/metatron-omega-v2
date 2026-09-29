@@ -11,5 +11,11 @@ export * from './zeckendorf';
 export * from './lexeme';
 export * from './residue';
 export * from './bitmap';
-export { resonance, resonanceSparse, hopfieldBeta, hopfieldStep, hopfieldEnergy, MERGE_THRESHOLD } from './resonanceKernel';
-
+export {
+  resonance,
+  resonanceSparse,
+  hopfieldBeta,
+  hopfieldStep,
+  hopfieldEnergy,
+  MERGE_THRESHOLD,
+} from './resonanceKernel';

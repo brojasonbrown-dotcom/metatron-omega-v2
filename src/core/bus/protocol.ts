@@ -87,7 +87,11 @@ export interface ScalerSnapshot {
 }
 
 export interface QualiaVectorWire {
-  readonly C: number; readonly N: number; readonly S: number; readonly V: number; readonly I: number;
+  readonly C: number;
+  readonly N: number;
+  readonly S: number;
+  readonly V: number;
+  readonly I: number;
   /** Golden-delay self-overlap |⟨Ψ(t)|Ψ(t−φτ)⟩|² (V13 self-measurement layer). */
   readonly Cphi?: number;
   /** C_φ ≥ 1/φ² on this tick. */
@@ -98,8 +102,10 @@ export interface QualiaVectorWire {
   readonly ignitionRate?: number;
 }
 
-
-export interface SpiralRangeWire { readonly kMin: number; readonly kMax: number; }
+export interface SpiralRangeWire {
+  readonly kMin: number;
+  readonly kMax: number;
+}
 
 export interface RuntimeSnapshot {
   /**
@@ -144,7 +150,6 @@ export interface RuntimeSnapshot {
   readonly workerUtilisation?: number;
 }
 
-
 export interface FieldSnapshot {
   /** Wall-clock micros at the time this snapshot was taken. */
   readonly tUs: number;
@@ -185,9 +190,15 @@ export interface FieldSnapshot {
   readonly phaseDriftEMA?: number;
   /** Wave H2 — live framework chain metrics (F1..F9 chainUp + closure). */
   readonly frameworks?: {
-    readonly f1: number; readonly f2: number; readonly f3: number;
-    readonly f4: number; readonly f5: number; readonly f6: number;
-    readonly f7: number; readonly f8: number; readonly f9: number;
+    readonly f1: number;
+    readonly f2: number;
+    readonly f3: number;
+    readonly f4: number;
+    readonly f5: number;
+    readonly f6: number;
+    readonly f7: number;
+    readonly f8: number;
+    readonly f9: number;
     readonly closure: number;
     readonly opsCount: number;
     readonly elapsedMs: number;
@@ -246,7 +257,6 @@ export interface FieldSnapshot {
     readonly absorbed: number;
   };
 }
-
 
 // ───────────────────────── RPC surface ─────────────────────────
 

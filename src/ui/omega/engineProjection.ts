@@ -11,10 +11,10 @@
  * still say "I don't have that" honestly.
  */
 
-import type { HostSnapshot } from "@/core/omega/omegaProtocol";
-import type { EngineCapabilities } from "@/core/bus/protocol";
-import type { ConnectionState } from "@/core/bus/EngineBus";
-import { PHI_INV, OMEGA_C } from "@/core/constants/WolframVerified";
+import type { HostSnapshot } from '@/core/omega/omegaProtocol';
+import type { EngineCapabilities } from '@/core/bus/protocol';
+import type { ConnectionState } from '@/core/bus/EngineBus';
+import { PHI_INV, OMEGA_C } from '@/core/constants/WolframVerified';
 
 export interface EngineProjection {
   running: boolean;
@@ -22,7 +22,7 @@ export interface EngineProjection {
   fps: number;
   coherence: number;
   energy: number;
-  fieldState: ConnectionState | "fallback";
+  fieldState: ConnectionState | 'fallback';
   fieldCapabilities: EngineCapabilities | null;
   /** The Ω host has no `FieldSnapshot` counterpart — never fabricate one. */
   fieldSnapshot: null;
@@ -31,7 +31,7 @@ export interface EngineProjection {
 }
 
 const num = (v: unknown, fallback: number): number =>
-  typeof v === "number" && Number.isFinite(v) ? v : fallback;
+  typeof v === 'number' && Number.isFinite(v) ? v : fallback;
 
 /**
  * Project the Ω runtime state onto the legacy engine fields.
@@ -50,7 +50,7 @@ export function projectEngineState(
       fps: 0,
       coherence: PHI_INV,
       energy: OMEGA_C,
-      fieldState: "fallback",
+      fieldState: 'fallback',
       fieldCapabilities: null,
       fieldSnapshot: null,
       forcedFallback: true,
@@ -69,14 +69,14 @@ export function projectEngineState(
     energy: num(snapshot.energy, OMEGA_C),
     // A built host is an open channel even while halted; only "never built"
     // is a fallback.
-    fieldState: "open",
+    fieldState: 'open',
     fieldCapabilities: {
-      kind: "wasm-fallback",
-      protocol: "omega/1",
+      kind: 'wasm-fallback',
+      protocol: 'omega/1',
       version: `${snapshot.profile}:${snapshot.seed}`,
       maxModeByPrecision: { f64: snapshot.rungs.length, f128: 0, dec50: 0 },
-      gpu: "none",
-      simd: "none",
+      gpu: 'none',
+      simd: 'none',
     } as EngineCapabilities,
     fieldSnapshot: null,
     forcedFallback: false,

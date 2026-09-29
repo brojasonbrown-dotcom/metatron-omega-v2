@@ -7,31 +7,42 @@
  *
  * Default: every tool is enabled. Missing entry === enabled.
  */
-import { useSyncExternalStore } from "react";
-import { INTEL_META } from "./intelMeta";
+import { useSyncExternalStore } from 'react';
+import { INTEL_META } from './intelMeta';
 
-const LS_KEY = "metatron.v11.toolPrefs.v1";
+const LS_KEY = 'metatron.v11.toolPrefs.v1';
 type PrefMap = Record<string, boolean>;
 
 function readLS(): PrefMap {
-  if (typeof window === "undefined") return {};
+  if (typeof window === 'undefined') return {};
   try {
     const raw = window.localStorage.getItem(LS_KEY);
     return raw ? (JSON.parse(raw) as PrefMap) : {};
-  } catch { return {}; }
+  } catch {
+    return {};
+  }
 }
 function writeLS(p: PrefMap) {
-  if (typeof window === "undefined") return;
-  try { window.localStorage.setItem(LS_KEY, JSON.stringify(p)); } catch { /* quota */ }
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(LS_KEY, JSON.stringify(p));
+  } catch {
+    /* quota */
+  }
 }
 
 let state: PrefMap = readLS();
 const listeners = new Set<() => void>();
-function emit() { listeners.forEach((fn) => fn()); }
+function emit() {
+  listeners.forEach((fn) => fn());
+}
 
-if (typeof window !== "undefined") {
-  window.addEventListener("storage", (e) => {
-    if (e.key === LS_KEY) { state = readLS(); emit(); }
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === LS_KEY) {
+      state = readLS();
+      emit();
+    }
   });
 }
 
@@ -40,41 +51,55 @@ export function isEnabled(name: string): boolean {
 }
 export function setEnabled(name: string, on: boolean) {
   state = { ...state, [name]: on };
-  writeLS(state); emit();
+  writeLS(state);
+  emit();
 }
 export function setMany(updates: Record<string, boolean>) {
   state = { ...state, ...updates };
-  writeLS(state); emit();
+  writeLS(state);
+  emit();
 }
 export function enableAll() {
   const next: PrefMap = {};
   for (const t of INTEL_META) next[t.name] = true;
-  state = next; writeLS(state); emit();
+  state = next;
+  writeLS(state);
+  emit();
 }
 export function disableAll() {
   const next: PrefMap = {};
   for (const t of INTEL_META) next[t.name] = false;
-  state = next; writeLS(state); emit();
+  state = next;
+  writeLS(state);
+  emit();
 }
 /** Revert to the implicit default (all tools enabled, no entries persisted). */
 export function resetToDefaults() {
-  state = {}; writeLS(state); emit();
+  state = {};
+  writeLS(state);
+  emit();
 }
 export function enableCategory(cat: string, on: boolean) {
   const next: PrefMap = { ...state };
   for (const t of INTEL_META) if (t.category === cat) next[t.name] = on;
-  state = next; writeLS(state); emit();
+  state = next;
+  writeLS(state);
+  emit();
 }
 /** Bulk-disable any auth:"key" tool whose env key is missing (per health probe). */
 export function applyHealthFilter(missingKeys: string[]) {
   const dis = new Set(missingKeys);
   const next: PrefMap = { ...state };
   for (const t of INTEL_META) if (dis.has(t.name)) next[t.name] = false;
-  state = next; writeLS(state); emit();
+  state = next;
+  writeLS(state);
+  emit();
 }
 
 /** Stable snapshot for useSyncExternalStore — referentially equal until emit(). */
-export function getPrefsSnapshot(): PrefMap { return state; }
+export function getPrefsSnapshot(): PrefMap {
+  return state;
+}
 
 export function useToolPrefs(): {
   prefs: PrefMap;
@@ -84,7 +109,12 @@ export function useToolPrefs(): {
   disabledList: string[];
 } {
   const prefs = useSyncExternalStore(
-    (cb) => { listeners.add(cb); return () => { listeners.delete(cb); }; },
+    (cb) => {
+      listeners.add(cb);
+      return () => {
+        listeners.delete(cb);
+      };
+    },
     getPrefsSnapshot,
     getPrefsSnapshot,
   );

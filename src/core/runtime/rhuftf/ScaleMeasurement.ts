@@ -130,8 +130,14 @@ export function bindScaleSensors(
     const phiRungs = bandPhiRungs(band);
     if (!band) {
       return {
-        scale: sh.scale, nodes: sh.nodes, band: null, sensor: null,
-        provenance: 'inferred' as const, octaves, phiRungs, nyquistOk: false,
+        scale: sh.scale,
+        nodes: sh.nodes,
+        band: null,
+        sensor: null,
+        provenance: 'inferred' as const,
+        octaves,
+        phiRungs,
+        nyquistOk: false,
       };
     }
     const hit = sensors.find((s) => sensorCovers(s, band) && sensorNyquistOk(s, band));
@@ -327,12 +333,14 @@ export function dimensionProfile(
   const tHi = Math.pow(2 * Math.PI * R, 2) * Math.pow(PHI_SM, 5);
   const samples: DimensionSample[] = [];
   for (let t = tLo; t <= tHi; t *= Math.exp(h)) {
-    samples.push(Object.freeze({
-      t,
-      probe: Math.sqrt(t),
-      heatTrace: heatTrace(spectrum, t),
-      dim: spectralDimension(spectrum, t, h),
-    }));
+    samples.push(
+      Object.freeze({
+        t,
+        probe: Math.sqrt(t),
+        heatTrace: heatTrace(spectrum, t),
+        dim: spectralDimension(spectrum, t, h),
+      }),
+    );
   }
 
   // Flattest window: minimal total |Δdim| over a run of PLATEAU_RUN samples.
@@ -351,7 +359,10 @@ export function dimensionProfile(
     let ok = true;
     for (let k = 0; k < PLATEAU_RUN; k++) {
       const d = samples[i + k].dim;
-      if (!Number.isFinite(d)) { ok = false; break; }
+      if (!Number.isFinite(d)) {
+        ok = false;
+        break;
+      }
       sum += d;
       if (k > 0) flat += Math.abs(d - samples[i + k - 1].dim);
     }
@@ -365,9 +376,14 @@ export function dimensionProfile(
   }
 
   return Object.freeze({
-    grid, hu, hv, tLo, tHi,
+    grid,
+    hu,
+    hv,
+    tLo,
+    tHi,
     samples: Object.freeze(samples),
-    plateauDim, plateauProbe,
+    plateauDim,
+    plateauProbe,
     reduction2to1: crossDown(samples, 1.5),
     cutoff1to0: crossDown(samples, 0.5),
     maxDim,
@@ -453,7 +469,9 @@ class ScaleMeasurementRegistry {
     return Array.from(this.byScale.values()).sort((a, b) => a.scale - b.scale);
   }
 
-  clear(): void { this.byScale.clear(); }
+  clear(): void {
+    this.byScale.clear();
+  }
 }
 
 export const scaleMeasurementRegistry = new ScaleMeasurementRegistry();

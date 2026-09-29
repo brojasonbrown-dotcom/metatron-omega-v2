@@ -6,7 +6,13 @@
  * file returns `ok: false` with the reason, and the caller records a failure.
  */
 
-import { classifyAsset, sniffAsset, parseGeometry, type AssetKind, type GeometryDoc } from './parse';
+import {
+  classifyAsset,
+  sniffAsset,
+  parseGeometry,
+  type AssetKind,
+  type GeometryDoc,
+} from './parse';
 import { describeGeometry, summariseGeometry, type GeometryDescriptor } from './descriptors';
 
 export * from './parse';
@@ -22,16 +28,30 @@ export interface AssetDescription {
   text?: string;
 }
 
-export const GEOMETRY_EXTENSIONS = ['.dxf', '.svg', '.obj', '.stl', '.ifc', '.step', '.stp'] as const;
+export const GEOMETRY_EXTENSIONS = [
+  '.dxf',
+  '.svg',
+  '.obj',
+  '.stl',
+  '.ifc',
+  '.step',
+  '.stp',
+] as const;
 
 export function isGeometryUrl(url: string): boolean {
   const u = url.toLowerCase().split(/[?#]/)[0];
   return GEOMETRY_EXTENSIONS.some((e) => u.endsWith(e));
 }
 
-export function describeAsset(text: string, url: string, contentType = '', title = ''): AssetDescription {
+export function describeAsset(
+  text: string,
+  url: string,
+  contentType = '',
+  title = '',
+): AssetDescription {
   const body = text ?? '';
-  if (body.trim().length < 32) return { ok: false, kind: 'unknown', reason: `empty asset (${body.length} chars)` };
+  if (body.trim().length < 32)
+    return { ok: false, kind: 'unknown', reason: `empty asset (${body.length} chars)` };
 
   let kind = classifyAsset(url, contentType);
   if (kind === 'unknown') kind = sniffAsset(body);

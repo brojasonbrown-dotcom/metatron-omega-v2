@@ -69,7 +69,13 @@ export const ISS_SLACK = 1e-9;
  * the shorter field silently drops drive on the tail nodes and the run keeps
  * going while quietly computing the wrong thing.
  */
-function addTerm(re: Float64Array, im: Float64Array, k: number, t: CField | null | undefined, n: number): number {
+function addTerm(
+  re: Float64Array,
+  im: Float64Array,
+  k: number,
+  t: CField | null | undefined,
+  n: number,
+): number {
   if (!t) return 0;
   if (t.n !== n) {
     throw new RangeError(`cellStep: term width ${t.n} does not match the field width ${n}`);
@@ -141,4 +147,3 @@ export function cellStep(z: CField, out: CField, terms: CellTerms): CellStepRepo
     issSatisfied: peak <= issBound * (1 + ISS_SLACK) + ISS_SLACK,
   };
 }
-

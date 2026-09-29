@@ -11,12 +11,12 @@
  *                      handlers (chat send, tool launch). Reading .current
  *                      always yields the freshest ctx.
  */
-import { createContext, useContext, useRef, type ReactNode } from "react";
-import type { MetatronOutput } from "@/core/MetatronCore";
-import type { computeChapterResiduals } from "@/core/residuals/ChapterResiduals";
-import type { MemoryStore } from "@/core/memory/MemoryStore";
-import type { ConnectionState } from "@/core/bus/EngineBus";
-import type { EngineCapabilities, FieldSnapshot } from "@/core/bus/protocol";
+import { createContext, useContext, useRef, type ReactNode } from 'react';
+import type { MetatronOutput } from '@/core/MetatronCore';
+import type { computeChapterResiduals } from '@/core/residuals/ChapterResiduals';
+import type { MemoryStore } from '@/core/memory/MemoryStore';
+import type { ConnectionState } from '@/core/bus/EngineBus';
+import type { EngineCapabilities, FieldSnapshot } from '@/core/bus/protocol';
 
 export type Residuals = ReturnType<typeof computeChapterResiduals>;
 
@@ -41,9 +41,9 @@ export interface EngineCtx {
   autoStabilize: boolean;
   setAutoStabilize: (b: boolean) => void;
   /** φ-mode target. "auto" follows the governor's honest ceiling; any positive integer is accepted. */
-  resolution: "auto" | number;
-  setResolution: (n: "auto" | number) => void;
-  fieldState: ConnectionState | "fallback";
+  resolution: 'auto' | number;
+  setResolution: (n: 'auto' | number) => void;
+  fieldState: ConnectionState | 'fallback';
   fieldCapabilities: EngineCapabilities | null;
   fieldSnapshot: FieldSnapshot | null;
   setFieldTargetM: (m: number) => void;
@@ -51,7 +51,9 @@ export interface EngineCtx {
   setPhaseLocked: (locked: boolean) => void;
   isPhaseLocked: boolean;
   /** Real frequency probe — drives live workers and reports honest Hz. */
-  benchmark: (ticks?: number) => Promise<import("@/core/runtime/computeBench").ComputeBenchResult | null>;
+  benchmark: (
+    ticks?: number,
+  ) => Promise<import('@/core/runtime/computeBench').ComputeBenchResult | null>;
   /** True when the user has explicitly forced the in-browser worker-pool engine (daemon probe skipped). */
   forcedFallback: boolean;
   /** Persist preference + reload the engine. true → skip daemon probe and go straight to fallback. */
@@ -92,7 +94,7 @@ export function EngineProvider({ value, children }: { value: EngineCtx; children
 
 export function useEngine(): EngineCtx {
   const v = useContext(Ctx);
-  if (!v) throw new Error("useEngine must be used inside <EngineProvider>");
+  if (!v) throw new Error('useEngine must be used inside <EngineProvider>');
   return v;
 }
 
@@ -102,6 +104,6 @@ export function useEngine(): EngineCtx {
  */
 export function useEngineRef(): { readonly current: EngineCtx } {
   const v = useContext(RefCtx);
-  if (!v) throw new Error("useEngineRef must be used inside <EngineProvider>");
+  if (!v) throw new Error('useEngineRef must be used inside <EngineProvider>');
   return v;
 }

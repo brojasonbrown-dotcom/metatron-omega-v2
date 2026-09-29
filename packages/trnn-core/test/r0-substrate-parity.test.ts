@@ -59,7 +59,6 @@ describe('R0 — root identities', () => {
       expect(pisotDefect(n)).toBeLessThan(1);
     }
   });
-
 });
 
 describe('R0 — Lucas mod-13 closure (finding F1)', () => {

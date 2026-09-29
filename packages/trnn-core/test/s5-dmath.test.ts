@@ -79,12 +79,20 @@ describe('S5.1 — deterministic transcendental bank', () => {
     expect(dpowi(2, 10)).toBe(1024);
     expect(dpow(2, 53)).toBe(9007199254740992);
     const phi = 1.618033988749895;
-    expect(maxRelErr((k) => dpow(phi, k), (k) => Math.pow(phi, k), lin(301, -150, 150))).toBeLessThan(
-      64 * ULP,
-    );
-    expect(maxRelErr((k) => dpow(2.5, k), (k) => Math.pow(2.5, k), lin(2001, -30.5, 30.5))).toBeLessThan(
-      32 * ULP,
-    );
+    expect(
+      maxRelErr(
+        (k) => dpow(phi, k),
+        (k) => Math.pow(phi, k),
+        lin(301, -150, 150),
+      ),
+    ).toBeLessThan(64 * ULP);
+    expect(
+      maxRelErr(
+        (k) => dpow(2.5, k),
+        (k) => Math.pow(2.5, k),
+        lin(2001, -30.5, 30.5),
+      ),
+    ).toBeLessThan(32 * ULP);
   });
 
   it('pow2i is bit-exact across the whole binade range', () => {
@@ -102,7 +110,8 @@ describe('S5.1 — deterministic transcendental bank', () => {
   });
 
   it('no implementation-approximated Math call survives in the engine', () => {
-    const banned = /Math\.(sin|cos|tan|asin|acos|atan|atan2|exp|expm1|log|log2|log10|log1p|pow|hypot|cbrt|sinh|cosh|tanh|random)\s*\(/;
+    const banned =
+      /Math\.(sin|cos|tan|asin|acos|atan|atan2|exp|expm1|log|log2|log10|log1p|pow|hypot|cbrt|sinh|cosh|tanh|random)\s*\(/;
     const offenders: string[] = [];
     const walk = (dir: string) => {
       for (const entry of readdirSync(dir)) {

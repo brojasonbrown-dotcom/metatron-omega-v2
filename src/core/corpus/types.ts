@@ -115,8 +115,7 @@ export function decodeShard(bytes: Uint8Array): DecodedShard {
 
   // A view onto a non-aligned host buffer cannot be a typed array directly, so
   // an unaligned shard is copied once rather than mis-read.
-  const aligned =
-    (bytes.byteOffset + HEADER_BYTES) % 8 === 0 ? bytes : Uint8Array.from(bytes);
+  const aligned = (bytes.byteOffset + HEADER_BYTES) % 8 === 0 ? bytes : Uint8Array.from(bytes);
   const base = aligned.byteOffset + HEADER_BYTES;
   const ticks = new Float64Array(aligned.buffer, base, count);
   const values = new Float32Array(aligned.buffer, base + count * 8, count * width);

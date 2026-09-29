@@ -106,7 +106,9 @@ export function descend(f: CField, childWidth: number): FieldSplit {
 /** Recombine a split into its parent. Exact to float64. */
 export function ascend(split: FieldSplit): CField {
   const lifted =
-    split.childWidth === split.parentWidth ? split.coarse : resample(split.coarse, split.parentWidth);
+    split.childWidth === split.parentWidth
+      ? split.coarse
+      : resample(split.coarse, split.parentWidth);
   return addInto(lifted, split.residual);
 }
 

@@ -171,7 +171,6 @@ describe('R1 — the innovation form defeats unit-root saturation', () => {
     expect(Math.abs(Math.abs(b8) - expectedCBias(8, 1))).toBeLessThan(0.01);
   });
 
-
   it('the naive raw-state estimator saturates — which is why it is not used', () => {
     const { mean, rawMean } = measure(4242);
     // The unit root drags the raw estimator far above the true innovation
@@ -190,7 +189,6 @@ describe('R1 — the innovation form defeats unit-root saturation', () => {
     expect(Math.max(...cs)).toBeGreaterThan(0.6);
     expect(Math.min(...cs)).toBeLessThan(0.05);
   });
-
 
   it('the gate mirrors the measurement exactly', () => {
     const k = new PhiCoherenceKernel(d, 2);

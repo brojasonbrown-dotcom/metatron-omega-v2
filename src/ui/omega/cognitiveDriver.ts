@@ -23,13 +23,13 @@
  * same rule the analysis sampler enforces, for the same reason.
  */
 
-import { getOmegaRuntime, type OmegaState } from "./omegaRuntime";
-import { getMemoryRuntime } from "./memoryRuntime";
-import { getKnowledgeRuntime } from "./knowledgeRuntime";
-import type { SpectralView } from "@/core/omega/omegaProtocol";
-import { PHI } from "@/core/constants/WolframVerified";
-import { operator } from "@metatron/trnn-core";
-import { modeLadder } from "@metatron/trnn-core";
+import { getOmegaRuntime, type OmegaState } from './omegaRuntime';
+import { getMemoryRuntime } from './memoryRuntime';
+import { getKnowledgeRuntime } from './knowledgeRuntime';
+import type { SpectralView } from '@/core/omega/omegaProtocol';
+import { PHI } from '@/core/constants/WolframVerified';
+import { operator } from '@metatron/trnn-core';
+import { modeLadder } from '@metatron/trnn-core';
 
 /** Spectral pull cadence: 1000/φ² ms ≈ 382 ms (≈2.6 Hz). */
 export const SPECTRAL_PERIOD_MS = 1000 / (PHI * PHI);
@@ -83,7 +83,6 @@ export interface SpectralMetrics {
   readonly persistence: number;
 }
 
-
 /** Signature energy entropy, normalized by log(width) so it lands in [0,1]. */
 export function signatureEntropy(sig: readonly number[]): number {
   let total = 0;
@@ -125,7 +124,12 @@ function keepBand(width: number): number {
 export function spectralMetrics(
   prev: SpectralView | null,
   next: SpectralView,
-  cell?: { modes: number; state: Float64Array; frames: number; step(x: ArrayLike<number>): Float64Array } | null,
+  cell?: {
+    modes: number;
+    state: Float64Array;
+    frames: number;
+    step(x: ArrayLike<number>): Float64Array;
+  } | null,
 ): SpectralMetrics {
   const residual = Math.max(next.shell.roundtrip, next.radial.roundtrip);
   const entropy = signatureEntropy(next.signature);
@@ -135,10 +139,7 @@ export function spectralMetrics(
   let roughness = NaN;
   // Both comparisons need the same premise: two passes of equal width on the
   // same rung. Different rungs are different instruments, not a change.
-  const comparable =
-    prev !== null &&
-    prev.signature.length === width &&
-    prev.rank === next.rank;
+  const comparable = prev !== null && prev.signature.length === width && prev.rank === next.rank;
   if (comparable && prev) {
     let sum = 0;
     for (let i = 0; i < width; i++) {
@@ -186,12 +187,14 @@ export function spectralMetrics(
   return { drift, residual, entropy, circulation, roughness, leakage, continuity, persistence };
 }
 
-
 /** The mode ladder is a pure function of width; recomputing it per pass is waste. */
 const LADDER_CACHE = new Map<number, ReturnType<typeof modeLadder>>();
 function ladderFor(width: number): ReturnType<typeof modeLadder> {
   let l = LADDER_CACHE.get(width);
-  if (!l) { l = modeLadder(width); LADDER_CACHE.set(width, l); }
+  if (!l) {
+    l = modeLadder(width);
+    LADDER_CACHE.set(width, l);
+  }
   return l;
 }
 
@@ -209,9 +212,15 @@ export class DriftBand {
     this.m2 += d * (x - this.mean);
   }
 
-  get count(): number { return this.n; }
-  get average(): number { return this.n > 0 ? this.mean : NaN; }
-  get sigma(): number { return this.n > 1 ? Math.sqrt(this.m2 / (this.n - 1)) : NaN; }
+  get count(): number {
+    return this.n;
+  }
+  get average(): number {
+    return this.n > 0 ? this.mean : NaN;
+  }
+  get sigma(): number {
+    return this.n > 1 ? Math.sqrt(this.m2 / (this.n - 1)) : NaN;
+  }
 
   /** True when x exceeds mean + k·σ, and the band has enough samples to say so. */
   salient(x: number, k = SALIENCE_SIGMA): boolean {
@@ -233,7 +242,10 @@ export function warmestRank(
   for (const rank of stepped) {
     const r = rungs[rank];
     if (!r || !r.warm || !Number.isFinite(r.coherence)) continue;
-    if (r.coherence > bestC) { bestC = r.coherence; best = rank; }
+    if (r.coherence > bestC) {
+      bestC = r.coherence;
+      best = rank;
+    }
   }
   return best ?? stepped[0];
 }
@@ -304,7 +316,7 @@ class CognitiveDriver {
     const omega = getOmegaRuntime();
     this.unsub = omega.subscribe((s) => this.onState(s));
     this.onState(omega.get());
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       this.timer = setInterval(() => this.maintainKnowledge(), KNOWLEDGE_PERIOD_MS);
     }
   }
@@ -319,7 +331,7 @@ class CognitiveDriver {
   getSnapshot = (): CognitiveSnapshot => this.snap;
 
   private now(): number {
-    return typeof performance !== "undefined" ? performance.now() : Date.now();
+    return typeof performance !== 'undefined' ? performance.now() : Date.now();
   }
 
   // ── C1 · spectral scan ──────────────────────────────────────────────────
@@ -362,7 +374,9 @@ class CognitiveDriver {
             signatureHash: `spec:${view.rank}:${snapshot.digest}`,
             text: `spectral drift ${m.drift.toExponential(3)} on rung ${view.rank} · entropy ${m.entropy.toFixed(4)} · residual ${m.residual.toExponential(2)}`,
           });
-        } catch { /* memory disabled: the measurement still stands */ }
+        } catch {
+          /* memory disabled: the measurement still stands */
+        }
       }
     }
 
@@ -418,12 +432,16 @@ class CognitiveDriver {
         this.lastLatentChunks = chunks;
         this.latentBuilds++;
         this.snap = { ...this.snap, latentBuilds: this.latentBuilds };
-      } catch { /* an unbuildable corpus stays unbuilt; recall abstains */ }
+      } catch {
+        /* an unbuildable corpus stays unbuilt; recall abstains */
+      }
     };
-    const ric = (globalThis as unknown as {
-      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
-    }).requestIdleCallback;
-    if (typeof ric === "function") ric(run, { timeout: 8000 });
+    const ric = (
+      globalThis as unknown as {
+        requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      }
+    ).requestIdleCallback;
+    if (typeof ric === 'function') ric(run, { timeout: 8000 });
     else setTimeout(run, 0);
   }
 }

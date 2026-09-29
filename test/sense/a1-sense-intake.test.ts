@@ -21,10 +21,10 @@ import {
 
 function feature(seed: number, d = 64): Float32Array {
   const f = new Float32Array(d);
-  let x = seed * 2654435761 >>> 0;
+  let x = (seed * 2654435761) >>> 0;
   for (let i = 0; i < d; i++) {
     x = (x * 1664525 + 1013904223) >>> 0;
-    f[i] = (x / 4294967296) - 0.5;
+    f[i] = x / 4294967296 - 0.5;
   }
   return f;
 }

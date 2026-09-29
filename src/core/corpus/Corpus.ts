@@ -51,10 +51,15 @@ export class Corpus {
     this.ledger = o.ledger ?? new CorpusLedger();
     this.hot = new HotCache({ width: o.width, capacity: o.hotCapacity, floor: o.hotFloor });
     this.warm = new WarmShards({
-      store: this.store, ledger: this.ledger, width: o.width, shardFrames: o.shardFrames,
+      store: this.store,
+      ledger: this.ledger,
+      width: o.width,
+      shardFrames: o.shardFrames,
     });
     this.cold = new ColdArchive({
-      store: this.store, ledger: this.ledger, segmentShards: o.segmentShards,
+      store: this.store,
+      ledger: this.ledger,
+      segmentShards: o.segmentShards,
     });
   }
 
@@ -69,7 +74,12 @@ export class Corpus {
     halfWidth: number,
     actual: number,
     timestamp: number,
-  ): Promise<{ admitted: boolean; surprise: number; sealed: ShardIndexEntry[]; cold: ColdResult | null }> {
+  ): Promise<{
+    admitted: boolean;
+    surprise: number;
+    sealed: ShardIndexEntry[];
+    cold: ColdResult | null;
+  }> {
     const a = this.hot.offer(frame, predicted, halfWidth, actual);
     let sealed: ShardIndexEntry[] = [];
     if (a.demoted.length > 0) sealed = await this.warm.accept(a.demoted, timestamp);
@@ -78,7 +88,9 @@ export class Corpus {
   }
 
   /** Seal every buffered frame and compact if the segment is due. */
-  async flush(timestamp: number): Promise<{ shard: ShardIndexEntry | null; cold: ColdResult | null }> {
+  async flush(
+    timestamp: number,
+  ): Promise<{ shard: ShardIndexEntry | null; cold: ColdResult | null }> {
     const drained = this.hot.drain();
     if (drained.length > 0) {
       const sealedNow = await this.warm.accept(drained, timestamp);
@@ -129,14 +141,23 @@ export class Corpus {
     const head = this.ledger.head;
     return {
       storeKind: this.store.kind,
-      hot: { count: h.count, capacity: h.capacity, numbers: h.numbers, meanSurprise: h.meanSurprise },
+      hot: {
+        count: h.count,
+        capacity: h.capacity,
+        numbers: h.numbers,
+        meanSurprise: h.meanSurprise,
+      },
       warm: {
-        shards: this.warm.shards.length, pending: this.warm.pending,
-        numbers: this.warm.numbers, bytes: this.warm.bytes,
+        shards: this.warm.shards.length,
+        pending: this.warm.pending,
+        numbers: this.warm.numbers,
+        bytes: this.warm.bytes,
       },
       cold: {
-        segments: this.cold.segments.length, numbers: this.cold.numbers,
-        bytes: this.cold.bytes, refused: this.cold.refusedCount,
+        segments: this.cold.segments.length,
+        numbers: this.cold.numbers,
+        bytes: this.cold.bytes,
+        refused: this.cold.refusedCount,
       },
       ledger: {
         size: this.ledger.size,

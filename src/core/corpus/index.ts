@@ -10,12 +10,24 @@ export * from './storage';
 export { HotCache, hotCapacityFor, HOT_SHARE } from './HotCache';
 export { WarmShards, DEFAULT_SHARD_FRAMES, type ShardIndexEntry } from './WarmShards';
 export {
-  ColdArchive, compactFrame, isRefusal, COLD_WIDTH, COLD_WIDTH_LADDER, narrowerWidth, DEFAULT_SEGMENT_SHARDS, QUOTA_GUARD,
-  type SegmentIndexEntry, type ColdResult, type ColdRefusal,
+  ColdArchive,
+  compactFrame,
+  isRefusal,
+  COLD_WIDTH,
+  COLD_WIDTH_LADDER,
+  narrowerWidth,
+  DEFAULT_SEGMENT_SHARDS,
+  QUOTA_GUARD,
+  type SegmentIndexEntry,
+  type ColdResult,
+  type ColdRefusal,
 } from './ColdArchive';
 export {
-  CorpusLedger, CORPUS_LOG_ID,
-  type SealRecord, type SealedEntry, type ProofCarrying,
+  CorpusLedger,
+  CORPUS_LOG_ID,
+  type SealRecord,
+  type SealedEntry,
+  type ProofCarrying,
 } from './CorpusLedger';
 export { recall, type RecallQuery, type RecallResult } from './CorpusRecall';
 export { Corpus, type CorpusOptions, type CorpusStats } from './Corpus';

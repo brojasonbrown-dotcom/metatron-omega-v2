@@ -17,8 +17,12 @@
  */
 
 import {
-  BN_ONE, bnFromNumber, mergeSubstrates, trustScoreMultiplier,
-  type BigNum128, type TrustLevel,
+  BN_ONE,
+  bnFromNumber,
+  mergeSubstrates,
+  trustScoreMultiplier,
+  type BigNum128,
+  type TrustLevel,
 } from './bn128';
 
 /** Live readings the gate judges. All optional: absent ⇒ unknown ⇒ refused. */
@@ -51,8 +55,8 @@ export interface GateDecision {
   readonly refusals: readonly string[];
 }
 
-const MIN_TAPE_FRAMES = 89;      // F11 — one full tape window
-const MIN_PATTERNS = 21;         // F8
+const MIN_TAPE_FRAMES = 89; // F11 — one full tape window
+const MIN_PATTERNS = 21; // F8
 const MIN_FINDINGS = 8;
 
 function unit(x: number | undefined): number | null {
@@ -77,13 +81,16 @@ export function decideTier(inp: GateInputs): GateDecision {
 
   const frames = inp.tapeFrames ?? 0;
   if (frames === 0) refusals.push('memory substrate holds no tape frames');
-  else if (frames < MIN_TAPE_FRAMES) refusals.push(`tape below one window (${frames}/${MIN_TAPE_FRAMES})`);
+  else if (frames < MIN_TAPE_FRAMES)
+    refusals.push(`tape below one window (${frames}/${MIN_TAPE_FRAMES})`);
 
   const patterns = inp.patterns ?? 0;
-  if (patterns < MIN_PATTERNS) refusals.push(`too few consolidated patterns (${patterns}/${MIN_PATTERNS})`);
+  if (patterns < MIN_PATTERNS)
+    refusals.push(`too few consolidated patterns (${patterns}/${MIN_PATTERNS})`);
 
   const findings = inp.sealedFindings ?? 0;
-  if (findings < MIN_FINDINGS) refusals.push(`too little sealed evidence (${findings}/${MIN_FINDINGS})`);
+  if (findings < MIN_FINDINGS)
+    refusals.push(`too little sealed evidence (${findings}/${MIN_FINDINGS})`);
 
   if (inp.chainVerified === false) refusals.push('evidence chain failed verification');
   else if (inp.chainVerified === undefined) refusals.push('evidence chain not verified');

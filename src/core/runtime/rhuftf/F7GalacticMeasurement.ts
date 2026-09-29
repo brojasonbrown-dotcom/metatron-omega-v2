@@ -50,17 +50,24 @@ export class F7GalacticMeasurement implements ScaleMeasurement {
 
   measure(state: FieldStateN, _ctx: ScaleMeasurementContext): ScaleMeasurementResult {
     if (state.psi.length < NODES) {
-      return { scale: 6, closureResidual: NaN, closureScore: NaN, invariantScore: NaN, gamma: new Float64Array(NODES) };
+      return {
+        scale: 6,
+        closureResidual: NaN,
+        closureScore: NaN,
+        invariantScore: NaN,
+        gamma: new Float64Array(NODES),
+      };
     }
     const psi = state.psi;
     const ref = this.ref;
 
     // Compensated ‖ψ‖².
-    let normSq = 0, comp = 0;
+    let normSq = 0,
+      comp = 0;
     for (let i = 0; i < NODES; i++) {
       const x = psi[i] * psi[i];
       const t = normSq + x;
-      comp += Math.abs(normSq) >= x ? (normSq - t) + x : (x - t) + normSq;
+      comp += Math.abs(normSq) >= x ? normSq - t + x : x - t + normSq;
       normSq = t;
     }
     const norm = Math.sqrt(normSq + comp);
@@ -99,7 +106,8 @@ export class F7GalacticMeasurement implements ScaleMeasurement {
     }
 
     // Invariant witness: spiral-phase preservation. Compute mean |Δphase| in m.
-    let invAcc = 0, invN = 0;
+    let invAcc = 0,
+      invN = 0;
     for (let i = 0; i < NODES - 1; i++) {
       const denom = psi[i];
       if (denom !== 0 && Number.isFinite(denom)) {

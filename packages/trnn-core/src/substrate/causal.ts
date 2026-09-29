@@ -291,11 +291,7 @@ interface Embedding {
  *   restricted  y_t ~ 1 + y_{t−1..t−L}
  *   full        y_t ~ 1 + y_{t−1..t−L} + x_{t−1..t−L}
  */
-function embed(
-  y: ArrayLike<number>,
-  x: ArrayLike<number> | null,
-  lag: number,
-): Embedding {
+function embed(y: ArrayLike<number>, x: ArrayLike<number> | null, lag: number): Embedding {
   const N = x ? Math.min(y.length, x.length) : y.length;
   const n = N - lag;
   const k = 1 + lag + (x ? lag : 0);
@@ -339,7 +335,7 @@ export function grangerCausality(
   }
   const df1 = L;
   const df2 = full.n - full.k;
-  const F = ((fr.rss - ff.rss) / df1) / (ff.rss / df2);
+  const F = (fr.rss - ff.rss) / df1 / (ff.rss / df2);
   const Fc = F > 0 ? F : 0;
   return { value: Fc, p: fSurvival(Fc, df1, df2), n, lag: L, abstained: false };
 }
@@ -454,7 +450,13 @@ export class RegressionForest {
   private readonly trees: TreeNode[][] = [];
   private readonly p: number;
 
-  constructor(X: Float64Array, y: ArrayLike<number>, n: number, p: number, opts: ForestOptions = {}) {
+  constructor(
+    X: Float64Array,
+    y: ArrayLike<number>,
+    n: number,
+    p: number,
+    opts: ForestOptions = {},
+  ) {
     this.p = p;
     const nTrees = Math.max(1, Math.floor(opts.trees ?? 24));
     const minLeaf = Math.max(1, Math.floor(opts.minLeaf ?? 5));
@@ -545,8 +547,34 @@ export class RegressionForest {
 
     nodes[self].feature = bestFeat;
     nodes[self].threshold = bestThr;
-    nodes[self].left = this.grow(X, y, p, idx, lo, mid, nodes, depth + 1, maxDepth, minLeaf, mtry, rng);
-    nodes[self].right = this.grow(X, y, p, idx, mid, hi, nodes, depth + 1, maxDepth, minLeaf, mtry, rng);
+    nodes[self].left = this.grow(
+      X,
+      y,
+      p,
+      idx,
+      lo,
+      mid,
+      nodes,
+      depth + 1,
+      maxDepth,
+      minLeaf,
+      mtry,
+      rng,
+    );
+    nodes[self].right = this.grow(
+      X,
+      y,
+      p,
+      idx,
+      mid,
+      hi,
+      nodes,
+      depth + 1,
+      maxDepth,
+      minLeaf,
+      mtry,
+      rng,
+    );
     return self;
   }
 
@@ -588,7 +616,13 @@ export class NuisanceLearner {
   private readonly p: number;
   private readonly k: number;
 
-  constructor(X: Float64Array, y: ArrayLike<number>, n: number, p: number, opts: ForestOptions = {}) {
+  constructor(
+    X: Float64Array,
+    y: ArrayLike<number>,
+    n: number,
+    p: number,
+    opts: ForestOptions = {},
+  ) {
     this.p = p;
     this.k = 1 + 2 * p;
     const Z = new Float64Array(n * this.k);
@@ -672,7 +706,11 @@ export function dmlPartialLinear(
   p: number,
   opts: DmlOptions = {},
 ): DmlResult {
-  const n = Math.min(y.length, d.length, p > 0 ? Math.floor(X.length / p) : Number.MAX_SAFE_INTEGER);
+  const n = Math.min(
+    y.length,
+    d.length,
+    p > 0 ? Math.floor(X.length / p) : Number.MAX_SAFE_INTEGER,
+  );
   const K = Math.max(2, Math.floor(opts.folds ?? 5));
   if (n < STAT_FLOOR) return dmlAbstain(Math.max(0, n), K, `n=${n} < F9 floor ${STAT_FLOOR}`);
   if (n < 2 * K) return dmlAbstain(n, K, `n=${n} too small for ${K} folds`);
@@ -709,7 +747,8 @@ export function dmlPartialLinear(
     num += resD[i] * resY[i];
     den += resD[i] * resD[i];
   }
-  if (!(den > 0)) return dmlAbstain(n, K, 'treatment fully explained by controls (no residual variation)');
+  if (!(den > 0))
+    return dmlAbstain(n, K, 'treatment fully explained by controls (no residual variation)');
   const theta = num / den;
 
   let psi2 = 0;

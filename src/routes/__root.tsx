@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   Outlet,
   Link,
@@ -6,12 +6,12 @@ import {
   useRouter,
   HeadContent,
   Scripts,
-} from "@tanstack/react-router";
-import { useEffect } from "react";
+} from '@tanstack/react-router';
+import { useEffect } from 'react';
 
-import appCss from "../styles.css?url";
-import { ThemeProvider } from "@/components/v11/legacy/ThemeProvider";
-import { installCrashLogger, recordCrash } from "@/lib/diagnostics/crashLogger";
+import appCss from '../styles.css?url';
+import { ThemeProvider } from '@/components/v11/legacy/ThemeProvider';
+import { installCrashLogger, recordCrash } from '@/lib/diagnostics/crashLogger';
 
 function NotFoundComponent() {
   return (
@@ -37,7 +37,7 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
-  recordCrash(error.message || "route error", error.stack, "error");
+  recordCrash(error.message || 'route error', error.stack, 'error');
   const router = useRouter();
 
   return (
@@ -74,24 +74,24 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { charSet: 'utf-8' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      { title: 'Lovable App' },
+      { name: 'description', content: 'Lovable Generated Project' },
+      { name: 'author', content: 'Lovable' },
+      { property: 'og:title', content: 'Lovable App' },
+      { property: 'og:description', content: 'Lovable Generated Project' },
+      { property: 'og:type', content: 'website' },
+      { name: 'twitter:card', content: 'summary' },
+      { name: 'twitter:site', content: '@Lovable' },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      { rel: 'stylesheet', href: appCss },
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
       {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap",
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap',
       },
     ],
   }),
@@ -118,7 +118,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  useEffect(() => { installCrashLogger(); }, []);
+  useEffect(() => {
+    installCrashLogger();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

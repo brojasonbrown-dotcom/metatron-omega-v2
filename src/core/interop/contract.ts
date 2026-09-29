@@ -43,12 +43,20 @@ const TD = new TextDecoder();
 class Buf {
   private parts: Uint8Array[] = [];
   private len = 0;
-  push(b: Uint8Array): void { this.parts.push(b); this.len += b.length; }
-  byte(v: number): void { this.push(Uint8Array.of(v & 0xff)); }
+  push(b: Uint8Array): void {
+    this.parts.push(b);
+    this.len += b.length;
+  }
+  byte(v: number): void {
+    this.push(Uint8Array.of(v & 0xff));
+  }
   bytes(): Uint8Array {
     const out = new Uint8Array(this.len);
     let o = 0;
-    for (const p of this.parts) { out.set(p, o); o += p.length; }
+    for (const p of this.parts) {
+      out.set(p, o);
+      o += p.length;
+    }
     return out;
   }
 }
@@ -58,8 +66,15 @@ function head(buf: Buf, major: number, arg: number | bigint): void {
   const m = major << 5;
   const n = typeof arg === 'bigint' ? arg : BigInt(Math.trunc(arg));
   if (n < 0n) throw new RangeError('cbor: negative argument');
-  if (n < 24n) { buf.byte(m | Number(n)); return; }
-  if (n <= 0xffn) { buf.byte(m | 24); buf.byte(Number(n)); return; }
+  if (n < 24n) {
+    buf.byte(m | Number(n));
+    return;
+  }
+  if (n <= 0xffn) {
+    buf.byte(m | 24);
+    buf.byte(Number(n));
+    return;
+  }
   if (n <= 0xffffn) {
     buf.byte(m | 25);
     buf.push(Uint8Array.of(Number((n >> 8n) & 0xffn), Number(n & 0xffn)));
@@ -90,8 +105,14 @@ function cmpBytes(a: Uint8Array, b: Uint8Array): number {
 }
 
 function encInto(buf: Buf, v: CborValue): void {
-  if (v === null) { buf.byte(0xf6); return; }
-  if (typeof v === 'boolean') { buf.byte(v ? 0xf5 : 0xf4); return; }
+  if (v === null) {
+    buf.byte(0xf6);
+    return;
+  }
+  if (typeof v === 'boolean') {
+    buf.byte(v ? 0xf5 : 0xf4);
+    return;
+  }
   if (typeof v === 'bigint') {
     if (v >= 0n) head(buf, 0, v);
     else head(buf, 1, -v - 1n);
@@ -142,7 +163,10 @@ function encInto(buf: Buf, v: CborValue): void {
     });
     pairs.sort((a, b) => cmpBytes(a.enc, b.enc));
     head(buf, 5, pairs.length);
-    for (const p of pairs) { buf.push(p.enc); encInto(buf, o[p.k]); }
+    for (const p of pairs) {
+      buf.push(p.enc);
+      encInto(buf, o[p.k]);
+    }
     return;
   }
   throw new TypeError(`cbor: unsupported type ${typeof v}`);
@@ -156,7 +180,10 @@ export function encodeCbor(value: CborValue): Uint8Array {
 }
 
 class Reader {
-  constructor(private b: Uint8Array, private i = 0) {}
+  constructor(
+    private b: Uint8Array,
+    private i = 0,
+  ) {}
   private u8(): number {
     if (this.i >= this.b.length) throw new RangeError('cbor: truncated');
     return this.b[this.i++];
@@ -188,13 +215,18 @@ class Reader {
     const major = ib >> 5;
     const ai = ib & 0x1f;
     switch (major) {
-      case 0: { const n = this.argOf(ai); return n <= 9007199254740991n ? Number(n) : n; }
+      case 0: {
+        const n = this.argOf(ai);
+        return n <= 9007199254740991n ? Number(n) : n;
+      }
       case 1: {
         const n = -1n - this.argOf(ai);
         return n >= -9007199254740991n ? Number(n) : n;
       }
-      case 2: return this.raw(Number(this.argOf(ai)));
-      case 3: return TD.decode(this.raw(Number(this.argOf(ai))));
+      case 2:
+        return this.raw(Number(this.argOf(ai)));
+      case 3:
+        return TD.decode(this.raw(Number(this.argOf(ai))));
       case 4: {
         const n = Number(this.argOf(ai));
         const arr: CborValue[] = [];
@@ -221,10 +253,13 @@ class Reader {
         }
         throw new RangeError(`cbor: unsupported simple value ${ai}`);
       }
-      default: throw new RangeError(`cbor: unsupported major type ${major}`);
+      default:
+        throw new RangeError(`cbor: unsupported major type ${major}`);
     }
   }
-  done(): boolean { return this.i === this.b.length; }
+  done(): boolean {
+    return this.i === this.b.length;
+  }
 }
 
 /** Decode canonical CBOR. Trailing bytes are an error, not ignored. */
@@ -261,20 +296,32 @@ export function fromHex(s: string): Uint8Array {
 }
 
 /** The law. Use this everywhere unless a host row demands the legacy digest. */
-export function hash(bytes: Uint8Array): Uint8Array { return sha3_256(bytes); }
-export function hashHex(bytes: Uint8Array): string { return toHex(hash(bytes)); }
+export function hash(bytes: Uint8Array): Uint8Array {
+  return sha3_256(bytes);
+}
+export function hashHex(bytes: Uint8Array): string {
+  return toHex(hash(bytes));
+}
 
 /**
  * Legacy SHA-256, for host columns that were written under the old digest.
  * Named on purpose: a caller has to say "legacy" out loud. Never called as a
  * fallback when SHA3 is unavailable — SHA3 is always available here.
  */
-export function hashLegacySha256(bytes: Uint8Array): Uint8Array { return sha256(bytes); }
-export function hashLegacySha256Hex(bytes: Uint8Array): string { return toHex(sha256(bytes)); }
+export function hashLegacySha256(bytes: Uint8Array): Uint8Array {
+  return sha256(bytes);
+}
+export function hashLegacySha256Hex(bytes: Uint8Array): string {
+  return toHex(sha256(bytes));
+}
 
 /** Hash a value under the law, through canonical CBOR. */
-export function hashValue(value: CborValue): Uint8Array { return hash(encodeCbor(value)); }
-export function hashValueHex(value: CborValue): string { return toHex(hashValue(value)); }
+export function hashValue(value: CborValue): Uint8Array {
+  return hash(encodeCbor(value));
+}
+export function hashValueHex(value: CborValue): string {
+  return toHex(hashValue(value));
+}
 
 /** Which digest produced a hex string, when a row does not say. */
 export function hashLawOfHex(hex: string): HashLaw | null {
@@ -315,7 +362,8 @@ export function hlcTick(prev: Hlc, now: number): Hlc {
 export function hlcMerge(local: Hlc, remote: Hlc, now: number): Hlc {
   const wall = Math.max(local.wall, remote.wall, Math.trunc(now));
   let counter: number;
-  if (wall === local.wall && wall === remote.wall) counter = Math.max(local.counter, remote.counter) + 1;
+  if (wall === local.wall && wall === remote.wall)
+    counter = Math.max(local.counter, remote.counter) + 1;
   else if (wall === local.wall) counter = local.counter + 1;
   else if (wall === remote.wall) counter = remote.counter + 1;
   else counter = 0;

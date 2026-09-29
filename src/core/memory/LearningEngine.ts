@@ -67,9 +67,17 @@ export interface LearningMetrics {
 }
 
 const EMPTY: LearningMetrics = {
-  tick: 0, currentHash: null, predictedHash: null, predictionResonance: 0,
-  surprise: 0, traceNorm: 0, boundPairs: 0, merged: 0, observations: 0,
-  rescored: 0, prefiltered: 0,
+  tick: 0,
+  currentHash: null,
+  predictedHash: null,
+  predictionResonance: 0,
+  surprise: 0,
+  traceNorm: 0,
+  boundPairs: 0,
+  merged: 0,
+  observations: 0,
+  rescored: 0,
+  prefiltered: 0,
 };
 
 export class LearningEngine {
@@ -87,11 +95,19 @@ export class LearningEngine {
   setOptions(next: Partial<LearningOptions>): void {
     this.opts = { ...this.opts, ...next };
   }
-  options(): LearningOptions { return { ...this.opts }; }
-  metrics(): LearningMetrics { return this.last; }
+  options(): LearningOptions {
+    return { ...this.opts };
+  }
+  metrics(): LearningMetrics {
+    return this.last;
+  }
   /** φ⁻²-smoothed surprise — the "is it still learning?" readout. */
-  meanSurprise(): number { return this.surpriseEma; }
-  totalMerged(): number { return this.mergedTotal; }
+  meanSurprise(): number {
+    return this.surpriseEma;
+  }
+  totalMerged(): number {
+    return this.mergedTotal;
+  }
 
   reset(): void {
     this.index.clear();
@@ -139,9 +155,10 @@ export class LearningEngine {
       }
     }
     const surprise = predictedHash ? 1 - predictionResonance : 1;
-    this.surpriseEma = this.surpriseEma === 0
-      ? surprise
-      : this.surpriseEma * (1 - PHI_INV * PHI_INV) + surprise * PHI_INV * PHI_INV;
+    this.surpriseEma =
+      this.surpriseEma === 0
+        ? surprise
+        : this.surpriseEma * (1 - PHI_INV * PHI_INV) + surprise * PHI_INV * PHI_INV;
 
     // ── temporal binding: Hebbian on the surprise-scaled trace residual ──
     let boundPairs = 0;
@@ -168,17 +185,27 @@ export class LearningEngine {
 
     // ── periodic Hopfield consolidation ──────────────────────────────────
     let merged = 0;
-    if (this.opts.consolidation && this.observations % Math.max(2, this.opts.consolidateEvery) === 0) {
+    if (
+      this.opts.consolidation &&
+      this.observations % Math.max(2, this.opts.consolidateEvery) === 0
+    ) {
       merged = this.consolidate(dim, tick);
       this.mergedTotal += merged;
     }
 
     const istats = this.index.stats();
     this.last = {
-      tick, currentHash, predictedHash, predictionResonance,
-      surprise, traceNorm, boundPairs, merged,
+      tick,
+      currentHash,
+      predictedHash,
+      predictionResonance,
+      surprise,
+      traceNorm,
+      boundPairs,
+      merged,
       observations: this.observations,
-      rescored: istats.lastRescored, prefiltered: istats.lastPrefiltered,
+      rescored: istats.lastRescored,
+      prefiltered: istats.lastPrefiltered,
     };
     return this.last;
   }
@@ -201,8 +228,10 @@ export class LearningEngine {
         const q = h.pattern;
         if (q.hash === p.hash || dropped.has(q.hash)) continue;
         if (h.resonance < MERGE_THRESHOLD) continue;
-        const survivor = q.qualiaScalar > p.qualiaScalar
-          || (q.qualiaScalar === p.qualiaScalar && q.tick < p.tick) ? q : p;
+        const survivor =
+          q.qualiaScalar > p.qualiaScalar || (q.qualiaScalar === p.qualiaScalar && q.tick < p.tick)
+            ? q
+            : p;
         const victim = survivor === p ? q : p;
         dropped.add(victim.hash);
         survivor.lastSeen = Math.max(survivor.lastSeen, tick);

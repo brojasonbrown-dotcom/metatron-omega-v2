@@ -28,7 +28,12 @@ export class OrderingMonitor {
 
   beginTick(tick: number): void {
     if (tick <= this.tick) {
-      this.violations.push({ tick, rank: -1, phase: 'stage', reason: `tick did not advance (${tick} <= ${this.tick})` });
+      this.violations.push({
+        tick,
+        rank: -1,
+        phase: 'stage',
+        reason: `tick did not advance (${tick} <= ${this.tick})`,
+      });
     }
     this.tick = tick;
     this.phaseIdx = -1;
@@ -38,7 +43,12 @@ export class OrderingMonitor {
   enterPhase(p: Phase): void {
     const idx = PHASE_ORDER.indexOf(p);
     if (idx < this.phaseIdx) {
-      this.violations.push({ tick: this.tick, rank: -1, phase: p, reason: `phase went backwards from ${PHASE_ORDER[this.phaseIdx]}` });
+      this.violations.push({
+        tick: this.tick,
+        rank: -1,
+        phase: p,
+        reason: `phase went backwards from ${PHASE_ORDER[this.phaseIdx]}`,
+      });
     }
     this.phaseIdx = idx;
   }
@@ -46,14 +56,24 @@ export class OrderingMonitor {
   /** Register a read of rung `rank`'s state; must be pre-update. */
   read(rank: number): void {
     if (this.written.has(rank)) {
-      this.violations.push({ tick: this.tick, rank, phase: PHASE_ORDER[Math.max(0, this.phaseIdx)], reason: 'read-after-write inside one tick' });
+      this.violations.push({
+        tick: this.tick,
+        rank,
+        phase: PHASE_ORDER[Math.max(0, this.phaseIdx)],
+        reason: 'read-after-write inside one tick',
+      });
     }
   }
 
   /** Register a commit of rung `rank`'s new state. */
   write(rank: number): void {
     if (this.phaseIdx < PHASE_ORDER.indexOf('update')) {
-      this.violations.push({ tick: this.tick, rank, phase: PHASE_ORDER[Math.max(0, this.phaseIdx)], reason: 'write before the update phase' });
+      this.violations.push({
+        tick: this.tick,
+        rank,
+        phase: PHASE_ORDER[Math.max(0, this.phaseIdx)],
+        reason: 'write before the update phase',
+      });
     }
     this.written.add(rank);
   }
@@ -79,7 +99,10 @@ export class OrderingMonitor {
  * web ticks. Strides are Fibonacci so nested periods re-align on Fibonacci
  * boundaries instead of drifting.
  */
-export function fibonacciStrides(size: number, mode: 'uniform' | 'fibonacci' = 'uniform'): Int32Array {
+export function fibonacciStrides(
+  size: number,
+  mode: 'uniform' | 'fibonacci' = 'uniform',
+): Int32Array {
   const s = new Int32Array(size);
   if (mode === 'uniform') {
     s.fill(1);

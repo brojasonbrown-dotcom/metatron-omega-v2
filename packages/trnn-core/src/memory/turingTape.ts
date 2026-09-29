@@ -83,7 +83,8 @@ const FIB: number[] = (() => {
  * non-consecutive Fibonacci numbers. Returns the indices into FIB, descending.
  */
 export function zeckendorf(x: number): number[] {
-  if (!Number.isInteger(x) || x < 0) throw new RangeError(`zeckendorf: x must be a non-negative integer, got ${x}`);
+  if (!Number.isInteger(x) || x < 0)
+    throw new RangeError(`zeckendorf: x must be a non-negative integer, got ${x}`);
   const out: number[] = [];
   let rest = x;
   let i = FIB.length - 1;
@@ -192,7 +193,7 @@ export class TuringTape {
     const s = sector < 0 ? 0 : sector > 4 ? 4 : sector;
     const motion = s === 0 ? -kLarge : s === 1 ? -kSmall : s === 2 ? 0 : s === 3 ? kSmall : kLarge;
 
-    const to = ((from + motion) % C + C) % C;
+    const to = (((from + motion) % C) + C) % C;
     this.head = to;
     this.step++;
 
@@ -202,7 +203,17 @@ export class TuringTape {
       if (m > peak) peak = m;
     }
 
-    return { step: this.step, from, to, motion, order, wrote, read, occupancy: this.occupancy, peak };
+    return {
+      step: this.step,
+      from,
+      to,
+      motion,
+      order,
+      wrote,
+      read,
+      occupancy: this.occupancy,
+      peak,
+    };
   }
 
   /**
@@ -248,7 +259,9 @@ export class TuringTape {
 
   restore(cp: TapeCheckpoint): void {
     if (cp.re.length !== this.capacity) {
-      throw new RangeError(`TuringTape.restore: checkpoint width ${cp.re.length} != capacity ${this.capacity}`);
+      throw new RangeError(
+        `TuringTape.restore: checkpoint width ${cp.re.length} != capacity ${this.capacity}`,
+      );
     }
     this.re.set(cp.re);
     this.im.set(cp.im);

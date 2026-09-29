@@ -19,14 +19,23 @@ import { Digest, SeedStream } from '../core/determinism';
 import { PHI } from '../core/constants';
 import { dsin, dcos } from '../core/dmath';
 import {
-  pearson, spearman, kendallTauB, distanceCorrelation, hsic, gaussianMI,
+  pearson,
+  spearman,
+  kendallTauB,
+  distanceCorrelation,
+  hsic,
+  gaussianMI,
   type StatResult,
 } from '../substrate/correlation';
 import { grangerCausality, transferEntropyGaussian } from '../substrate/causal';
 import { fuseResonance, circularPhaseDev, phaseClosureGamma } from '../substrate/resonanceBus';
 import { randomHv, bind, unbind, bundle, similarity } from '../substrate/vsa';
 import {
-  substrateParity, metatronSpectrum, pisotDefect, heartbeatGaps, stableRungsMod28,
+  substrateParity,
+  metatronSpectrum,
+  pisotDefect,
+  heartbeatGaps,
+  stableRungsMod28,
 } from '../substrate/phiSubstrate';
 import { analyticExpectedC, expectedCBias, kernelRoots } from '../substrate/coherenceKernel';
 
@@ -79,7 +88,10 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       // ok-flag plus a digest of the name+detail text: a check that silently
       // changes what it measures breaks the digest even when it still passes.
       for (const p of substrateParity()) {
-        v.push(p.ok ? 1 : 0, Number(new Digest().text(p.name).text(p.detail).value() & 0xffffffffn));
+        v.push(
+          p.ok ? 1 : 0,
+          Number(new Digest().text(p.name).text(p.detail).value() & 0xffffffffn),
+        );
       }
       v.push(...metatronSpectrum(), ...heartbeatGaps(), ...stableRungsMod28());
       for (let n = 1; n <= 13; n++) v.push(pisotDefect(n));
@@ -102,8 +114,12 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     run: () => {
       const { x, y } = coupledPair(233, 'golden/corr');
       return statValues([
-        pearson(x, y), spearman(x, y), kendallTauB(x, y),
-        distanceCorrelation(x, y), hsic(x, y), gaussianMI(x, y),
+        pearson(x, y),
+        spearman(x, y),
+        kendallTauB(x, y),
+        distanceCorrelation(x, y),
+        hsic(x, y),
+        gaussianMI(x, y),
       ]);
     },
   },
@@ -113,8 +129,12 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     run: () => {
       const { x, y } = coupledPair(21, 'golden/corr-small');
       return statValues([
-        pearson(x, y), spearman(x, y), kendallTauB(x, y),
-        distanceCorrelation(x, y), hsic(x, y), gaussianMI(x, y),
+        pearson(x, y),
+        spearman(x, y),
+        kendallTauB(x, y),
+        distanceCorrelation(x, y),
+        hsic(x, y),
+        gaussianMI(x, y),
       ]);
     },
   },
@@ -138,7 +158,9 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
     guards: 'the fusion law, the γ factor, the veto and the coherence gate',
     run: () => {
       const chans = [
-        { id: 'a', value: 0.9 }, { id: 'b', value: 0.6 }, { id: 'c', value: 0.34 },
+        { id: 'a', value: 0.9 },
+        { id: 'b', value: 0.6 },
+        { id: 'c', value: 0.34 },
       ];
       const phases = [0.1, 0.2, 0.12, 0.31, 0.05];
       const dev = circularPhaseDev(phases);
@@ -149,12 +171,20 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       const abstaining = fuseResonance([...chans, { id: 'unknown', value: NaN }]);
       const gated = fuseResonance(chans, { coherence: 0.05 });
       return [
-        dev, g,
-        plain.value, plain.counted, plain.abstained,
-        withGamma.value, withGamma.gamma, withGamma.vetoValue,
-        vetoed.value, vetoed.dead ? 1 : 0,
-        abstaining.value, abstaining.abstained,
-        Number.isFinite(gated.value) ? gated.value : ABSTAIN_MARK, gated.gated ? 1 : 0,
+        dev,
+        g,
+        plain.value,
+        plain.counted,
+        plain.abstained,
+        withGamma.value,
+        withGamma.gamma,
+        withGamma.vetoValue,
+        vetoed.value,
+        vetoed.dead ? 1 : 0,
+        abstaining.value,
+        abstaining.abstained,
+        Number.isFinite(gated.value) ? gated.value : ABSTAIN_MARK,
+        gated.gated ? 1 : 0,
       ];
     },
   },
@@ -170,8 +200,12 @@ export const GOLDEN_CASES: readonly GoldenCase[] = [
       const rec = unbind(ab, a);
       const bag = bundle([a, b, c]);
       return [
-        similarity(rec, b), similarity(ab, a), similarity(ab, b),
-        similarity(bag.hv, a), similarity(bag.hv, b), similarity(bag.hv, c),
+        similarity(rec, b),
+        similarity(ab, a),
+        similarity(ab, b),
+        similarity(bag.hv, a),
+        similarity(bag.hv, b),
+        similarity(bag.hv, c),
         bag.meanAgreement,
       ];
     },
@@ -239,13 +273,19 @@ export function goldenGate(
   const unbaselined: string[] = [];
   for (const r of results) {
     const want = baseline[r.id];
-    if (!want) { unbaselined.push(r.id); continue; }
+    if (!want) {
+      unbaselined.push(r.id);
+      continue;
+    }
     if (want !== r.digest) drifted.push({ id: r.id, expected: want, actual: r.digest });
   }
   const ids = new Set(results.map((r) => r.id));
   const orphaned = Object.keys(baseline).filter((k) => !ids.has(k));
   return {
     pass: drifted.length === 0 && unbaselined.length === 0 && orphaned.length === 0,
-    results, drifted, unbaselined, orphaned,
+    results,
+    drifted,
+    unbaselined,
+    orphaned,
   };
 }

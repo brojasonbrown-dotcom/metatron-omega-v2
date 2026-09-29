@@ -18,7 +18,7 @@
 import type { MetatronOutput } from '@/core/MetatronCore';
 import { PHI, OMEGA_C, PHI_INV } from '@/core/frameworks/constants';
 
-export const STABILITY_LAMBDA = OMEGA_C;          // ≈ 0.381966
+export const STABILITY_LAMBDA = OMEGA_C; // ≈ 0.381966
 export const STABILITY_LAMBDA_HARD = OMEGA_C * PHI_INV; // ≈ 0.236068
 
 export interface StabilityReading {
@@ -67,7 +67,11 @@ export function phiValidatedTier(value: number): number {
     return Math.min(10, 5 + Math.floor(((v - STABILITY_LAMBDA) / (1 - STABILITY_LAMBDA)) * 6));
   }
   if (v >= STABILITY_LAMBDA_HARD) {
-    return Math.min(4, 3 + Math.floor(((v - STABILITY_LAMBDA_HARD) / (STABILITY_LAMBDA - STABILITY_LAMBDA_HARD)) * 2));
+    return Math.min(
+      4,
+      3 +
+        Math.floor(((v - STABILITY_LAMBDA_HARD) / (STABILITY_LAMBDA - STABILITY_LAMBDA_HARD)) * 2),
+    );
   }
   return Math.min(2, Math.floor((v / STABILITY_LAMBDA_HARD) * 3));
 }
@@ -91,17 +95,13 @@ export function computeStability(out: MetatronOutput): StabilityReading {
   const saturation = out.chain.length > 0 ? okRungs / out.chain.length : 0;
 
   const denom = 2 * PHI + 2;
-  const value = clamp01(
-    (closureTerm * PHI + flowTerm + torusTerm + saturation * PHI) / denom,
-  );
+  const value = clamp01((closureTerm * PHI + flowTerm + torusTerm + saturation * PHI) / denom);
 
   const band: StabilityReading['band'] =
-    value >= STABILITY_LAMBDA ? 'green' :
-    value >= STABILITY_LAMBDA_HARD ? 'amber' : 'red';
+    value >= STABILITY_LAMBDA ? 'green' : value >= STABILITY_LAMBDA_HARD ? 'amber' : 'red';
 
-  const normalisedToFloor = value <= STABILITY_LAMBDA
-    ? 0
-    : clamp01((value - STABILITY_LAMBDA) / (1 - STABILITY_LAMBDA));
+  const normalisedToFloor =
+    value <= STABILITY_LAMBDA ? 0 : clamp01((value - STABILITY_LAMBDA) / (1 - STABILITY_LAMBDA));
   const tier = phiValidatedTier(value);
 
   return {

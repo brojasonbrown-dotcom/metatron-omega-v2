@@ -35,7 +35,11 @@ class CorpusRuntime {
   private version = 0;
   private lastError: string | null = null;
   private view: CorpusView = {
-    version: 0, enabled: false, frames: 0, retainedNumbers: 0, lastError: null,
+    version: 0,
+    enabled: false,
+    frames: 0,
+    retainedNumbers: 0,
+    lastError: null,
     storeKind: 'none',
     hot: { count: 0, capacity: 0, numbers: 0, meanSurprise: NaN },
     warm: { shards: 0, pending: 0, numbers: 0, bytes: 0 },
@@ -77,7 +81,9 @@ class CorpusRuntime {
         // A storage failure must degrade the corpus, never the engine.
         this.lastError = e instanceof Error ? e.message : String(e);
       })
-      .then(() => { this.publish(); });
+      .then(() => {
+        this.publish();
+      });
   }
 
   /** Seal everything buffered — used when a session winds down. */
@@ -85,9 +91,16 @@ class CorpusRuntime {
     const c = this.corpus;
     if (!c) return Promise.resolve();
     this.queue = this.queue
-      .then(async () => { await c.flush(Date.now()); await c.refreshQuota(); })
-      .catch((e: unknown) => { this.lastError = e instanceof Error ? e.message : String(e); })
-      .then(() => { this.publish(); });
+      .then(async () => {
+        await c.flush(Date.now());
+        await c.refreshQuota();
+      })
+      .catch((e: unknown) => {
+        this.lastError = e instanceof Error ? e.message : String(e);
+      })
+      .then(() => {
+        this.publish();
+      });
     return this.queue;
   }
 
@@ -107,7 +120,9 @@ class CorpusRuntime {
 
   subscribe = (fn: () => void): (() => void) => {
     this.listeners.add(fn);
-    return () => { this.listeners.delete(fn); };
+    return () => {
+      this.listeners.delete(fn);
+    };
   };
 
   getSnapshot = (): CorpusView => this.view;

@@ -39,9 +39,7 @@
  * the ports above are pure perf, golden-locked future work.
  */
 
-import {
-  PHI, PHI_INV, PI, KAPPA, PLANCK_LENGTH_M,
-} from './constants';
+import { PHI, PHI_INV, PI, KAPPA, PLANCK_LENGTH_M } from './constants';
 
 // V10 Planck time constant — the only F8-specific empirical we need.
 // Stored here so F8 has no cross-framework imports.
@@ -93,7 +91,10 @@ export function ringSizes(numRings: number): number[] {
 export function ringStarts(sizes: readonly number[]): number[] {
   const out: number[] = [];
   let acc = 0;
-  for (const s of sizes) { out.push(acc); acc += s; }
+  for (const s of sizes) {
+    out.push(acc);
+    acc += s;
+  }
   return out;
 }
 
@@ -196,24 +197,34 @@ export interface F8Output {
 // ───────────────────────── Planck-mode extension ─────────────────────────
 
 const V10_VACUUM_MODE_NAMES: readonly { name: string; spin: number }[] = [
-  { name: 'Scalar (Higgs)',  spin: 0 },
+  { name: 'Scalar (Higgs)', spin: 0 },
   { name: 'Electromagnetic', spin: 1 },
-  { name: 'Weak Nuclear',    spin: 1 },
-  { name: 'Strong Nuclear',  spin: 1 },
-  { name: 'Gravitational',   spin: 2 },
-  { name: 'Dark Energy',     spin: 0 },
-  { name: 'Vacuum Ground',   spin: 0 },
+  { name: 'Weak Nuclear', spin: 1 },
+  { name: 'Strong Nuclear', spin: 1 },
+  { name: 'Gravitational', spin: 2 },
+  { name: 'Dark Energy', spin: 0 },
+  { name: 'Vacuum Ground', spin: 0 },
 ];
 
 /** V11 extension modes past V10's 7. Each carries a synthetic name and
  *  its φ-decayed Planck-relative frequency. Spin alternates 0/1 — the
  *  natural BRST extension for unobserved field species. */
-function extendModeList(numModes: number, planckFreq: number): { name: string; spin: number; internalFreq: number; resonance: number; coupling: number }[] {
-  const out: { name: string; spin: number; internalFreq: number; resonance: number; coupling: number }[] = [];
+function extendModeList(
+  numModes: number,
+  planckFreq: number,
+): { name: string; spin: number; internalFreq: number; resonance: number; coupling: number }[] {
+  const out: {
+    name: string;
+    spin: number;
+    internalFreq: number;
+    resonance: number;
+    coupling: number;
+  }[] = [];
   for (let m = 0; m < numModes; m++) {
-    const meta = m < V10_VACUUM_MODE_NAMES.length
-      ? V10_VACUUM_MODE_NAMES[m]
-      : { name: `φ-Extension ${m}`, spin: m % 2 };
+    const meta =
+      m < V10_VACUUM_MODE_NAMES.length
+        ? V10_VACUUM_MODE_NAMES[m]
+        : { name: `φ-Extension ${m}`, spin: m % 2 };
     out.push({
       name: meta.name,
       spin: meta.spin,
@@ -230,14 +241,14 @@ function extendModeList(numModes: number, planckFreq: number): { name: string; s
 export interface F8Input {
   coherence: number;
   energy: number;
-  pinealField: Float64Array;          // 22 complex (44 floats) — floor; longer is ignored at ≤22
+  pinealField: Float64Array; // 22 complex (44 floats) — floor; longer is ignored at ≤22
   solfeggioCoherences: readonly number[]; // ≥ 9
-  time: number;                        // ms
+  time: number; // ms
   flowerCoherences: readonly number[]; // length ≥ nodeCount(targetRings)
   hyperGalacticToroidalFeedback?: number;
   // V11 extension knobs — defaults reproduce V10
-  targetRings?: number;   // ≥ 1, default 5  (5 ⇒ 55 nodes ⇒ V10)
-  targetModes?: number;   // ≥ 1, default 7
+  targetRings?: number; // ≥ 1, default 5  (5 ⇒ 55 nodes ⇒ V10)
+  targetModes?: number; // ≥ 1, default 7
   targetSpheres?: number; // ≥ 1, default 13
 }
 
@@ -262,7 +273,9 @@ export function computeF8(input: F8Input): F8Output {
   const numNodes = sizes.reduce((a, b) => a + b, 0);
   // Surface ext-floor exhaustion past the icosahedral spine (r ≥ 9).
   if (numRings > 9) {
-    refused.push(`rings ${9}..${numRings - 1} use 6r hex fallback (no Planck-stable shell enumerated)`);
+    refused.push(
+      `rings ${9}..${numRings - 1} use 6r hex fallback (no Planck-stable shell enumerated)`,
+    );
   }
 
   // ── V10-identical scalars (rings-independent) ─────────────────────
@@ -281,7 +294,7 @@ export function computeF8(input: F8Input): F8Output {
     const tetraAngle = (2 * PI * i) / 4;
     foamSum += amp * Math.cos(phase - tetraAngle) * Math.pow(PHI, -(i % 4));
   }
-  const planckFoamDensity = Math.max(0, Math.min(1, Math.abs(foamSum) / n * 2));
+  const planckFoamDensity = Math.max(0, Math.min(1, (Math.abs(foamSum) / n) * 2));
 
   let packingScore = 0;
   const tetraTarget = Math.acos(1 / 3);
@@ -290,29 +303,35 @@ export function computeF8(input: F8Input): F8Output {
     const diff = Math.abs((phase % tetraTarget) - tetraTarget / 2);
     packingScore += Math.exp(-diff * PHI);
   }
-  const tetrahedralPacking = Math.min(1, packingScore / 4 * coherence);
+  const tetrahedralPacking = Math.min(1, (packingScore / 4) * coherence);
 
   const phiCubedStep = 174 * PHI;
   const stepDeviation = Math.abs(phiCubedStep - 285) / 285;
   const phiStepResonance = Math.exp(-stepDeviation * PHI * 10);
 
-  const vacuumToAtomicBridge = phiStepResonance * (alephResonance + betResonance) / 2 *
-    V10_HYDROGEN_PHI * Math.pow(PHI, -3);
+  const vacuumToAtomicBridge =
+    ((phiStepResonance * (alephResonance + betResonance)) / 2) *
+    V10_HYDROGEN_PHI *
+    Math.pow(PHI, -3);
 
-  const kappaModulation = Math.cos(2 * PI * V10_KAPPA_CLOSURE * time / 1000) *
-    Math.sin(2 * PI * 174 * time / 10000) * coherence;
+  const kappaModulation =
+    Math.cos((2 * PI * V10_KAPPA_CLOSURE * time) / 1000) *
+    Math.sin((2 * PI * 174 * time) / 10000) *
+    coherence;
 
   let ncTensorSum = 0;
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < Math.min(n, i + 4); j++) {
-      const reI = pinealField[i * 2], imI = pinealField[i * 2 + 1];
-      const reJ = pinealField[j * 2], imJ = pinealField[j * 2 + 1];
+      const reI = pinealField[i * 2],
+        imI = pinealField[i * 2 + 1];
+      const reJ = pinealField[j * 2],
+        imJ = pinealField[j * 2 + 1];
       const commutator = Math.abs(reI * imJ - imI * reJ);
       ncTensorSum += commutator * Math.pow(PHI, -(j - i));
     }
   }
-  const ncTensor = Math.min(1, ncTensorSum / Math.max(1, n) * KAPPA);
-  const nonCommutativePhase = Math.sin(KAPPA * time * 174 / 1000) * coherence;
+  const ncTensor = Math.min(1, (ncTensorSum / Math.max(1, n)) * KAPPA);
+  const nonCommutativePhase = Math.sin((KAPPA * time * 174) / 1000) * coherence;
 
   const PLANCK_FREQ = 1 / V10_PLANCK_TIME_S;
   const scaleRelativeTime = Math.log10(PLANCK_FREQ) + Math.log10(time / 1000 + 1e-44);
@@ -334,17 +353,21 @@ export function computeF8(input: F8Input): F8Output {
     const logFreqRatio = Math.log(mode.internalFreq) / Math.log(PLANCK_FREQ);
     const phaseAlignment = (1 + Math.cos(phase - 2 * PI * logFreqRatio * (m + 1))) / 2;
     const spinWeight = 1 + mode.spin * 0.15;
-    mode.resonance = Math.min(1, amp * phaseAlignment * spinWeight * coherence * 0.6 + coherence * 0.4);
+    mode.resonance = Math.min(
+      1,
+      amp * phaseAlignment * spinWeight * coherence * 0.6 + coherence * 0.4,
+    );
     mode.coupling = Math.pow(PHI_INV, m) * coherence;
   }
   // V10 divides by 7 (the canonical mode count) to keep the scalar comparable
   // across rung counts. We preserve that anchor — the V11 extension's effect
   // on the composite is additive (extra modes contribute > V10), which is
   // exactly the "no regression / strict superset" contract.
-  const septenaryComposite = vacuumModes.reduce((s, m) => s + m.resonance, 0) / Math.max(7, numModes);
+  const septenaryComposite =
+    vacuumModes.reduce((s, m) => s + m.resonance, 0) / Math.max(7, numModes);
 
   // ── Planck flower spheres (V11: extensible past 13) ───────────────
-  const CHROMATIC_NOTES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B',"C'"];
+  const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', "C'"];
   const planckFlower: PlanckSphere[] = [];
   for (let i = 0; i < numSpheres; i++) {
     // Ring assignment: V10 keeps i=0 → 0, i∈[1..6] → 1, i∈[7..12] → 2.
@@ -360,23 +383,30 @@ export function computeF8(input: F8Input): F8Output {
     const im = pinealField[nodeIdx * 2 + 1] || 0;
     const amp = Math.sqrt(re * re + im * im);
     const chromaticRatio = Math.pow(2, i / 12);
-    const chromaticPhase = (1 + Math.cos(time * chromaticRatio * PHI / 1000 + i * PHI)) / 2;
-    const sphereCoherence = Math.min(1, amp * chromaticPhase * phiWeight * coherence * 0.5 + coherence * 0.5 * phiWeight);
+    const chromaticPhase = (1 + Math.cos((time * chromaticRatio * PHI) / 1000 + i * PHI)) / 2;
+    const sphereCoherence = Math.min(
+      1,
+      amp * chromaticPhase * phiWeight * coherence * 0.5 + coherence * 0.5 * phiWeight,
+    );
     const note = i < CHROMATIC_NOTES.length ? CHROMATIC_NOTES[i] : `c+${i - 12}`;
     planckFlower.push({ id: i, ring, chromaticNote: note, coherence: sphereCoherence, phiWeight });
   }
   const chromaticDenom = planckFlower.reduce((s, sp) => s + sp.phiWeight, 0);
-  const chromaticComposite = chromaticDenom > 0
-    ? planckFlower.reduce((s, sp) => s + sp.coherence * sp.phiWeight, 0) / chromaticDenom
-    : 0;
+  const chromaticComposite =
+    chromaticDenom > 0
+      ? planckFlower.reduce((s, sp) => s + sp.coherence * sp.phiWeight, 0) / chromaticDenom
+      : 0;
 
   const lightModes = Math.min(7, Math.max(2, Math.round(2 + coherence * 5)));
 
   const torusRatio = 963 / 174;
   const phiRelation = Math.pow(PHI, 3) + 1;
   const torusDeviation = Math.abs(torusRatio - phiRelation) / torusRatio;
-  const torusLinkStrength = Math.exp(-torusDeviation * PHI * 5) * coherence *
-    0.5 * ((solfeggioCoherences[0] || 0) + (solfeggioCoherences[8] || 0));
+  const torusLinkStrength =
+    Math.exp(-torusDeviation * PHI * 5) *
+    coherence *
+    0.5 *
+    ((solfeggioCoherences[0] || 0) + (solfeggioCoherences[8] || 0));
 
   // ── M-node superposition field (V11: extensible past 55) ──────────
   const superpositionsM: VacuumNodeM[] = [];
@@ -386,7 +416,14 @@ export function computeF8(input: F8Input): F8Output {
     if (ring === sizes.length - 1) ring = sizes.length - 1;
     const coh = i < flowerCoherences.length ? flowerCoherences[i] : coherence * 0.5;
     const internalFreqScale = Math.pow(PHI, -ring);
-    superpositionsM.push({ id: i, ring, coherence: coh, stability: 0, internalFreqScale, structuralPotential: 0 });
+    superpositionsM.push({
+      id: i,
+      ring,
+      coherence: coh,
+      stability: 0,
+      internalFreqScale,
+      structuralPotential: 0,
+    });
   }
 
   // Pass 2 — stability via ring-neighbour similarity
@@ -407,8 +444,10 @@ export function computeF8(input: F8Input): F8Output {
       const prevSim = 1 - Math.abs(node.coherence - superpositionsM[prev].coherence);
       const nextSim = 1 - Math.abs(node.coherence - superpositionsM[next].coherence);
       const meanSim = 1 - Math.abs(node.coherence - ringMean);
-      node.stability = Math.max(0, Math.min(1,
-        (0.3 * prevSim + 0.3 * nextSim + 0.4 * meanSim) * node.coherence));
+      node.stability = Math.max(
+        0,
+        Math.min(1, (0.3 * prevSim + 0.3 * nextSim + 0.4 * meanSim) * node.coherence),
+      );
     }
   }
 
@@ -423,12 +462,17 @@ export function computeF8(input: F8Input): F8Output {
     const innerStart = starts[node.ring - 1];
     const innerSize = sizes[node.ring - 1];
     let innerMean = 0;
-    for (let j = innerStart; j < innerStart + innerSize; j++) innerMean += superpositionsM[j].coherence;
+    for (let j = innerStart; j < innerStart + innerSize; j++)
+      innerMean += superpositionsM[j].coherence;
     innerMean /= innerSize;
     const radialCoupling = Math.sqrt(Math.max(0.01, node.coherence) * Math.max(0.01, innerMean));
-    const phiHarmonic = Math.exp(-Math.abs(node.coherence - centerCoh * node.internalFreqScale) * PHI * 3);
-    node.structuralPotential = Math.min(1,
-      node.stability * 0.4 + radialCoupling * 0.35 + phiHarmonic * 0.25);
+    const phiHarmonic = Math.exp(
+      -Math.abs(node.coherence - centerCoh * node.internalFreqScale) * PHI * 3,
+    );
+    node.structuralPotential = Math.min(
+      1,
+      node.stability * 0.4 + radialCoupling * 0.35 + phiHarmonic * 0.25,
+    );
   }
 
   // Ring analysis
@@ -452,8 +496,14 @@ export function computeF8(input: F8Input): F8Output {
     } else {
       interRingCoupling = meanCoh;
     }
-    ringAnalysis.push({ ring: r, nodeCount: size, meanCoherence: meanCoh,
-      phaseUniformity, interRingCoupling, relativeFreq: Math.pow(PHI, -r) });
+    ringAnalysis.push({
+      ring: r,
+      nodeCount: size,
+      meanCoherence: meanCoh,
+      phaseUniformity,
+      interRingCoupling,
+      relativeFreq: Math.pow(PHI, -r),
+    });
   }
 
   // Field entropy — discretise into 13 chromatic bins (preserved from V10)
@@ -493,8 +543,10 @@ export function computeF8(input: F8Input): F8Output {
   // Chain-up coupling — outermost ring × global coherence + F9 toroidal feedback
   const outerRing = ringAnalysis[ringAnalysis.length - 1];
   const toroidalBoost = hgFeedback * 0.15;
-  const chainUpCoupling = Math.min(1,
-    outerRing.meanCoherence * outerRing.phaseUniformity * coherence + toroidalBoost);
+  const chainUpCoupling = Math.min(
+    1,
+    outerRing.meanCoherence * outerRing.phaseUniformity * coherence + toroidalBoost,
+  );
 
   // Composite (frequency-weighted)
   let weightedStabilitySum = 0;
@@ -509,18 +561,18 @@ export function computeF8(input: F8Input): F8Output {
   // ‖ Σ_k a_k · e^{i θ_k} ‖ where a_k = node.stability · φ⁻ʳⁱⁿᵍ
   // and θ_k = 2π·(k/numNodes). For a perfectly closed Lyapunov ring
   // residual → 0; deviations surface in this scalar.
-  let cre = 0, cim = 0, totalAmp = 0;
+  let cre = 0,
+    cim = 0,
+    totalAmp = 0;
   for (let k = 0; k < numNodes; k++) {
     const node = superpositionsM[k];
     const a = node.stability * node.internalFreqScale;
-    const theta = 2 * PI * k / numNodes;
+    const theta = (2 * PI * k) / numNodes;
     cre += a * Math.cos(theta);
     cim += a * Math.sin(theta);
     totalAmp += a;
   }
-  const closureResidual = totalAmp > 0
-    ? Math.sqrt(cre * cre + cim * cim) / totalAmp
-    : 0;
+  const closureResidual = totalAmp > 0 ? Math.sqrt(cre * cre + cim * cim) / totalAmp : 0;
 
   // ── Chapter 44 — Boundary Validation ─────────────────────────────
   // The "ZPE leak" the user surfaced (~3.5e-9) is the closureResidual under
@@ -538,9 +590,17 @@ export function computeF8(input: F8Input): F8Output {
   const sinkCoupling = safeRes * Math.pow(PHI, -boundaryIndex);
 
   return {
-    zeroPointEnergy, planckFoamDensity, kappaClosureFreq,
-    tetrahedralPacking, vacuumToAtomicBridge, alephResonance, betResonance,
-    nonCommutativePhase, kappaModulation, phiCubedStep, ncTensor,
+    zeroPointEnergy,
+    planckFoamDensity,
+    kappaClosureFreq,
+    tetrahedralPacking,
+    vacuumToAtomicBridge,
+    alephResonance,
+    betResonance,
+    nonCommutativePhase,
+    kappaModulation,
+    phiCubedStep,
+    ncTensor,
     planckSeptenary: vacuumModes,
     planckFlowerSpheres: planckFlower,
     scaleRelativeTime,

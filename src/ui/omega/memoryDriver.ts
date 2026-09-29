@@ -16,12 +16,12 @@
  * is the correct cost. A floor period guards against a bus burst.
  */
 
-import { getOmegaRuntime, type OmegaState } from "./omegaRuntime";
-import { getMemoryRuntime, type MemoryRuntime } from "./memoryRuntime";
-import { computeMetatronMemo, type MetatronOutput } from "@/core/MetatronCore";
-import type { HostSnapshot, MindReport } from "@/core/omega/omegaProtocol";
-import type { MemoryStore } from "@/core/memory/MemoryStore";
-import { PHI_INV, OMEGA_C } from "@/core/constants/WolframVerified";
+import { getOmegaRuntime, type OmegaState } from './omegaRuntime';
+import { getMemoryRuntime, type MemoryRuntime } from './memoryRuntime';
+import { computeMetatronMemo, type MetatronOutput } from '@/core/MetatronCore';
+import type { HostSnapshot, MindReport } from '@/core/omega/omegaProtocol';
+import type { MemoryStore } from '@/core/memory/MemoryStore';
+import { PHI_INV, OMEGA_C } from '@/core/constants/WolframVerified';
 
 /** Hard floor between drives (ms) — 64 Hz, the host's own bus ceiling. */
 export const MIN_DRIVE_PERIOD_MS = 1000 / 64;
@@ -98,7 +98,7 @@ class MemoryDriver {
   }
 
   private now(): number {
-    return typeof performance !== "undefined" ? performance.now() : Date.now();
+    return typeof performance !== 'undefined' ? performance.now() : Date.now();
   }
 
   private onState(s: OmegaState): void {

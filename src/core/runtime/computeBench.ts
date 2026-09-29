@@ -56,25 +56,39 @@ export async function benchmarkComputeFrequency(
   const elapsedMs = performance.now() - start;
   const maxSustainedHz = (ticks * 1000) / Math.max(0.001, elapsedMs);
   // Jitter on the per-tick deltas (drop the first sample which includes warmup).
-  let mean = 0, n = 0;
-  for (let i = 1; i < dts.length; i++) { mean += dts[i]; n++; }
+  let mean = 0,
+    n = 0;
+  for (let i = 1; i < dts.length; i++) {
+    mean += dts[i];
+    n++;
+  }
   mean = n > 0 ? mean / n : 0;
   let v = 0;
-  for (let i = 1; i < dts.length; i++) { const d = dts[i] - mean; v += d * d; }
+  for (let i = 1; i < dts.length; i++) {
+    const d = dts[i] - mean;
+    v += d * d;
+  }
   const std = n > 1 ? Math.sqrt(v / (n - 1)) : 0;
   const jitter = mean > 0 ? std / mean : 1;
   const stability = 1 / (1 + jitter);
   const amplitudeNyquistHz = maxSustainedHz / 2;
-  const planckGapDecades = Math.log10(Math.max(1, CARRIER_CEILING_HZ / Math.max(1, amplitudeNyquistHz)));
-  const effectiveOpsPerSecond = nodes * settings.computePressure * OPS_PER_NODE_TICK * maxSustainedHz;
+  const planckGapDecades = Math.log10(
+    Math.max(1, CARRIER_CEILING_HZ / Math.max(1, amplitudeNyquistHz)),
+  );
+  const effectiveOpsPerSecond =
+    nodes * settings.computePressure * OPS_PER_NODE_TICK * maxSustainedHz;
   return {
-    ticks, elapsedMs, nodesPerTick: nodes,
-    maxSustainedHz, jitter, stability,
+    ticks,
+    elapsedMs,
+    nodesPerTick: nodes,
+    maxSustainedHz,
+    jitter,
+    stability,
     amplitudeNyquistHz,
-    carrierCeilingHz: CARRIER_CEILING_HZ, planckGapDecades,
+    carrierCeilingHz: CARRIER_CEILING_HZ,
+    planckGapDecades,
     effectiveOpsPerSecond,
     workerBacked: pool.stats.workerBacked,
     ranAt: Date.now(),
   };
 }
-

@@ -188,4 +188,3 @@ export function magneticPhase(bias: number): number {
 export function qrfAttenuation(n: number): number {
   return n === 0 ? 1 : phiPow(-n / ENV.qrfDivisor);
 }
-

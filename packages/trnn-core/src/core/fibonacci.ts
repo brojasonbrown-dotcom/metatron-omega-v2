@@ -10,13 +10,15 @@ const LUC_CACHE: bigint[] = [2n, 1n];
 
 export function fibBig(n: number): bigint {
   if (!Number.isInteger(n) || n < 0) throw new RangeError(`fibBig: bad n ${n}`);
-  while (FIB_CACHE.length <= n) FIB_CACHE.push(FIB_CACHE[FIB_CACHE.length - 1] + FIB_CACHE[FIB_CACHE.length - 2]);
+  while (FIB_CACHE.length <= n)
+    FIB_CACHE.push(FIB_CACHE[FIB_CACHE.length - 1] + FIB_CACHE[FIB_CACHE.length - 2]);
   return FIB_CACHE[n];
 }
 
 export function lucasBig(n: number): bigint {
   if (!Number.isInteger(n) || n < 0) throw new RangeError(`lucasBig: bad n ${n}`);
-  while (LUC_CACHE.length <= n) LUC_CACHE.push(LUC_CACHE[LUC_CACHE.length - 1] + LUC_CACHE[LUC_CACHE.length - 2]);
+  while (LUC_CACHE.length <= n)
+    LUC_CACHE.push(LUC_CACHE[LUC_CACHE.length - 1] + LUC_CACHE[LUC_CACHE.length - 2]);
   return LUC_CACHE[n];
 }
 

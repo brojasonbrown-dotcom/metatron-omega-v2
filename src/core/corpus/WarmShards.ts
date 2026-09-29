@@ -13,8 +13,13 @@
 import type { BlobStore } from './storage';
 import type { CorpusLedger, SealRecord } from './CorpusLedger';
 import {
-  encodeShard, decodeShard, contentHashHex, framesOf,
-  FLAG_RAW, type CorpusFrame, type DecodedShard,
+  encodeShard,
+  decodeShard,
+  contentHashHex,
+  framesOf,
+  FLAG_RAW,
+  type CorpusFrame,
+  type DecodedShard,
 } from './types';
 
 export const DEFAULT_SHARD_FRAMES = 1597;
@@ -54,12 +59,18 @@ export class WarmShards {
     this.shardFrames = o.shardFrames ?? DEFAULT_SHARD_FRAMES;
   }
 
-  get pending(): number { return this.open.length; }
-  get shards(): readonly ShardIndexEntry[] { return this.index; }
+  get pending(): number {
+    return this.open.length;
+  }
+  get shards(): readonly ShardIndexEntry[] {
+    return this.index;
+  }
   get numbers(): number {
     return this.index.reduce((a, s) => a + s.count * s.width, 0);
   }
-  get bytes(): number { return this.index.reduce((a, s) => a + s.bytes, 0); }
+  get bytes(): number {
+    return this.index.reduce((a, s) => a + s.bytes, 0);
+  }
 
   /**
    * Accept demoted frames. Returns the shards sealed by this call — usually
@@ -112,10 +123,15 @@ export class WarmShards {
     const entry = this.ledger.seal(record, timestamp);
 
     const idx: ShardIndexEntry = {
-      key, index,
-      tickFrom: record.tickFrom, tickTo: record.tickTo,
-      count: record.count, width: record.width,
-      bytes: record.bytes, hashHex, leafIndex: entry.leafIndex,
+      key,
+      index,
+      tickFrom: record.tickFrom,
+      tickTo: record.tickTo,
+      count: record.count,
+      width: record.width,
+      bytes: record.bytes,
+      hashHex,
+      leafIndex: entry.leafIndex,
     };
     this.index.push(idx);
     return idx;

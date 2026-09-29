@@ -10,23 +10,23 @@
  *
  * Everything here is pulled on demand from the worker; nothing is simulated.
  */
-import { useCallback, useState } from "react";
-import { getOmegaRuntime } from "../omegaRuntime";
-import { useOmegaState } from "../useOmegaRuntime";
-import { useOmegaPull } from "../useOmegaPull";
-import { getSensoryDriver, type SensoryChannelId } from "../sensoryDriver";
-import { useSensoryState } from "../useSensoryDriver";
+import { useCallback, useState } from 'react';
+import { getOmegaRuntime } from '../omegaRuntime';
+import { useOmegaState } from '../useOmegaRuntime';
+import { useOmegaPull } from '../useOmegaPull';
+import { getSensoryDriver, type SensoryChannelId } from '../sensoryDriver';
+import { useSensoryState } from '../useSensoryDriver';
 
 const PHI = 1.618033988749895;
 const PHI_INV2 = 1 / (PHI * PHI);
 
 const num = (x: number | undefined, d = 4) =>
-  x === undefined || !Number.isFinite(x) ? "—" : x.toFixed(d);
+  x === undefined || !Number.isFinite(x) ? '—' : x.toFixed(d);
 
 export default function SenseDeckPanel() {
   const s = useOmegaState();
   const rt = getOmegaRuntime();
-  const [text, setText] = useState("metatron omega");
+  const [text, setText] = useState('metatron omega');
   const [gain, setGain] = useState(PHI_INV2);
 
   const request = useCallback(() => {
@@ -46,12 +46,12 @@ export default function SenseDeckPanel() {
   const sense = s.sense;
   const braid = s.braid;
   const rep = sense?.report;
-  const hasText = sense?.channels.some((c) => c.id === "text");
+  const hasText = sense?.channels.some((c) => c.id === 'text');
 
-  const declareText = () => rt.declareChannel("text", "text");
+  const declareText = () => rt.declareChannel('text', 'text');
   const push = () => {
-    if (!hasText) rt.declareChannel("text", "text");
-    rt.pushText("text", text);
+    if (!hasText) rt.declareChannel('text', 'text');
+    rt.pushText('text', text);
   };
 
   return (
@@ -62,13 +62,13 @@ export default function SenseDeckPanel() {
         <span className="tabular-nums">{rep?.channels ?? 0}</span>
         <span className="text-muted-foreground">peak ‖S‖∞</span>
         <span
-          className={`tabular-nums ${(rep?.maxPeak ?? 0) > PHI + 1e-12 ? "text-rose-400" : "text-emerald-400"}`}
+          className={`tabular-nums ${(rep?.maxPeak ?? 0) > PHI + 1e-12 ? 'text-rose-400' : 'text-emerald-400'}`}
         >
           {num(rep?.maxPeak)} ≤ {PHI.toFixed(4)}
         </span>
         <span className="text-muted-foreground">loop gain</span>
         <span
-          className={`tabular-nums ${(rep?.loopGain ?? 0) > PHI_INV2 + 1e-12 ? "text-rose-400" : "text-emerald-400"}`}
+          className={`tabular-nums ${(rep?.loopGain ?? 0) > PHI_INV2 + 1e-12 ? 'text-rose-400' : 'text-emerald-400'}`}
         >
           {num(rep?.loopGain)} ≤ {PHI_INV2.toFixed(4)}
         </span>
@@ -79,9 +79,7 @@ export default function SenseDeckPanel() {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-2">
         {/* channels */}
         <div className="rounded-md border border-border/40 bg-card/30 p-2 space-y-2">
-          <h3 className="text-[9px] font-display tracking-[0.28em] text-primary/80">
-            ξ CHANNELS
-          </h3>
+          <h3 className="text-[9px] font-display tracking-[0.28em] text-primary/80">ξ CHANNELS</h3>
 
           <div className="flex items-center gap-1.5">
             <input
@@ -97,10 +95,10 @@ export default function SenseDeckPanel() {
               INJECT
             </button>
             <button
-              onClick={hasText ? () => rt.muteChannel("text") : declareText}
+              onClick={hasText ? () => rt.muteChannel('text') : declareText}
               className="px-2 py-1 rounded border border-border/60 text-muted-foreground text-[9px] font-display tracking-[0.2em] hover:text-foreground"
             >
-              {hasText ? "MUTE" : "DECLARE"}
+              {hasText ? 'MUTE' : 'DECLARE'}
             </button>
           </div>
 
@@ -143,7 +141,7 @@ export default function SenseDeckPanel() {
                   <td className="px-1 text-right tabular-nums">{num(c.energy, 3)}</td>
                   <td className="px-1 text-right tabular-nums">{c.support}</td>
                   <td className="px-1 text-right tabular-nums text-muted-foreground">
-                    {c.updatedAt < 0 ? "—" : c.updatedAt}
+                    {c.updatedAt < 0 ? '—' : c.updatedAt}
                   </td>
                 </tr>
               ))}
@@ -172,10 +170,10 @@ export default function SenseDeckPanel() {
             <span className="text-muted-foreground">β</span>
             <span className="tabular-nums">{num(braid?.beta, 4)}</span>
             <span className="text-muted-foreground">fold stride</span>
-            <span className="tabular-nums">{braid?.stride ?? "—"}</span>
+            <span className="tabular-nums">{braid?.stride ?? '—'}</span>
             <span className="text-muted-foreground">last fold</span>
             <span className="tabular-nums">
-              {braid && braid.lastFoldTick >= 0 ? `t${braid.lastFoldTick}` : "—"}
+              {braid && braid.lastFoldTick >= 0 ? `t${braid.lastFoldTick}` : '—'}
             </span>
             <span className="text-muted-foreground">stored / skipped</span>
             <span className="tabular-nums">
@@ -183,12 +181,12 @@ export default function SenseDeckPanel() {
             </span>
             <span className="text-muted-foreground">familiarity</span>
             <span
-              className={`tabular-nums ${(braid?.familiarity ?? 0) >= 0.618 ? "text-emerald-400" : "text-muted-foreground"}`}
+              className={`tabular-nums ${(braid?.familiarity ?? 0) >= 0.618 ? 'text-emerald-400' : 'text-muted-foreground'}`}
             >
               {num(braid?.familiarity, 4)}
             </span>
             <span className="text-muted-foreground">stage</span>
-            <span className="tabular-nums">{braid?.lastRecall?.stage ?? "idle"}</span>
+            <span className="tabular-nums">{braid?.lastRecall?.stage ?? 'idle'}</span>
             <span className="text-muted-foreground">sweeps</span>
             <span className="tabular-nums">{braid?.lastRecall?.sweeps ?? 0}</span>
           </div>
@@ -214,7 +212,9 @@ export default function SenseDeckPanel() {
             <tbody>
               {(braid?.patterns ?? []).map((p) => (
                 <tr key={`${p.key}-${p.storedAt}`} className="border-t border-border/20">
-                  <td className="px-1 text-foreground truncate max-w-[10rem]">{p.label ?? p.key}</td>
+                  <td className="px-1 text-foreground truncate max-w-[10rem]">
+                    {p.label ?? p.key}
+                  </td>
                   <td className="px-1 text-right tabular-nums">t{p.storedAt}</td>
                   <td className="px-1 text-right tabular-nums">{p.index}</td>
                   <td className="px-1 text-right tabular-nums">{num(p.energy, 3)}</td>
@@ -245,17 +245,19 @@ export default function SenseDeckPanel() {
  * reach the gateway.
  */
 const STATE_TONE: Record<string, string> = {
-  live: "text-emerald-400",
-  starting: "text-amber-400",
-  error: "text-rose-400",
-  unsupported: "text-rose-400/70",
-  idle: "text-muted-foreground",
+  live: 'text-emerald-400',
+  starting: 'text-amber-400',
+  error: 'text-rose-400',
+  unsupported: 'text-rose-400/70',
+  idle: 'text-muted-foreground',
 };
 
 function LiveSenses() {
   const senses = useSensoryState();
   const driver = getSensoryDriver();
-  const toggle = (id: SensoryChannelId) => { void driver.toggle(id); };
+  const toggle = (id: SensoryChannelId) => {
+    void driver.toggle(id);
+  };
 
   return (
     <div className="rounded-md border border-border/40 bg-card/30 p-2 space-y-2">
@@ -264,9 +266,9 @@ function LiveSenses() {
           LIVE SENSES · GATEWAY INTAKE
         </h3>
         <span className="text-[9px] font-mono text-muted-foreground tabular-nums">
-          t{senses.tick} · {senses.atoms} atoms · {senses.totalIngests} ingests · unique{" "}
-          {num(senses.uniqueRatio, 3)} · arousal{" "}
-          {senses.arousal === null ? "—" : num(senses.arousal, 3)}
+          t{senses.tick} · {senses.atoms} atoms · {senses.totalIngests} ingests · unique{' '}
+          {num(senses.uniqueRatio, 3)} · arousal{' '}
+          {senses.arousal === null ? '—' : num(senses.arousal, 3)}
         </span>
       </div>
 
@@ -285,15 +287,13 @@ function LiveSenses() {
             <tr key={c.id} className="border-t border-border/20">
               <td className="px-1 text-foreground">
                 {c.label}
-                {c.requires && (
-                  <span className="text-muted-foreground"> · needs {c.requires}</span>
-                )}
+                {c.requires && <span className="text-muted-foreground"> · needs {c.requires}</span>}
               </td>
               <td className="px-1 text-right tabular-nums text-muted-foreground">
                 {c.nominalHz} Hz
               </td>
               <td className="px-1 text-right tabular-nums">{c.atoms}</td>
-              <td className={`px-1 pl-3 ${STATE_TONE[c.state] ?? "text-muted-foreground"}`}>
+              <td className={`px-1 pl-3 ${STATE_TONE[c.state] ?? 'text-muted-foreground'}`}>
                 {c.state}
                 {c.error && <span className="text-rose-400/80"> · {c.error}</span>}
               </td>
@@ -301,12 +301,12 @@ function LiveSenses() {
                 <button
                   onClick={() => toggle(c.id)}
                   className={`px-2 py-0.5 rounded border text-[9px] font-display tracking-[0.2em] ${
-                    c.state === "live"
-                      ? "border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10"
-                      : "border-border/60 text-muted-foreground hover:text-foreground"
+                    c.state === 'live'
+                      ? 'border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10'
+                      : 'border-border/60 text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  {c.state === "live" ? "STOP" : "ENABLE"}
+                  {c.state === 'live' ? 'STOP' : 'ENABLE'}
                 </button>
               </td>
             </tr>
@@ -315,8 +315,8 @@ function LiveSenses() {
       </table>
 
       <p className="text-[9px] font-mono text-muted-foreground">
-        Opt-in per channel. Capture stays on this device — only derived features
-        enter the gateway, never raw audio or frames.
+        Opt-in per channel. Capture stays on this device — only derived features enter the gateway,
+        never raw audio or frames.
       </p>
     </div>
   );

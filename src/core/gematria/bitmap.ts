@@ -47,7 +47,9 @@ function projections(dim: number): Float32Array[] {
   const projs: Float32Array[] = new Array(total);
   for (let k = 0; k < total; k++) {
     // seed = φ^(k+1) scaled — distinct, low-discrepancy, reproducible
-    const seed = Math.floor((Math.pow(1.618033988749895, (k % 64) + 1) * 1e9 + k * 2654435761) % 0x1_0000_0000);
+    const seed = Math.floor(
+      (Math.pow(1.618033988749895, (k % 64) + 1) * 1e9 + k * 2654435761) % 0x1_0000_0000,
+    );
     projs[k] = phiSeededFloats(dim, seed);
   }
   cache.set(key, projs);
@@ -64,7 +66,7 @@ export function encodeBitmap(vec: ArrayLike<number>): Uint32Array {
     let acc = 0;
     for (let i = 0; i < dim; i++) acc += (vec[i] as number) * v[i];
     if (acc >= 0) {
-      const lane = (k >>> 5); // 32 bits per lane
+      const lane = k >>> 5; // 32 bits per lane
       out[lane] = (out[lane] | (1 << (k & 31))) >>> 0;
     }
   }
@@ -73,7 +75,9 @@ export function encodeBitmap(vec: ArrayLike<number>): Uint32Array {
 
 /** Encode a sparse (indices, amplitudes) signature at a known dense dim. */
 export function encodeBitmapSparse(
-  indices: ArrayLike<number>, amps: ArrayLike<number>, dim: number,
+  indices: ArrayLike<number>,
+  amps: ArrayLike<number>,
+  dim: number,
 ): Uint32Array {
   const dense = new Float64Array(dim);
   for (let i = 0; i < indices.length; i++) {
@@ -98,7 +102,9 @@ export function hamming(a: Uint32Array, b: Uint32Array): number {
 
 /** φ⁻ᵖ plane-weighted distance, normalised to [0,1]. Lower = closer. */
 export function weightedDistance(a: Uint32Array, b: Uint32Array): number {
-  let d = 0, wsum = 0, w = 1;
+  let d = 0,
+    wsum = 0,
+    w = 1;
   for (let p = 0; p < PLANES; p++) {
     const lo = popcount32((a[p * 2] ^ b[p * 2]) >>> 0);
     const hi = popcount32((a[p * 2 + 1] ^ b[p * 2 + 1]) >>> 0);
@@ -108,7 +114,6 @@ export function weightedDistance(a: Uint32Array, b: Uint32Array): number {
   }
   return wsum > 0 ? d / wsum : 1;
 }
-
 
 /** LSH bucket key — top `bits` bits of plane 0. Near-duplicates collide. */
 export function bucketOf(bm: Uint32Array, bits = 12): string {

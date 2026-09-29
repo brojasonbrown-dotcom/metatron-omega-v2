@@ -80,9 +80,11 @@ export function strideSet(n: number, strides = 5): number[] {
  * operator the field actually propagates under, not a stand-in.
  */
 export function buildRingLaplacian(n: number, opts: LaplacianOptions = {}): SparseSym {
-  if (!Number.isInteger(n) || n < 3) throw new RangeError(`buildRingLaplacian: n must be an integer >= 3, got ${n}`);
+  if (!Number.isInteger(n) || n < 3)
+    throw new RangeError(`buildRingLaplacian: n must be an integer >= 3, got ${n}`);
   const strides = strideSet(n, opts.strides ?? 5);
-  if (strides.length === 0) throw new RangeError(`buildRingLaplacian: no admissible strides for n=${n}`);
+  if (strides.length === 0)
+    throw new RangeError(`buildRingLaplacian: no admissible strides for n=${n}`);
 
   // Accumulate weights per (row, col) in a per-row map keyed by column.
   const rows: Map<number, number>[] = Array.from({ length: n }, () => new Map<number, number>());
@@ -364,11 +366,16 @@ export function spectrumDigest(lambda: Float64Array): string {
   return h.toString(16).padStart(8, '0');
 }
 
-export function measureSpectrum(nodes: number, modes: number, opts: LaplacianOptions & LanczosOptions = {}): SpectrumTable {
+export function measureSpectrum(
+  nodes: number,
+  modes: number,
+  opts: LaplacianOptions & LanczosOptions = {},
+): SpectrumTable {
   const L = buildRingLaplacian(nodes, opts);
   const pairs = lanczosEigenpairs(L, modes, opts);
   let maxResidual = 0;
-  for (let i = 0; i < pairs.residual.length; i++) maxResidual = Math.max(maxResidual, pairs.residual[i]);
+  for (let i = 0; i < pairs.residual.length; i++)
+    maxResidual = Math.max(maxResidual, pairs.residual[i]);
   return {
     nodes,
     modes: pairs.lambda.length,

@@ -31,16 +31,16 @@ import {
 export type RamProvenance = 'measured' | 'reported' | 'fallback';
 
 export interface HardwareEnvelope {
-  readonly cpuCores: number;          // logical threads
-  ramBytes: number;                   // best-effort, may be refreshed by deeper probe
+  readonly cpuCores: number; // logical threads
+  ramBytes: number; // best-effort, may be refreshed by deeper probe
   readonly ramProvenance: RamProvenance;
   /** Heap ceiling actually measured, when the probe succeeded. */
   readonly ramMeasuredBytes: number | null;
   readonly gpu: 'none' | 'webgpu';
   readonly sharedArrayBuffer: boolean;
-  readonly tickBudgetMs: number;      // recommended per-tick wall budget
-  readonly carrierCeilingHz: number;  // f₀ = (φ²/2π)·f_P, Planck-bounded
-  peakOpsPerSecond: number;           // self-bench, refreshed from live pool EMA
+  readonly tickBudgetMs: number; // recommended per-tick wall budget
+  readonly carrierCeilingHz: number; // f₀ = (φ²/2π)·f_P, Planck-bounded
+  peakOpsPerSecond: number; // self-bench, refreshed from live pool EMA
 }
 
 /**
@@ -74,7 +74,7 @@ export function kMaxFromCarrier(carrierHz: number): number {
 // Development-time assertion: the two derivations of the ceiling must agree
 // to within IEEE-754 relative epsilon. Catches any silent constant drift.
 {
-  const alt = (PHI * PHI / (2 * PI)) * PLANCK_FREQUENCY_HZ;
+  const alt = ((PHI * PHI) / (2 * PI)) * PLANCK_FREQUENCY_HZ;
   const relDrift = Math.abs(CARRIER_CEILING_HZ - alt) / CARRIER_CEILING_HZ;
   if (relDrift > 1e-3) {
     // Soft warn — different CODATA truncations are tolerable up to ~1e-3.
@@ -97,7 +97,10 @@ function selfBenchOps(): number {
   const N = 1 << 16;
   const a = new Float64Array(N);
   const b = new Float64Array(N);
-  for (let i = 0; i < N; i++) { a[i] = Math.sin(i); b[i] = Math.cos(i); }
+  for (let i = 0; i < N; i++) {
+    a[i] = Math.sin(i);
+    b[i] = Math.cos(i);
+  }
   const start = performance.now();
   let iters = 0;
   let s = 0;
@@ -197,7 +200,8 @@ export async function probeHardware(): Promise<HardwareEnvelope> {
   const gpu = await probeGpu();
   const sharedArrayBuffer =
     typeof globalThis !== 'undefined' &&
-    typeof (globalThis as unknown as { SharedArrayBuffer?: unknown }).SharedArrayBuffer !== 'undefined' &&
+    typeof (globalThis as unknown as { SharedArrayBuffer?: unknown }).SharedArrayBuffer !==
+      'undefined' &&
     typeof globalThis.crossOriginIsolated === 'boolean' &&
     globalThis.crossOriginIsolated === true;
   const peakOpsPerSecond = selfBenchOps() * cpuCores;

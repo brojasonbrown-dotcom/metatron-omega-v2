@@ -23,18 +23,45 @@
 
 import { sha3_256 } from '@noble/hashes/sha3.js';
 import {
-  encodeCbor, decodeCbor, toHex, fromHex, hashHex, type CborValue,
-  type Hlc, hlcEncode,
+  encodeCbor,
+  decodeCbor,
+  toHex,
+  fromHex,
+  hashHex,
+  type CborValue,
+  type Hlc,
+  hlcEncode,
 } from './contract';
 import { BN_ONE, bnClampUnit, type BigNum128, type TrustLevel } from './bn128';
 
 /** Fibonacci maturation stage, F1..F12. */
 export type FibonacciStage =
-  | 'F1' | 'F2' | 'F3' | 'F4' | 'F5' | 'F6'
-  | 'F7' | 'F8' | 'F9' | 'F10' | 'F11' | 'F12';
+  | 'F1'
+  | 'F2'
+  | 'F3'
+  | 'F4'
+  | 'F5'
+  | 'F6'
+  | 'F7'
+  | 'F8'
+  | 'F9'
+  | 'F10'
+  | 'F11'
+  | 'F12';
 
 export const FIBONACCI_STAGES: readonly FibonacciStage[] = [
-  'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12',
+  'F1',
+  'F2',
+  'F3',
+  'F4',
+  'F5',
+  'F6',
+  'F7',
+  'F8',
+  'F9',
+  'F10',
+  'F11',
+  'F12',
 ] as const;
 
 export function stageIndex(s: FibonacciStage): number {
@@ -45,8 +72,13 @@ export function stageIndex(s: FibonacciStage): number {
 function fib(n: number): number {
   if (n === 0) return 0;
   if (n <= 2) return 1;
-  let a = 1, b = 1;
-  for (let i = 3; i <= n; i++) { const c = a + b; a = b; b = c; }
+  let a = 1,
+    b = 1;
+  for (let i = 3; i <= n; i++) {
+    const c = a + b;
+    a = b;
+    b = c;
+  }
   return b;
 }
 
@@ -69,7 +101,10 @@ function concatBytes(...parts: Uint8Array[]): Uint8Array {
   for (const p of parts) n += p.length;
   const out = new Uint8Array(n);
   let o = 0;
-  for (const p of parts) { out.set(p, o); o += p.length; }
+  for (const p of parts) {
+    out.set(p, o);
+    o += p.length;
+  }
   return out;
 }
 
@@ -78,27 +113,45 @@ export function prefixedId(prefix: string, label: string): string {
   return `${prefix}_${toHex(sha3_256(concatBytes(TE.encode(prefix), TE.encode(label))))}`;
 }
 
-export function wingId(label: string): string { return prefixedId('wing', label); }
-export function roomId(label: string): string { return prefixedId('room', label); }
+export function wingId(label: string): string {
+  return prefixedId('wing', label);
+}
+export function roomId(label: string): string {
+  return prefixedId('room', label);
+}
 
 /** SHA3-256 over decoded content/context hash bytes plus the id strings. */
 export function drawerId(
-  contentHash: string, contextHash: string, wing: string, room: string,
+  contentHash: string,
+  contextHash: string,
+  wing: string,
+  room: string,
 ): string {
-  return toHex(sha3_256(concatBytes(
-    fromHex(contentHash), fromHex(contextHash), TE.encode(wing), TE.encode(room),
-  )));
+  return toHex(
+    sha3_256(
+      concatBytes(fromHex(contentHash), fromHex(contextHash), TE.encode(wing), TE.encode(room)),
+    ),
+  );
 }
 
 const HEX64 = /^[0-9a-f]{64}$/;
 
-export function isValidDrawerId(id: string): boolean { return HEX64.test(id); }
+export function isValidDrawerId(id: string): boolean {
+  return HEX64.test(id);
+}
 
 // ── records ────────────────────────────────────────────────────────────────
 
-export interface Wing { readonly id: string; readonly label: string; readonly created_at: Hlc; }
+export interface Wing {
+  readonly id: string;
+  readonly label: string;
+  readonly created_at: Hlc;
+}
 export interface Room {
-  readonly id: string; readonly wing_id: string; readonly label: string; readonly created_at: Hlc;
+  readonly id: string;
+  readonly wing_id: string;
+  readonly label: string;
+  readonly created_at: Hlc;
 }
 export interface DrawerEntry {
   readonly hlc: Hlc;
@@ -129,7 +182,9 @@ export function makeEntry(payload: CborValue, trust: TrustLevel, hlc: Hlc): Draw
   return { hlc, trust, payload_cbor: encodeCbor(payload) };
 }
 
-export function readEntry(e: DrawerEntry): CborValue { return decodeCbor(e.payload_cbor); }
+export function readEntry(e: DrawerEntry): CborValue {
+  return decodeCbor(e.payload_cbor);
+}
 
 /**
  * Seal a drawer. `content` is what the memory IS, `context` is where it came
@@ -225,7 +280,9 @@ export function drawerToWire(d: Drawer): Uint8Array {
     stage: d.stage,
     created_at: hlcEncode(d.created_at),
     entries: d.entries.map((e) => ({
-      hlc: hlcEncode(e.hlc), trust: e.trust, payload: e.payload_cbor,
+      hlc: hlcEncode(e.hlc),
+      trust: e.trust,
+      payload: e.payload_cbor,
     })),
   });
 }

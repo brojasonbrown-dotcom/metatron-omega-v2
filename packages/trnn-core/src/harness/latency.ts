@@ -16,7 +16,7 @@ export const PROOF_LATENCY_BUDGET_MS = 100;
 export type Clock = () => number;
 
 const defaultClock: Clock = () =>
-  (typeof performance !== 'undefined' && typeof performance.now === 'function')
+  typeof performance !== 'undefined' && typeof performance.now === 'function'
     ? performance.now()
     : Date.now();
 
@@ -61,9 +61,14 @@ export function measureLatency(
   for (let i = 0; i < runs; i++) {
     const t0 = clock();
     let ok = false;
-    try { ok = op(i); } catch { ok = false; }
+    try {
+      ok = op(i);
+    } catch {
+      ok = false;
+    }
     const dt = clock() - t0;
-    if (ok) times.push(dt); else failures++;
+    if (ok) times.push(dt);
+    else failures++;
   }
   const mean = times.length > 0 ? times.reduce((a, b) => a + b, 0) / times.length : null;
   return {
@@ -84,13 +89,11 @@ export interface LatencyGate {
   readonly reasons: readonly string[];
 }
 
-export function latencyGate(
-  r: LatencyReport,
-  budgetMs = PROOF_LATENCY_BUDGET_MS,
-): LatencyGate {
+export function latencyGate(r: LatencyReport, budgetMs = PROOF_LATENCY_BUDGET_MS): LatencyGate {
   const reasons: string[] = [];
   if (r.failures > 0) reasons.push(`${r.failures}/${r.runs} operations failed`);
-  if (r.p95 === null) reasons.push('no successful timed run: an unmeasured gate is not a passed gate');
+  if (r.p95 === null)
+    reasons.push('no successful timed run: an unmeasured gate is not a passed gate');
   else if (r.p95 >= budgetMs) reasons.push(`p95 ${r.p95.toFixed(3)} ms ≥ budget ${budgetMs} ms`);
   return { pass: reasons.length === 0, p95: r.p95, budgetMs, reasons };
 }

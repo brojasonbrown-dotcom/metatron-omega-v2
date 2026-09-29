@@ -10,7 +10,11 @@
 
 import { PHI_INV } from '@/core/gematria/zphi';
 
-export interface ConceptRow { term: string; strength: number; chunks: string[]; }
+export interface ConceptRow {
+  term: string;
+  strength: number;
+  chunks: string[];
+}
 
 const MAX_CHUNKS_PER_CONCEPT = 64;
 
@@ -19,9 +23,14 @@ export class ConceptGraph {
   private edges = new Map<string, Map<string, number>>();
   private cap: number;
 
-  constructor(cap = 20000) { this.cap = cap; }
+  constructor(cap = 20000) {
+    this.cap = cap;
+  }
 
-  setCap(cap: number): void { this.cap = Math.max(256, Math.floor(cap)); this.prune(); }
+  setCap(cap: number): void {
+    this.cap = Math.max(256, Math.floor(cap));
+    this.prune();
+  }
 
   /** Observe one chunk: `terms` must already be salience-ordered (best first). */
   observe(chunkId: string, terms: readonly string[]): void {
@@ -47,7 +56,10 @@ export class ConceptGraph {
 
   private bump(a: string, b: string, w: number): void {
     let m = this.edges.get(a);
-    if (!m) { m = new Map(); this.edges.set(a, m); }
+    if (!m) {
+      m = new Map();
+      this.edges.set(a, m);
+    }
     m.set(b, (m.get(b) ?? 0) + w);
   }
 
@@ -102,8 +114,10 @@ export class ConceptGraph {
   neighbours(term: string, n = 8): Array<{ term: string; w: number }> {
     const m = this.edges.get(term);
     if (!m) return [];
-    return [...m.entries()].map(([t, w]) => ({ term: t, w }))
-      .sort((a, b) => b.w - a.w).slice(0, n);
+    return [...m.entries()]
+      .map(([t, w]) => ({ term: t, w }))
+      .sort((a, b) => b.w - a.w)
+      .slice(0, n);
   }
 
   private prune(): void {
@@ -128,20 +142,38 @@ export class ConceptGraph {
     }
   }
 
-  size(): number { return this.nodes.size; }
-  edgeCount(): number { let n = 0; for (const m of this.edges.values()) n += m.size; return n; }
+  size(): number {
+    return this.nodes.size;
+  }
+  edgeCount(): number {
+    let n = 0;
+    for (const m of this.edges.values()) n += m.size;
+    return n;
+  }
 
   snapshot() {
     return {
-      nodes: [...this.nodes.entries()].map(([t, v]) => [t, v.strength, v.chunks] as [string, number, string[]]),
-      edges: [...this.edges.entries()].map(([t, m]) => [t, [...m.entries()]] as [string, Array<[string, number]>]),
+      nodes: [...this.nodes.entries()].map(
+        ([t, v]) => [t, v.strength, v.chunks] as [string, number, string[]],
+      ),
+      edges: [...this.edges.entries()].map(
+        ([t, m]) => [t, [...m.entries()]] as [string, Array<[string, number]>],
+      ),
     };
   }
 
-  restore(s: { nodes: Array<[string, number, string[]]>; edges: Array<[string, Array<[string, number]>]> }): void {
-    this.nodes = new Map(s.nodes.map(([t, strength, chunks]) => [t, { strength, chunks: [...chunks] }]));
+  restore(s: {
+    nodes: Array<[string, number, string[]]>;
+    edges: Array<[string, Array<[string, number]>]>;
+  }): void {
+    this.nodes = new Map(
+      s.nodes.map(([t, strength, chunks]) => [t, { strength, chunks: [...chunks] }]),
+    );
     this.edges = new Map(s.edges.map(([t, m]) => [t, new Map(m)]));
   }
 
-  clear(): void { this.nodes.clear(); this.edges.clear(); }
+  clear(): void {
+    this.nodes.clear();
+    this.edges.clear();
+  }
 }

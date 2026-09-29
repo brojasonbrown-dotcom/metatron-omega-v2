@@ -40,7 +40,8 @@ export interface RadialBasis {
 
 /** Midpoint grid on (0,1) with the spherical volume weight. */
 export function radialGrid(n: number): RadialGrid {
-  if (n <= 0 || !Number.isInteger(n)) throw new RangeError(`radialGrid: n must be a positive integer, got ${n}`);
+  if (n <= 0 || !Number.isInteger(n))
+    throw new RangeError(`radialGrid: n must be a positive integer, got ${n}`);
   const r = new Float64Array(n);
   const w = new Float64Array(n);
   const dr = 1 / n;
@@ -54,7 +55,8 @@ export function radialGrid(n: number): RadialGrid {
 
 /** Spherical Bessel function of the first kind, j_l(x), l >= 0. */
 export function sphericalBesselJ(l: number, x: number): number {
-  if (l < 0 || !Number.isInteger(l)) throw new RangeError(`sphericalBesselJ: l must be a non-negative integer, got ${l}`);
+  if (l < 0 || !Number.isInteger(l))
+    throw new RangeError(`sphericalBesselJ: l must be a non-negative integer, got ${l}`);
   if (x === 0) return l === 0 ? 1 : 0;
   const ax = Math.abs(x);
   if (ax < l / 2 + 1) return besselSeries(l, x);
@@ -102,8 +104,10 @@ function quadInner(w: Float64Array, a: Float64Array, b: Float64Array): number {
  * the basis silently empties out.
  */
 export function radialGridSize(count: number, offset = 0): number {
-  if (count <= 0 || !Number.isInteger(count)) throw new RangeError(`radialGridSize: count must be a positive integer, got ${count}`);
-  if (offset < 0 || !Number.isInteger(offset)) throw new RangeError(`radialGridSize: offset must be a non-negative integer, got ${offset}`);
+  if (count <= 0 || !Number.isInteger(count))
+    throw new RangeError(`radialGridSize: count must be a positive integer, got ${count}`);
+  if (offset < 0 || !Number.isInteger(offset))
+    throw new RangeError(`radialGridSize: offset must be a non-negative integer, got ${offset}`);
   return Math.max(count, Math.ceil(2 * dpow(PHI, offset + count - 1)));
 }
 
@@ -161,12 +165,21 @@ export function buildRadialBasis(grid: RadialGrid, l = 0, count = 8, rung0 = 0):
   return { grid, l, rungs: kept, vectors: basis, gramDefect: defect };
 }
 
-export function radialAnalyze(basis: RadialBasis, f: Float64Array, out: Float64Array): Float64Array {
-  for (let k = 0; k < basis.vectors.length; k++) out[k] = quadInner(basis.grid.w, basis.vectors[k], f);
+export function radialAnalyze(
+  basis: RadialBasis,
+  f: Float64Array,
+  out: Float64Array,
+): Float64Array {
+  for (let k = 0; k < basis.vectors.length; k++)
+    out[k] = quadInner(basis.grid.w, basis.vectors[k], f);
   return out;
 }
 
-export function radialSynthesize(basis: RadialBasis, coeffs: Float64Array, out: Float64Array): Float64Array {
+export function radialSynthesize(
+  basis: RadialBasis,
+  coeffs: Float64Array,
+  out: Float64Array,
+): Float64Array {
   out.fill(0);
   for (let k = 0; k < basis.vectors.length; k++) {
     const c = coeffs[k];

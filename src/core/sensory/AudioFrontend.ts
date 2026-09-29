@@ -22,7 +22,6 @@ import type { SensoryGateway } from './SensoryGateway';
 import { AudioCortex } from './AudioCortex';
 import { publishSolfeggio, publishFlowerBands } from './sensoryFieldBridge';
 
-
 const FFT_SIZE = 1024;
 const ENVELOPE_HZ = 233;
 /**
@@ -56,13 +55,29 @@ export class AudioFrontend {
   private cortex: AudioCortex | null = null;
   private tickRef = { v: 0 };
   private running = false;
-  private lastFeatures: { f0: number; rms: number; flux: number; voicing: number; onset: number; bpm: number; lufs: number } = { f0: 0, rms: 0, flux: 0, voicing: 0, onset: 0, bpm: 0, lufs: -120 };
+  private lastFeatures: {
+    f0: number;
+    rms: number;
+    flux: number;
+    voicing: number;
+    onset: number;
+    bpm: number;
+    lufs: number;
+  } = { f0: 0, rms: 0, flux: 0, voicing: 0, onset: 0, bpm: 0, lufs: -120 };
 
-  isRunning(): boolean { return this.running; }
-  setTickRef(ref: { v: number }): void { this.tickRef = ref; }
-  recentFeatures() { return this.lastFeatures; }
+  isRunning(): boolean {
+    return this.running;
+  }
+  setTickRef(ref: { v: number }): void {
+    this.tickRef = ref;
+  }
+  recentFeatures() {
+    return this.lastFeatures;
+  }
   /** The live microphone stream, shared with the speech teacher (owned here). */
-  mediaStream(): MediaStream | null { return this.stream; }
+  mediaStream(): MediaStream | null {
+    return this.stream;
+  }
 
   async enable(gateway: SensoryGateway): Promise<void> {
     if (this.running) return;
@@ -70,7 +85,9 @@ export class AudioFrontend {
       throw new Error('audio: getUserMedia unavailable');
     }
     this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const Ctx: typeof AudioContext = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const Ctx: typeof AudioContext =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     this.ctx = new Ctx();
     this.source = this.ctx.createMediaStreamSource(this.stream);
     this.analyser = this.ctx.createAnalyser();
@@ -92,7 +109,15 @@ export class AudioFrontend {
         this.mag[i] = db <= -160 ? 0 : Math.pow(10, db / 20);
       }
       const feat = this.cortex.process(this.time, this.mag);
-      this.lastFeatures = { f0: feat.f0, rms: feat.rms, flux: feat.flux, voicing: feat.voicing, onset: feat.onset, bpm: feat.bpm, lufs: feat.lufs };
+      this.lastFeatures = {
+        f0: feat.f0,
+        rms: feat.rms,
+        flux: feat.flux,
+        voicing: feat.voicing,
+        onset: feat.onset,
+        bpm: feat.bpm,
+        lufs: feat.lufs,
+      };
       gateway.ingest(feat.feature, 'audio', this.tickRef.v);
       // Publish per-band activity to the field bridge so FallbackEngine
       // can feed F5 / F6 / F7 real spectral structure instead of the
@@ -109,11 +134,30 @@ export class AudioFrontend {
 
   stop(): void {
     this.running = false;
-    if (this.timer) { clearTimeout(this.timer); this.timer = null; }
-    try { this.source?.disconnect(); } catch { /* ignore */ }
-    try { this.analyser?.disconnect(); } catch { /* ignore */ }
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    try {
+      this.source?.disconnect();
+    } catch {
+      /* ignore */
+    }
+    try {
+      this.analyser?.disconnect();
+    } catch {
+      /* ignore */
+    }
     if (this.stream) for (const t of this.stream.getTracks()) t.stop();
-    try { this.ctx?.close(); } catch { /* ignore */ }
-    this.ctx = null; this.stream = null; this.analyser = null; this.source = null; this.cortex = null;
+    try {
+      this.ctx?.close();
+    } catch {
+      /* ignore */
+    }
+    this.ctx = null;
+    this.stream = null;
+    this.analyser = null;
+    this.source = null;
+    this.cortex = null;
   }
 }

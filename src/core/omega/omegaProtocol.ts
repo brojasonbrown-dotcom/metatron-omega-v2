@@ -23,7 +23,7 @@ import type {
   HostSnapshot,
   ProfileId,
   ProfileVerdict,
-} from "@metatron/trnn-core";
+} from '@metatron/trnn-core';
 
 export interface WireVerdict {
   selected: ProfileId;
@@ -50,50 +50,63 @@ export interface WireProfile {
 }
 
 export type OmegaCommand =
-  | { type: "probe"; targetHz?: number }
-  | { type: "build"; profile: ProfileId; seed?: string }
-  | { type: "start" }
-  | { type: "stop" }
-  | { type: "setHz"; hz: number }
-  | { type: "checkpoint" }
-  | { type: "describe" }
-  | { type: "field"; rank: number; maxSamples?: number }
-  | { type: "web"; tail?: number }
-  | { type: "spectral"; rank: number }
-  | { type: "scan"; rank: number }
-  | { type: "sense" }
-  | { type: "memory" }
-  | { type: "mind" }
-  | { type: "reflect"; k?: number }
-  | { type: "learn"; iterations?: number; nodes?: number }
-  | { type: "tiers"; sidecarUrl?: string; hostedUrl?: string }
-  | { type: "senseDeclare"; id: string; modality: SenseModality; nodes?: number; gain?: number }
-  | { type: "sensePush"; id: string; text?: string; data?: number[]; width?: number; height?: number }
-  | { type: "senseMute"; id: string }
-  | { type: "senseGain"; gain: number }
-  | { type: "dispose" };
+  | { type: 'probe'; targetHz?: number }
+  | { type: 'build'; profile: ProfileId; seed?: string }
+  | { type: 'start' }
+  | { type: 'stop' }
+  | { type: 'setHz'; hz: number }
+  | { type: 'checkpoint' }
+  | { type: 'describe' }
+  | { type: 'field'; rank: number; maxSamples?: number }
+  | { type: 'web'; tail?: number }
+  | { type: 'spectral'; rank: number }
+  | { type: 'scan'; rank: number }
+  | { type: 'sense' }
+  | { type: 'memory' }
+  | { type: 'mind' }
+  | { type: 'reflect'; k?: number }
+  | { type: 'learn'; iterations?: number; nodes?: number }
+  | { type: 'tiers'; sidecarUrl?: string; hostedUrl?: string }
+  | { type: 'senseDeclare'; id: string; modality: SenseModality; nodes?: number; gain?: number }
+  | {
+      type: 'sensePush';
+      id: string;
+      text?: string;
+      data?: number[];
+      width?: number;
+      height?: number;
+    }
+  | { type: 'senseMute'; id: string }
+  | { type: 'senseGain'; gain: number }
+  | { type: 'dispose' };
 
-export type SenseModality = "scalar" | "text" | "grid" | "audio";
+export type SenseModality = 'scalar' | 'text' | 'grid' | 'audio';
 
 export type OmegaEvent =
-  | { type: "probed"; probe: HardwareProbe; verdict: WireVerdict; profiles: WireProfile[] }
-  | { type: "built"; profile: ProfileId; seed: string; footprint: FootprintCheck; snapshot: HostSnapshot }
-  | { type: "snapshot"; snapshot: HostSnapshot }
-  | { type: "running"; running: boolean }
-  | { type: "checkpointed"; tick: number }
-  | { type: "described"; description: EngineDescription }
-  | { type: "field"; frame: FieldFrame }
-  | { type: "web"; view: WebView }
-  | { type: "spectral"; view: SpectralView }
-  | { type: "scan"; rank: number; report: RungScanReport | null }
-  | { type: "sense"; view: SenseView }
-  | { type: "memory"; view: MemoryView }
-  | { type: "mind"; report: MindReport }
-  | { type: "reflect"; trace: SearchTrace }
-  | { type: "learn"; run: LearnRun }
-  | { type: "learning"; busy: boolean }
-  | { type: "tiers"; map: TierMap }
-  | { type: "error"; message: string };
+  | { type: 'probed'; probe: HardwareProbe; verdict: WireVerdict; profiles: WireProfile[] }
+  | {
+      type: 'built';
+      profile: ProfileId;
+      seed: string;
+      footprint: FootprintCheck;
+      snapshot: HostSnapshot;
+    }
+  | { type: 'snapshot'; snapshot: HostSnapshot }
+  | { type: 'running'; running: boolean }
+  | { type: 'checkpointed'; tick: number }
+  | { type: 'described'; description: EngineDescription }
+  | { type: 'field'; frame: FieldFrame }
+  | { type: 'web'; view: WebView }
+  | { type: 'spectral'; view: SpectralView }
+  | { type: 'scan'; rank: number; report: RungScanReport | null }
+  | { type: 'sense'; view: SenseView }
+  | { type: 'memory'; view: MemoryView }
+  | { type: 'mind'; report: MindReport }
+  | { type: 'reflect'; trace: SearchTrace }
+  | { type: 'learn'; run: LearnRun }
+  | { type: 'learning'; busy: boolean }
+  | { type: 'tiers'; map: TierMap }
+  | { type: 'error'; message: string };
 
 export type {
   HardwareProbe,

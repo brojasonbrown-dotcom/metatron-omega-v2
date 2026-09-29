@@ -35,14 +35,19 @@ export class NeumaierSum {
     if (!Number.isFinite(x)) return; // hard sentinel: never poison the sum
     const t = this.s + x;
     if (Math.abs(this.s) >= Math.abs(x)) {
-      this.c += (this.s - t) + x;
+      this.c += this.s - t + x;
     } else {
-      this.c += (x - t) + this.s;
+      this.c += x - t + this.s;
     }
     this.s = t;
   }
-  value(): number { return this.s + this.c; }
-  reset(): void { this.s = 0; this.c = 0; }
+  value(): number {
+    return this.s + this.c;
+  }
+  reset(): void {
+    this.s = 0;
+    this.c = 0;
+  }
 }
 
 /** One-shot Neumaier sum of an array. */
@@ -60,12 +65,13 @@ export function neumaierSum(xs: ArrayLike<number>): number {
  * JIT runtimes because the compensation state stays in registers.
  */
 export function neumaierSumF64(xs: Float64Array, n: number = xs.length): number {
-  let s = 0, c = 0;
+  let s = 0,
+    c = 0;
   for (let i = 0; i < n; i++) {
     const x = xs[i];
     const t = s + x;
-    if (Math.abs(s) >= Math.abs(x)) c += (s - t) + x;
-    else c += (x - t) + s;
+    if (Math.abs(s) >= Math.abs(x)) c += s - t + x;
+    else c += x - t + s;
     s = t;
   }
   return s + c;
@@ -77,8 +83,8 @@ export function neumaierSumF64(xs: Float64Array, n: number = xs.length): number 
 
 export class Welford {
   private n = 0;
-  private m = 0;       // running mean
-  private m2 = 0;      // running Σ(x − mean)²
+  private m = 0; // running mean
+  private m2 = 0; // running Σ(x − mean)²
   add(x: number): void {
     if (!Number.isFinite(x)) return;
     this.n += 1;
@@ -86,11 +92,19 @@ export class Welford {
     this.m += d / this.n;
     this.m2 += d * (x - this.m);
   }
-  get count(): number { return this.n; }
-  get mean(): number { return this.n > 0 ? this.m : 0; }
+  get count(): number {
+    return this.n;
+  }
+  get mean(): number {
+    return this.n > 0 ? this.m : 0;
+  }
   /** Population variance. Use sampleVariance() for unbiased (n−1). */
-  get variance(): number { return this.n > 0 ? this.m2 / this.n : 0; }
-  get sampleVariance(): number { return this.n > 1 ? this.m2 / (this.n - 1) : 0; }
+  get variance(): number {
+    return this.n > 0 ? this.m2 / this.n : 0;
+  }
+  get sampleVariance(): number {
+    return this.n > 1 ? this.m2 / (this.n - 1) : 0;
+  }
   /** RMS = √(Σx²/n). Computed stably from mean and variance. */
   get rms(): number {
     if (this.n === 0) return 0;
@@ -140,8 +154,6 @@ export function finiteOr(x: number, fallback = 0): number {
  */
 export function assertContraction(lambda: number, label = 'lambda'): void {
   if (!(Math.abs(lambda) < 1)) {
-    throw new Error(
-      `assertContraction: ${label}=${lambda} violates Banach contraction (|λ|<1).`,
-    );
+    throw new Error(`assertContraction: ${label}=${lambda} violates Banach contraction (|λ|<1).`);
   }
 }

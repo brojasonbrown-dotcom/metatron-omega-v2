@@ -6,9 +6,21 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  Corpus, CorpusLedger, HotCache, WarmShards, ColdArchive, MemoryBlobStore,
-  encodeShard, decodeShard, contentHashHex, framesOf, compactFrame,
-  isRefusal, recall, COLD_WIDTH, FLAG_RESAMPLED,
+  Corpus,
+  CorpusLedger,
+  HotCache,
+  WarmShards,
+  ColdArchive,
+  MemoryBlobStore,
+  encodeShard,
+  decodeShard,
+  contentHashHex,
+  framesOf,
+  compactFrame,
+  isRefusal,
+  recall,
+  COLD_WIDTH,
+  FLAG_RESAMPLED,
   type CorpusFrame,
 } from '@/core/corpus';
 
@@ -48,7 +60,8 @@ describe('Ω-CORPUS · codec', () => {
     expect(() => decodeShard(new Uint8Array(4))).toThrow();
     const bytes = encodeShard([frame(1)], W);
     expect(() => decodeShard(bytes.subarray(0, bytes.length - 8))).toThrow(/truncated/);
-    const bad = Uint8Array.from(bytes); bad[0] ^= 0xff;
+    const bad = Uint8Array.from(bytes);
+    bad[0] ^= 0xff;
     expect(() => decodeShard(bad)).toThrow(/magic/);
   });
 
@@ -71,7 +84,12 @@ describe('Ω-CORPUS · HOT', () => {
     expect(demoted.length).toBe(16);
     // Everything offered is accounted for: held + demoted = offered.
     expect(hot.count + demoted.length).toBe(20);
-    expect(hot.entries().map((e) => e.payload.tick).sort((a, b) => a - b)).toEqual([16, 17, 18, 19]);
+    expect(
+      hot
+        .entries()
+        .map((e) => e.payload.tick)
+        .sort((a, b) => a - b),
+    ).toEqual([16, 17, 18, 19]);
   });
 
   it('admits during calibration warm-up (no band ⇒ infinite surprise)', () => {
@@ -89,8 +107,9 @@ describe('Ω-CORPUS · HOT', () => {
 
   it('refuses a frame of the wrong width', () => {
     const hot = new HotCache({ width: W, capacity: 4 });
-    expect(() => hot.offer({ tick: 0, rank: 0, values: new Float64Array(2), surprise: 0 }, 0, 1, 9))
-      .toThrow(/width/);
+    expect(() =>
+      hot.offer({ tick: 0, rank: 0, values: new Float64Array(2), surprise: 0 }, 0, 1, 9),
+    ).toThrow(/width/);
   });
 });
 
@@ -136,7 +155,10 @@ describe('Ω-CORPUS · COLD', () => {
     for (const v of small) expect(v).toBeCloseTo(2.5, 10);
 
     const frames: CorpusFrame[] = [0, 1, 2].map((t) => ({
-      tick: t, rank: 0, values: Float64Array.from(wide), surprise: 1,
+      tick: t,
+      rank: 0,
+      values: Float64Array.from(wide),
+      surprise: 1,
     }));
     const seg = await cold.compact(frames, 5);
     expect(isRefusal(seg)).toBe(false);
@@ -174,7 +196,11 @@ describe('Ω-CORPUS · ledger', () => {
       const p = ledger.proofFor(s.leafIndex)!;
       const record = ledger.entries()[s.leafIndex];
       const ok = CorpusLedger.verify({
-        data: null, record, leafIndex: s.leafIndex, proofHex: p.proofHex, head: p.head,
+        data: null,
+        record,
+        leafIndex: s.leafIndex,
+        proofHex: p.proofHex,
+        head: p.head,
       });
       expect(ok).toBe(true);
     }
@@ -183,15 +209,29 @@ describe('Ω-CORPUS · ledger', () => {
   it('detects a tampered record before the payload is ever decoded', () => {
     const ledger = new CorpusLedger();
     const record = {
-      kind: 'warm-shard' as const, tier: 'warm' as const, index: 0, key: 'warm:0',
-      tickFrom: 0, tickTo: 9, count: 10, width: W, bytes: 400, payloadHashHex: 'ab'.repeat(32),
+      kind: 'warm-shard' as const,
+      tier: 'warm' as const,
+      index: 0,
+      key: 'warm:0',
+      tickFrom: 0,
+      tickTo: 9,
+      count: 10,
+      width: W,
+      bytes: 400,
+      payloadHashHex: 'ab'.repeat(32),
     };
     const e = ledger.seal(record, 1);
     const p = ledger.proofFor(e.leafIndex)!;
     const forged = { ...record, count: 11 };
-    expect(CorpusLedger.verify({
-      data: null, record: forged, leafIndex: e.leafIndex, proofHex: p.proofHex, head: p.head,
-    })).toBe(false);
+    expect(
+      CorpusLedger.verify({
+        data: null,
+        record: forged,
+        leafIndex: e.leafIndex,
+        proofHex: p.proofHex,
+        head: p.head,
+      }),
+    ).toBe(false);
   });
 
   it('verifies consistency across a reload of the index', async () => {
@@ -215,7 +255,12 @@ describe('Ω-CORPUS · ladder + recall', () => {
   it('moves frames HOT → WARM → COLD and keeps every one of them', async () => {
     const store = new MemoryBlobStore();
     const c = new Corpus({
-      width: W, store, hotCapacity: 4, hotFloor: 0, shardFrames: 4, segmentShards: 2,
+      width: W,
+      store,
+      hotCapacity: 4,
+      hotFloor: 0,
+      shardFrames: 4,
+      segmentShards: 2,
     });
     for (let t = 0; t < 40; t++) await c.offer(frame(t), 0, 1, t, t);
     await c.flush(1000);
@@ -232,7 +277,14 @@ describe('Ω-CORPUS · ladder + recall', () => {
 
   it('serves from the nearest tier and abstains when the budget cannot cover it', async () => {
     const store = new MemoryBlobStore();
-    const c = new Corpus({ width: W, store, hotCapacity: 8, hotFloor: 0, shardFrames: 4, segmentShards: 100 });
+    const c = new Corpus({
+      width: W,
+      store,
+      hotCapacity: 8,
+      hotFloor: 0,
+      shardFrames: 4,
+      segmentShards: 100,
+    });
     for (let t = 0; t < 20; t++) await c.offer(frame(t), 0, 1, t, t);
 
     const hot = await c.recall({ tickFrom: 18, tickTo: 19, budgetNumbers: 1000 });

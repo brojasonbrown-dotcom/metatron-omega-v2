@@ -42,12 +42,14 @@ export const LYAPUNOV_BANK: Record<RungName, LyapunovEntry> = {
   F8: {
     symbolic: 'φ⁻¹·⁵',
     lambda: PHI_INV_1_5,
-    source: 'Sub-Planck fluctuation floor — closure is the loosest because zero-point modes dominate residual.',
+    source:
+      'Sub-Planck fluctuation floor — closure is the loosest because zero-point modes dominate residual.',
   },
   F1: {
     symbolic: 'φ⁻²',
     lambda: PHI_INV_2,
-    source: 'Septenary baseline — canonical φ⁻² contraction (Lyapunov spectral radius of the memory operator).',
+    source:
+      'Septenary baseline — canonical φ⁻² contraction (Lyapunov spectral radius of the memory operator).',
   },
   F2: {
     symbolic: 'φ⁻²',
@@ -62,7 +64,8 @@ export const LYAPUNOV_BANK: Record<RungName, LyapunovEntry> = {
   F4: {
     symbolic: 'φ⁻²',
     lambda: PHI_INV_2,
-    source: 'Hex packing closure already absorbed into closureResidual (η=π/(2√3)); residual then contracts at φ⁻².',
+    source:
+      'Hex packing closure already absorbed into closureResidual (η=π/(2√3)); residual then contracts at φ⁻².',
   },
   F5: {
     symbolic: 'φ⁻²',
@@ -72,7 +75,8 @@ export const LYAPUNOV_BANK: Record<RungName, LyapunovEntry> = {
   F6: {
     symbolic: 'φ⁻(2 + 1/22)',
     lambda: PHI_INV_2_22,
-    source: 'Hebrew 22-letter cycle — period-22 perturbation tightens contraction by 1/22 in the exponent.',
+    source:
+      'Hebrew 22-letter cycle — period-22 perturbation tightens contraction by 1/22 in the exponent.',
   },
   F7: {
     symbolic: 'φ⁻²',
@@ -88,7 +92,7 @@ export const LYAPUNOV_BANK: Record<RungName, LyapunovEntry> = {
 
 /** Golden-ratio acceptance envelope around λ. Band width ≈ φ² ≈ 2.618×. */
 export const SATURATION_BAND_LO = PHI_INV; // = 1/φ
-export const SATURATION_BAND_HI = PHI;     // = φ
+export const SATURATION_BAND_HI = PHI; // = φ
 
 export function lyapunovFor(framework: RungName): LyapunovEntry {
   const e = LYAPUNOV_BANK[framework];

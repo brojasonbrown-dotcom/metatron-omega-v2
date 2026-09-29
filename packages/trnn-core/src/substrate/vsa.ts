@@ -135,7 +135,8 @@ export interface BundleResult {
  */
 export function bundle(vs: readonly Hypervector[], weights?: readonly number[]): BundleResult {
   const m = vs.length;
-  if (m === 0) return { hv: new Float64Array(0), agreement: new Float64Array(0), meanAgreement: NaN };
+  if (m === 0)
+    return { hv: new Float64Array(0), agreement: new Float64Array(0), meanAgreement: NaN };
   const dim = vs[0].length;
   const re = new Float64Array(dim);
   const im = new Float64Array(dim);
@@ -169,7 +170,10 @@ export function bundle(vs: readonly Hypervector[], weights?: readonly number[]):
 export function phiWeights(m: number): number[] {
   const w: number[] = [];
   let x = 1;
-  for (let i = 0; i < m; i++) { w.push(x); x *= PHI_INV; }
+  for (let i = 0; i < m; i++) {
+    w.push(x);
+    x *= PHI_INV;
+  }
   return w;
 }
 
@@ -177,11 +181,13 @@ export function phiWeights(m: number): number[] {
 export function similarity(a: Hypervector, b: Hypervector): number {
   const n = Math.min(a.length, b.length);
   if (n === 0) return NaN;
-  let s = 0, m = 0;
+  let s = 0,
+    m = 0;
   for (let i = 0; i < n; i++) {
     const d = a[i] - b[i];
     if (!Number.isFinite(d)) continue;
-    s += dcos(d); m++;
+    s += dcos(d);
+    m++;
   }
   return m === 0 ? NaN : s / m;
 }
@@ -232,8 +238,12 @@ export class CleanupMemory {
     readonly zFloor: number = CLEANUP_Z_FLOOR,
   ) {}
 
-  get size(): number { return this.n.size; }
-  labels(): string[] { return [...this.n.keys()].sort(); }
+  get size(): number {
+    return this.n.size;
+  }
+  labels(): string[] {
+    return [...this.n.keys()].sort();
+  }
 
   /**
    * Fold an exemplar into a prototype.
@@ -249,11 +259,16 @@ export class CleanupMemory {
     if (!re || !im) {
       re = new Float64Array(this.dim);
       im = new Float64Array(this.dim);
-      this.re.set(label, re); this.im.set(label, im); this.n.set(label, 0);
+      this.re.set(label, re);
+      this.im.set(label, im);
+      this.n.set(label, 0);
     }
     let count = this.n.get(label) ?? 0;
     if (count >= this.fanInCap) {
-      for (let i = 0; i < this.dim; i++) { re[i] *= PHI_INV; im[i] *= PHI_INV; }
+      for (let i = 0; i < this.dim; i++) {
+        re[i] *= PHI_INV;
+        im[i] *= PHI_INV;
+      }
       count = this.fanInCap - 1;
     }
     const lim = Math.min(this.dim, v.length);
@@ -268,17 +283,19 @@ export class CleanupMemory {
 
   /** Current prototype hypervector, or null when the label is unknown. */
   prototype(label: string): Hypervector | null {
-    const re = this.re.get(label); const im = this.im.get(label);
+    const re = this.re.get(label);
+    const im = this.im.get(label);
     if (!re || !im) return null;
     const out = new Float64Array(this.dim);
     for (let i = 0; i < this.dim; i++) {
-      out[i] = (re[i] * re[i] + im[i] * im[i]) <= 1e-300 ? 0 : wrapPhase(datan2(im[i], re[i]));
+      out[i] = re[i] * re[i] + im[i] * im[i] <= 1e-300 ? 0 : wrapPhase(datan2(im[i], re[i]));
     }
     return out;
   }
 
   stats(label: string): CleanupStats | null {
-    const re = this.re.get(label); const im = this.im.get(label);
+    const re = this.re.get(label);
+    const im = this.im.get(label);
     const n = this.n.get(label);
     if (!re || !im || n === undefined) return null;
     let agree = 0;
@@ -297,14 +314,21 @@ export class CleanupMemory {
   query(v: Hypervector, zFloor = this.zFloor): CleanupHit | null {
     if (this.n.size === 0) return null;
     const sigma = chanceSigma(this.dim);
-    let bestLabel = ''; let best = Number.NEGATIVE_INFINITY; let second = Number.NEGATIVE_INFINITY;
+    let bestLabel = '';
+    let best = Number.NEGATIVE_INFINITY;
+    let second = Number.NEGATIVE_INFINITY;
     for (const label of this.labels()) {
       const proto = this.prototype(label);
       if (!proto) continue;
       const s = similarity(v, proto);
       if (!Number.isFinite(s)) continue;
-      if (s > best) { second = best; best = s; bestLabel = label; }
-      else if (s > second) { second = s; }
+      if (s > best) {
+        second = best;
+        best = s;
+        bestLabel = label;
+      } else if (s > second) {
+        second = s;
+      }
     }
     if (!Number.isFinite(best) || bestLabel === '') return null;
     const margin = Number.isFinite(second) ? best - second : Number.POSITIVE_INFINITY;
@@ -322,7 +346,9 @@ export class CleanupMemory {
  * Decoding a role is unbind followed by cleanup — the cleanup memory is what
  * turns the noisy unbind result back into a symbol, or abstains.
  */
-export function encodeRecord(pairs: readonly (readonly [Hypervector, Hypervector])[]): BundleResult {
+export function encodeRecord(
+  pairs: readonly (readonly [Hypervector, Hypervector])[],
+): BundleResult {
   return bundle(pairs.map(([r, f]) => bind(r, f)));
 }
 
@@ -336,8 +362,14 @@ export function decodeRole(record: Hypervector, role: Hypervector): Hypervector 
  * bundle( π⁰(v₀), π¹(v₁), … ) — position is recoverable, order is not lost to
  * the commutativity of bundling.
  */
-export function encodeSequence(vs: readonly Hypervector[], weights?: readonly number[]): BundleResult {
-  return bundle(vs.map((v, i) => permute(v, i)), weights);
+export function encodeSequence(
+  vs: readonly Hypervector[],
+  weights?: readonly number[],
+): BundleResult {
+  return bundle(
+    vs.map((v, i) => permute(v, i)),
+    weights,
+  );
 }
 
 /** Recover the item at position i from a permutation-protected sequence. */

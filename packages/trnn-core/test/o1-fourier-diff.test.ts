@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { derivative, dx, d2x, dPhiModes, wavenumber, meanSquare } from '../src/operator/fourierDiff';
+import {
+  derivative,
+  dx,
+  d2x,
+  dPhiModes,
+  wavenumber,
+  meanSquare,
+} from '../src/operator/fourierDiff';
 import { modeLadder } from '../src/torus/eigenmodes';
 import type { CField } from '../src/core/complex';
 
@@ -26,7 +33,9 @@ function maxErr(a: CField, b: CField): number {
 
 describe('O1 — exact spectral differentiation on the ring', () => {
   it('signed wavenumbers wrap at the half point', () => {
-    expect(Array.from({ length: 8 }, (_, j) => wavenumber(j, 8))).toEqual([0, 1, 2, 3, 4, -3, -2, -1]);
+    expect(Array.from({ length: 8 }, (_, j) => wavenumber(j, 8))).toEqual([
+      0, 1, 2, 3, 4, -3, -2, -1,
+    ]);
     expect(Array.from({ length: 5 }, (_, j) => wavenumber(j, 5))).toEqual([0, 1, 2, -2, -1]);
   });
 

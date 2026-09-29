@@ -76,8 +76,6 @@ export function expectedCBias(d = 8, tauSteps = 1): number {
   return c / d;
 }
 
-
-
 export interface KernelStep {
   /** Innovation-form coherence, or null while the estimator is still warming. */
   readonly coherence: number | null;
@@ -118,8 +116,10 @@ export class PhiCoherenceKernel {
   private readonly innMeanIm: Float64Array;
 
   constructor(d = 8, tauSteps = 2, lam = KERNEL_LAMBDA) {
-    if (!(d > 0) || !Number.isInteger(d)) throw new Error('kernel dimension must be a positive integer');
-    if (!(tauSteps >= 1) || !Number.isInteger(tauSteps)) throw new Error('tauSteps must be an integer >= 1');
+    if (!(d > 0) || !Number.isInteger(d))
+      throw new Error('kernel dimension must be a positive integer');
+    if (!(tauSteps >= 1) || !Number.isInteger(tauSteps))
+      throw new Error('tauSteps must be an integer >= 1');
     this.d = d;
     this.tauSteps = tauSteps;
     this.lam = lam;
@@ -154,7 +154,7 @@ export class PhiCoherenceKernel {
 
   /** Ring slot of the entry `back` steps behind the newest one (0 = newest). */
   private slot(back: number): number {
-    return ((this.head - 1 - back) % this.cap + this.cap) % this.cap;
+    return (((this.head - 1 - back) % this.cap) + this.cap) % this.cap;
   }
 
   /** Advance one τ with the given innovation. Returns the measured report. */
@@ -192,7 +192,8 @@ export class PhiCoherenceKernel {
     }
 
     let energy = 0;
-    for (let i = 0; i < d; i++) energy += this.psiRe[i] * this.psiRe[i] + this.psiIm[i] * this.psiIm[i];
+    for (let i = 0; i < d; i++)
+      energy += this.psiRe[i] * this.psiRe[i] + this.psiIm[i] * this.psiIm[i];
 
     const coherence = this.coherence();
     return {

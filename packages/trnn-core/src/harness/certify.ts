@@ -10,8 +10,12 @@
 import { goldenGate, type GoldenGate } from './golden';
 import { abstentionGate, type AbstentionGate, type AbstentionReport } from './abstention';
 import {
-  recoveryAfterShift, COVERAGE_TARGET, RECOVERY_BUDGET,
-  type AciObservation, type CoverageReport, type RecoveryReport,
+  recoveryAfterShift,
+  COVERAGE_TARGET,
+  RECOVERY_BUDGET,
+  type AciObservation,
+  type CoverageReport,
+  type RecoveryReport,
 } from './conformal';
 import { latencyGate, type LatencyGate, type LatencyReport } from './latency';
 
@@ -71,7 +75,8 @@ export function certify(input: CertificationInput): CertificationReport {
   const lat = latencyGate(input.proofLatency);
 
   const reasons: string[] = [];
-  for (const d of golden.drifted) reasons.push(`golden/${d.id}: digest ${d.actual} ≠ ${d.expected}`);
+  for (const d of golden.drifted)
+    reasons.push(`golden/${d.id}: digest ${d.actual} ≠ ${d.expected}`);
   for (const u of golden.unbaselined) reasons.push(`golden/${u}: not baselined`);
   for (const o of golden.orphaned) reasons.push(`golden/${o}: baseline has no case`);
   for (const r of abst.reasons) reasons.push(`abstention: ${r}`);
@@ -80,6 +85,10 @@ export function certify(input: CertificationInput): CertificationReport {
 
   return {
     pass: golden.pass && abst.pass && cov.pass && lat.pass,
-    golden, abstention: abst, coverage: cov, latency: lat, reasons,
+    golden,
+    abstention: abst,
+    coverage: cov,
+    latency: lat,
+    reasons,
   };
 }

@@ -27,7 +27,14 @@
 import { PHI, PHI_INV } from '../core/constants';
 import { createField, type CField } from '../core/complex';
 import { dmag, dpow } from '../core/dmath';
-import { buildRadialBasis, radialAnalyze, radialGrid, radialGridSize, radialLadderWindow, type RadialBasis } from '../spectral/radial';
+import {
+  buildRadialBasis,
+  radialAnalyze,
+  radialGrid,
+  radialGridSize,
+  radialLadderWindow,
+  type RadialBasis,
+} from '../spectral/radial';
 import type { ModeBasis } from '../torus/superposition';
 
 /** Modality tags for the per-node receptor (mirrors sense/encode Modality). */
@@ -120,14 +127,17 @@ export class NodeOrgans {
   private last: OrganReport;
 
   constructor(n: number, modes: number, opts: OrganOptions = {}) {
-    if (!Number.isInteger(n) || n <= 0) throw new RangeError(`NodeOrgans: n must be a positive integer, got ${n}`);
+    if (!Number.isInteger(n) || n <= 0)
+      throw new RangeError(`NodeOrgans: n must be a positive integer, got ${n}`);
     const orders = opts.radialOrders ?? 8;
     if (!Number.isInteger(orders) || orders < 1) {
       throw new RangeError(`NodeOrgans: radialOrders must be a positive integer, got ${orders}`);
     }
     const gain = opts.radialGain ?? 0;
     if (!Number.isFinite(gain) || gain < 0 || gain > RADIAL_GAIN_MAX) {
-      throw new RangeError(`NodeOrgans: radialGain must be in [0, ${RADIAL_GAIN_MAX}], got ${gain}`);
+      throw new RangeError(
+        `NodeOrgans: radialGain must be in [0, ${RADIAL_GAIN_MAX}], got ${gain}`,
+      );
     }
     const stride = opts.stride ?? 1;
     if (!Number.isInteger(stride) || stride < 1) {
@@ -186,9 +196,20 @@ export class NodeOrgans {
 
   /** Exact bytes this bank allocates — feeds the footprint check. */
   bytes(): number {
-    const perNode = 8 /*eigenResidual*/ + 4 /*eigenLead*/ + 8 * this.orders /*radialCoef*/ + 16 /*radialField*/ + 8 /*participation*/ + 8 /*localCoherence*/ + 8 /*senseGain*/ + 1 /*senseModality*/ + 8; /*senseLast*/
+    const perNode =
+      8 /*eigenResidual*/ +
+      4 /*eigenLead*/ +
+      8 * this.orders /*radialCoef*/ +
+      16 /*radialField*/ +
+      8 /*participation*/ +
+      8 /*localCoherence*/ +
+      8 /*senseGain*/ +
+      1 /*senseModality*/ +
+      8; /*senseLast*/
     const basis = this.radialBasis.vectors.length * this.orders * 8 + this.orders * 16;
-    return this.n * perNode + basis + this.ray.byteLength + this.coefRow.byteLength + this.amp.byteLength;
+    return (
+      this.n * perNode + basis + this.ray.byteLength + this.coefRow.byteLength + this.amp.byteLength
+    );
   }
 
   report(): OrganReport {
@@ -347,11 +368,11 @@ export class NodeOrgans {
         this.radialField.im[j] = 0;
       }
       if (av > radPeak) radPeak = av;
-
     }
 
     let receptors = 0;
-    for (let j = 0; j < n; j++) if (this.senseGain[j] > 0 && this.senseModality[j] !== MODALITY_NONE) receptors++;
+    for (let j = 0; j < n; j++)
+      if (this.senseGain[j] > 0 && this.senseModality[j] !== MODALITY_NONE) receptors++;
 
     this.last = {
       age: 0,

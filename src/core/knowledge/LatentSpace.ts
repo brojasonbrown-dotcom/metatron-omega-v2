@@ -43,14 +43,14 @@ export interface LatentBuildReport {
   ms: number;
 }
 
-const CDS_ALPHA = 0.75;   // context distribution smoothing
+const CDS_ALPHA = 0.75; // context distribution smoothing
 const EPS = 1e-12;
 
 /** Deterministic ±1 seed for the iteration block — no RNG anywhere. */
 function seedValue(term: string, axis: number): number {
   const h = fnv1a(`${term}#${axis}`, 0x9e3779b9);
   // map to (-1,1) with a stable, uniform-ish spread
-  return ((h % 2097152) / 1048576) - 1;
+  return (h % 2097152) / 1048576 - 1;
 }
 
 export class LatentSpace {
@@ -63,10 +63,18 @@ export class LatentSpace {
   private built = false;
   private lastReport: LatentBuildReport | null = null;
 
-  get trained(): boolean { return this.built; }
-  get size(): number { return this.terms.length; }
-  get axes(): number { return this.dims; }
-  report(): LatentBuildReport | null { return this.lastReport; }
+  get trained(): boolean {
+    return this.built;
+  }
+  get size(): number {
+    return this.terms.length;
+  }
+  get axes(): number {
+    return this.dims;
+  }
+  report(): LatentBuildReport | null {
+    return this.lastReport;
+  }
 
   /**
    * Build the space from salience-ordered term lists (one per document/chunk).
@@ -86,7 +94,7 @@ export class LatentSpace {
       for (let i = 0; i < k; i++) freq.set(d[i], (freq.get(d[i]) ?? 0) + 1);
     }
     const vocab = [...freq.entries()]
-      .filter(([, c]) => c >= 2)                       // a hapax has no distribution
+      .filter(([, c]) => c >= 2) // a hapax has no distribution
       .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
       .slice(0, V)
       .map(([t]) => t);
@@ -100,7 +108,15 @@ export class LatentSpace {
       this.built = false;
       this.vectors = [];
       this.spectrum = [];
-      this.lastReport = { vocab: n, dims: 0, documents: docs.length, pairs: 0, iters: 0, spectrum: [], ms: Date.now() - t0 };
+      this.lastReport = {
+        vocab: n,
+        dims: 0,
+        documents: docs.length,
+        pairs: 0,
+        iters: 0,
+        spectrum: [],
+        ms: Date.now() - t0,
+      };
       return this.lastReport;
     }
 
@@ -118,13 +134,15 @@ export class LatentSpace {
       }
       for (let i = 0; i < ids.length; i++) {
         for (let j = i + 1; j < ids.length; j++) {
-          const a = ids[i], b = ids[j];
+          const a = ids[i],
+            b = ids[j];
           if (a === b) continue;
           // salience-decayed weight: nearer the head of the list ⇒ heavier
           const w = 1 / Math.sqrt((i + 1) * (j + 1));
           rows[a].set(b, (rows[a].get(b) ?? 0) + w);
           rows[b].set(a, (rows[b].get(a) ?? 0) + w);
-          marginal[a] += w; marginal[b] += w;
+          marginal[a] += w;
+          marginal[b] += w;
           total += 2 * w;
           pairs++;
         }
@@ -132,14 +150,25 @@ export class LatentSpace {
     }
     if (total <= 0) {
       this.built = false;
-      this.lastReport = { vocab: n, dims: 0, documents: docs.length, pairs: 0, iters: 0, spectrum: [], ms: Date.now() - t0 };
+      this.lastReport = {
+        vocab: n,
+        dims: 0,
+        documents: docs.length,
+        pairs: 0,
+        iters: 0,
+        spectrum: [],
+        ms: Date.now() - t0,
+      };
       return this.lastReport;
     }
 
     // ── 3. PPMI with context distribution smoothing ──────────────────────
     let ctxTotal = 0;
     const ctxP = new Float64Array(n);
-    for (let i = 0; i < n; i++) { ctxP[i] = Math.pow(marginal[i], CDS_ALPHA); ctxTotal += ctxP[i]; }
+    for (let i = 0; i < n; i++) {
+      ctxP[i] = Math.pow(marginal[i], CDS_ALPHA);
+      ctxTotal += ctxP[i];
+    }
     for (let i = 0; i < n; i++) ctxP[i] /= ctxTotal || 1;
 
     const ppmi: Array<Map<number, number>> = Array.from({ length: n }, () => new Map());
@@ -186,7 +215,9 @@ export class LatentSpace {
         for (let a = 0; a < K2; a++) lambda[a] += xi[a] * w * xj[a];
       }
     }
-    const order = [...Array(K2).keys()].sort((a, b) => Math.abs(lambda[b]) - Math.abs(lambda[a]) || a - b);
+    const order = [...Array(K2).keys()].sort(
+      (a, b) => Math.abs(lambda[b]) - Math.abs(lambda[a]) || a - b,
+    );
     this.vectors = X.map((row) => {
       const out = new Float64Array(K2);
       for (let a = 0; a < K2; a++) {
@@ -199,7 +230,11 @@ export class LatentSpace {
     this.built = this.spectrum[0] > 0;
 
     this.lastReport = {
-      vocab: n, dims: K2, documents: docs.length, pairs, iters: ITERS,
+      vocab: n,
+      dims: K2,
+      documents: docs.length,
+      pairs,
+      iters: ITERS,
       spectrum: this.spectrum.slice(0, 12).map((v) => Number(v.toFixed(6))),
       ms: Date.now() - t0,
     };
@@ -259,8 +294,13 @@ export class LatentSpace {
   }
 
   clear(): void {
-    this.terms = []; this.index.clear(); this.vectors = [];
-    this.spectrum = []; this.dims = 0; this.built = false; this.lastReport = null;
+    this.terms = [];
+    this.index.clear();
+    this.vectors = [];
+    this.spectrum = [];
+    this.dims = 0;
+    this.built = false;
+    this.lastReport = null;
   }
 }
 

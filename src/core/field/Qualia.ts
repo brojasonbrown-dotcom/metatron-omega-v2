@@ -42,9 +42,21 @@ export interface QualiaVector {
   readonly ignitionRate: number;
 }
 
-const ZERO_Q: QualiaVector = { C: 0, N: 0, S: 0, V: 0, I: 0, Cphi: 0, ignited: false, ignitions: 0, ignitionRate: 0 };
+const ZERO_Q: QualiaVector = {
+  C: 0,
+  N: 0,
+  S: 0,
+  V: 0,
+  I: 0,
+  Cphi: 0,
+  ignited: false,
+  ignitions: 0,
+  ignitionRate: 0,
+};
 
-export function zeroQualia(): QualiaVector { return ZERO_Q; }
+export function zeroQualia(): QualiaVector {
+  return ZERO_Q;
+}
 
 export class QualiaTracker {
   private window: Float64Array | null = null;
@@ -62,17 +74,30 @@ export class QualiaTracker {
   private ignitionMarks: number[] = [];
   private tickIndex = 0;
 
-  constructor(windowSize = 16) { this.windowSize = windowSize; }
+  constructor(windowSize = 16) {
+    this.windowSize = windowSize;
+  }
 
   /** psi: per-mode signed amplitudes; coherence: precomputed C; t1/t3: lattice/closure magnitudes. */
-  compute(psi: Float64Array, coherence: number, term1Magnitude: number, term3Magnitude: number, energy: number): QualiaVector {
+  compute(
+    psi: Float64Array,
+    coherence: number,
+    term1Magnitude: number,
+    term3Magnitude: number,
+    energy: number,
+  ): QualiaVector {
     const M = psi.length;
     if (M === 0) return ZERO_Q;
 
     // rolling mean of |psi|
-    if (!this.window || this.window.length !== M) { this.window = new Float64Array(M); this.windowFill = 0; }
+    if (!this.window || this.window.length !== M) {
+      this.window = new Float64Array(M);
+      this.windowFill = 0;
+    }
     const decay = 1 - 1 / Math.max(2, this.windowSize);
-    let dot = 0; let normPsi = 0; let normMean = 0;
+    let dot = 0;
+    let normPsi = 0;
+    let normMean = 0;
     for (let i = 0; i < M; i++) {
       const a = Math.abs(psi[i]);
       this.window[i] = decay * this.window[i] + (1 - decay) * a;
@@ -86,11 +111,15 @@ export class QualiaTracker {
 
     // salience = ‖∇_k Ψ‖ / ‖Ψ‖
     let gradSq = 0;
-    for (let i = 1; i < M; i++) { const d = psi[i] - psi[i - 1]; gradSq += d * d; }
+    for (let i = 1; i < M; i++) {
+      const d = psi[i] - psi[i - 1];
+      gradSq += d * d;
+    }
     const S = normPsi > 0 ? Math.sqrt(gradSq / normPsi) : 0;
 
     // valence
-    const V = energy > 0 ? Math.max(-1, Math.min(1, (term1Magnitude - term3Magnitude) / energy)) : 0;
+    const V =
+      energy > 0 ? Math.max(-1, Math.min(1, (term1Magnitude - term3Magnitude) / energy)) : 0;
 
     // integration: H_max − H(p)  where p_i = |psi_i|² / ‖Ψ‖²
     let H = 0;
@@ -143,8 +172,12 @@ export class QualiaTracker {
     const past = this.ring[this.ringHead];
     let overlap = 0;
     if (this.ringFill >= GOLDEN_DELAY_TICKS && normPsi > 0) {
-      let d = 0, np = 0;
-      for (let i = 0; i < M; i++) { d += psi[i] * past[i]; np += past[i] * past[i]; }
+      let d = 0,
+        np = 0;
+      for (let i = 0; i < M; i++) {
+        d += psi[i] * past[i];
+        np += past[i] * past[i];
+      }
       if (np > 0) overlap = (d * d) / (normPsi * np);
     }
     past.set(psi);

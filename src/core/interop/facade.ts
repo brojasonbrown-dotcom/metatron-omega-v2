@@ -98,7 +98,10 @@ export function answer(
 ): MetatronAnswer {
   const decision = decideTier(inputs);
   if (Number(decision.trust.slice(1)) < Number(minTrust.slice(1))) {
-    return abstain(inputs, `trust ${decision.trust} below required ${minTrust}: ${decision.refusals.join('; ')}`);
+    return abstain(
+      inputs,
+      `trust ${decision.trust} below required ${minTrust}: ${decision.refusals.join('; ')}`,
+    );
   }
   return {
     version: INTEROP_VERSION,

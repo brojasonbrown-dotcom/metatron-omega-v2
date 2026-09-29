@@ -27,14 +27,17 @@ function probeField(n: number): { re: Float64Array; im: Float64Array } {
   const im = new Float64Array(n);
   for (let i = 0; i < n; i++) {
     const t = (i + 1) / n;
-    re[i] = Math.cos(6.283185307179586 * 1.618033988749895 * t) + 0.5 * Math.cos(6.283185307179586 * 3 * t);
+    re[i] =
+      Math.cos(6.283185307179586 * 1.618033988749895 * t) +
+      0.5 * Math.cos(6.283185307179586 * 3 * t);
     im[i] = Math.sin(6.283185307179586 * 2 * t) * 0.25;
   }
   return { re, im };
 }
 
 function relError(a: Float64Array, b: Float64Array): number {
-  let num = 0, den = 0;
+  let num = 0,
+    den = 0;
   for (let i = 0; i < a.length; i++) {
     const d = a[i] - b[i];
     num += d * d;

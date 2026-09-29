@@ -16,7 +16,13 @@
 import { getOmegaRuntime } from './omegaRuntime';
 import { getMemoryRuntime } from './memoryRuntime';
 import { getKnowledgeRuntime } from './knowledgeRuntime';
-import { summarise, type SelfModule, type SelfRegistry, type SelfTestResult, type SelfTestRun } from '@/core/self/types';
+import {
+  summarise,
+  type SelfModule,
+  type SelfRegistry,
+  type SelfTestResult,
+  type SelfTestRun,
+} from '@/core/self/types';
 import {
   measureGenomeHealth,
   measureMeaning,
@@ -50,8 +56,10 @@ export function buildRegistry(): SelfRegistry {
   modules.push({
     id: 'engine.host',
     title: 'Ω engine host (worker)',
-    purpose: 'Own the multi-torus engine off the main thread and publish snapshots on an adaptive bus.',
-    contract: 'A built engine advances its tick monotonically and every published snapshot is finite.',
+    purpose:
+      'Own the multi-torus engine off the main thread and publish snapshots on an adaptive bus.',
+    contract:
+      'A built engine advances its tick monotonically and every published snapshot is finite.',
     state: !o.supported ? 'absent' : snap ? (o.running ? 'live' : 'dormant') : 'dormant',
     detail: !o.supported
       ? 'Worker unsupported in this browser.'
@@ -103,7 +111,8 @@ export function buildRegistry(): SelfRegistry {
     id: 'engine.spectral',
     title: 'Spectral measurement (eigenmodes / radial transform)',
     purpose: 'Measure the leading eigenmode and radial spectrum of the live field.',
-    contract: 'Reported modes come from an executed power-iteration/Lanczos pass, never a surrogate.',
+    contract:
+      'Reported modes come from an executed power-iteration/Lanczos pass, never a surrogate.',
     state: o.spectral ? 'live' : 'dormant',
     detail: o.spectral ? 'spectral view published' : 'no spectral pass pulled this session',
     source: 'src/ui/omega/omegaRuntime.ts (spectral view)',
@@ -120,7 +129,9 @@ export function buildRegistry(): SelfRegistry {
     purpose: 'Turn engine observations into concepts and score its own predictions each fold.',
     contract: 'Every fold emits exactly one auditable Thought; novelty and surprise stay in [0,1].',
     state: mind ? (mind.thoughts > 0 ? 'live' : 'dormant') : 'dormant',
-    detail: mind ? `${mind.thoughts} thought(s), ${mind.concepts?.size ?? 0} concept slot(s)` : 'no mind report pulled',
+    detail: mind
+      ? `${mind.thoughts} thought(s), ${mind.concepts?.size ?? 0} concept slot(s)`
+      : 'no mind report pulled',
     source: 'packages/trnn-core/src/cognition/mind.ts',
     metrics: [
       { label: 'thoughts', value: num(mind?.thoughts) },
@@ -137,8 +148,15 @@ export function buildRegistry(): SelfRegistry {
     id: 'memory.substrate',
     title: 'Memory substrate (tape, Hebbian, episodic, patterns)',
     purpose: 'Capture the field continuously and consolidate salient episodes into φ-signatures.',
-    contract: 'Identical capture sequences produce identical snapshots; capacities are never exceeded.',
-    state: !ms.enabled ? 'dormant' : ms.status === 'live' ? 'live' : store.tapeTotalWrites > 0 ? 'stale' : 'dormant',
+    contract:
+      'Identical capture sequences produce identical snapshots; capacities are never exceeded.',
+    state: !ms.enabled
+      ? 'dormant'
+      : ms.status === 'live'
+        ? 'live'
+        : store.tapeTotalWrites > 0
+          ? 'stale'
+          : 'dormant',
     detail: `status ${ms.status} (${ms.statusText}), ${ms.drivenTicks} driven tick(s)`,
     source: 'src/core/memory/MemoryStore.ts',
     metrics: [
@@ -196,12 +214,16 @@ export function buildRegistry(): SelfRegistry {
   modules.push({
     id: 'knowledge.genome',
     title: `Vector genome (${GENOME_CONTRACT.version})`,
-    purpose: 'Give every chunk a deterministic vector + φ-barcode identity that recall channels read.',
+    purpose:
+      'Give every chunk a deterministic vector + φ-barcode identity that recall channels read.',
     contract: 'Same text ⇒ same vector, always; cross-modal descriptors survive reload.',
     state: ks.stats.chunks > 0 ? 'live' : 'dormant',
     detail: `dim ${GENOME_CONTRACT.dim}, channels ${GENOME_CONTRACT.channels.join('/')}`,
     source: 'src/core/knowledge/genome.ts',
-    metrics: [{ label: 'dim', value: GENOME_CONTRACT.dim }, { label: 'chunks', value: ks.stats.chunks }],
+    metrics: [
+      { label: 'dim', value: GENOME_CONTRACT.dim },
+      { label: 'chunks', value: ks.stats.chunks },
+    ],
     testable: true,
     cost: 'cheap',
   });
@@ -213,7 +235,9 @@ export function buildRegistry(): SelfRegistry {
     purpose: 'Provide a semantic recall channel beyond surface term overlap.',
     contract: 'Only usable after a build; an unbuilt latent space contributes nothing to recall.',
     state: ks.latent ? 'live' : 'dormant',
-    detail: ks.latent ? `built ${ks.latentAt ? new Date(ks.latentAt).toISOString() : 'unknown'}` : 'never trained this session',
+    detail: ks.latent
+      ? `built ${ks.latentAt ? new Date(ks.latentAt).toISOString() : 'unknown'}`
+      : 'never trained this session',
     source: 'src/core/knowledge/LatentSpace.ts',
     metrics: [{ label: 'built', value: ks.latent ? 'yes' : 'no' }],
     testable: false,
@@ -226,8 +250,10 @@ export function buildRegistry(): SelfRegistry {
     modules.push({
       id: 'knowledge.field',
       title: `Field signatures (${ks.signature ? ks.signature.tier : 'no basis'})`,
-      purpose: 'Bridge stored text to the field: propagate each chunk through the measured Laplacian spectrum and store eigen-ordered coefficients.',
-      contract: 'A chunk without a signature holds a semantic fingerprint only — the FLD channel abstains for it and must never be described as field memory.',
+      purpose:
+        'Bridge stored text to the field: propagate each chunk through the measured Laplacian spectrum and store eigen-ordered coefficients.',
+      contract:
+        'A chunk without a signature holds a semantic fingerprint only — the FLD channel abstains for it and must never be described as field memory.',
       state: ks.signature ? (cov > 0 ? 'live' : 'dormant') : 'dormant',
       detail: ks.signature
         ? `${ks.signature.modes} modes on ${ks.signature.nodes} nodes, residual ${ks.signature.maxResidual.toExponential(1)}, digest ${ks.signature.digest}, coverage ${(cov * 100).toFixed(1)}%`
@@ -292,10 +318,20 @@ function assert(
   const t0 = performance.now();
   try {
     const r = fn();
-    return { id, name, expected, passed: r.passed, measured: r.measured, ms: Math.round(performance.now() - t0) };
+    return {
+      id,
+      name,
+      expected,
+      passed: r.passed,
+      measured: r.measured,
+      ms: Math.round(performance.now() - t0),
+    };
   } catch (e) {
     return {
-      id, name, expected, passed: false,
+      id,
+      name,
+      expected,
+      passed: false,
       measured: `threw: ${e instanceof Error ? e.message : String(e)}`,
       ms: Math.round(performance.now() - t0),
     };
@@ -314,79 +350,149 @@ export function runCheapTests(): SelfTestRun {
   const know = getKnowledgeRuntime();
   const kb = know.kb;
 
-  results.push(assert('engine.field', 'snapshot is finite', 'finite === true when a snapshot exists', () => {
-    const s = o.snapshot;
-    if (!s) return { passed: false, measured: 'no snapshot published' };
-    return { passed: s.finite, measured: `finite=${s.finite}, coherence=${s.coherence}` };
-  }));
+  results.push(
+    assert('engine.field', 'snapshot is finite', 'finite === true when a snapshot exists', () => {
+      const s = o.snapshot;
+      if (!s) return { passed: false, measured: 'no snapshot published' };
+      return { passed: s.finite, measured: `finite=${s.finite}, coherence=${s.coherence}` };
+    }),
+  );
 
-  results.push(assert('engine.field', 'every rung inside its corridor', 'closureDefect ≤ 2 and finite on all rungs', () => {
-    const rungs = o.snapshot?.rungs ?? [];
-    if (!rungs.length) return { passed: false, measured: 'no rungs built' };
-    const bad = rungs.filter((r) => !Number.isFinite(r.closureDefect) || r.closureDefect > 2);
-    return {
-      passed: bad.length === 0,
-      measured: `${rungs.length} rung(s), ${bad.length} out of corridor, worst ${Math.max(...rungs.map((r) => r.closureDefect)).toFixed(5)}`,
-    };
-  }));
+  results.push(
+    assert(
+      'engine.field',
+      'every rung inside its corridor',
+      'closureDefect ≤ 2 and finite on all rungs',
+      () => {
+        const rungs = o.snapshot?.rungs ?? [];
+        if (!rungs.length) return { passed: false, measured: 'no rungs built' };
+        const bad = rungs.filter((r) => !Number.isFinite(r.closureDefect) || r.closureDefect > 2);
+        return {
+          passed: bad.length === 0,
+          measured: `${rungs.length} rung(s), ${bad.length} out of corridor, worst ${Math.max(...rungs.map((r) => r.closureDefect)).toFixed(5)}`,
+        };
+      },
+    ),
+  );
 
-  results.push(assert('engine.field', 'no ordering violations', 'orderingViolations === 0', () => {
-    const s = o.snapshot;
-    if (!s) return { passed: false, measured: 'no snapshot published' };
-    return { passed: s.orderingViolations === 0, measured: `orderingViolations=${s.orderingViolations}` };
-  }));
+  results.push(
+    assert('engine.field', 'no ordering violations', 'orderingViolations === 0', () => {
+      const s = o.snapshot;
+      if (!s) return { passed: false, measured: 'no snapshot published' };
+      return {
+        passed: s.orderingViolations === 0,
+        measured: `orderingViolations=${s.orderingViolations}`,
+      };
+    }),
+  );
 
-  results.push(assert('memory.substrate', 'snapshot round-trips exactly', 'restore(snapshot()) reproduces the same snapshot JSON', () => {
-    const a = JSON.stringify(mem.store.snapshot());
-    mem.store.restore(JSON.parse(a));
-    const b = JSON.stringify(mem.store.snapshot());
-    return { passed: a === b, measured: `${a.length}B vs ${b.length}B, identical=${a === b}` };
-  }));
+  results.push(
+    assert(
+      'memory.substrate',
+      'snapshot round-trips exactly',
+      'restore(snapshot()) reproduces the same snapshot JSON',
+      () => {
+        const a = JSON.stringify(mem.store.snapshot());
+        mem.store.restore(JSON.parse(a));
+        const b = JSON.stringify(mem.store.snapshot());
+        return { passed: a === b, measured: `${a.length}B vs ${b.length}B, identical=${a === b}` };
+      },
+    ),
+  );
 
-  results.push(assert('memory.substrate', 'capacities respected', 'every layer size ≤ its cap', () => {
-    const s = mem.store.stats();
-    const c = mem.store.capacities();
-    const over: string[] = [];
-    if (s.hebbianEntries > c.hebbian) over.push('hebbian');
-    if (s.patternCount > c.patterns) over.push('patterns');
-    if (s.pathwayEdges > c.pathway) over.push('pathway');
-    if (s.journalRecords > c.journal) over.push('journal');
-    if (s.episodes > c.episodes) over.push('episodes');
-    return { passed: over.length === 0, measured: over.length ? `over: ${over.join(', ')}` : 'all layers within cap' };
-  }));
+  results.push(
+    assert('memory.substrate', 'capacities respected', 'every layer size ≤ its cap', () => {
+      const s = mem.store.stats();
+      const c = mem.store.capacities();
+      const over: string[] = [];
+      if (s.hebbianEntries > c.hebbian) over.push('hebbian');
+      if (s.patternCount > c.patterns) over.push('patterns');
+      if (s.pathwayEdges > c.pathway) over.push('pathway');
+      if (s.journalRecords > c.journal) over.push('journal');
+      if (s.episodes > c.episodes) over.push('episodes');
+      return {
+        passed: over.length === 0,
+        measured: over.length ? `over: ${over.join(', ')}` : 'all layers within cap',
+      };
+    }),
+  );
 
-  results.push(assert('knowledge.genome', 'encoder is deterministic', 'same text ⇒ bit-identical vector and barcode', () => {
-    const ok = encoderIsDeterministic();
-    return { passed: ok, measured: `re-encode identical=${ok}` };
-  }));
+  results.push(
+    assert(
+      'knowledge.genome',
+      'encoder is deterministic',
+      'same text ⇒ bit-identical vector and barcode',
+      () => {
+        const ok = encoderIsDeterministic();
+        return { passed: ok, measured: `re-encode identical=${ok}` };
+      },
+    ),
+  );
 
-  results.push(assert('knowledge.genome', 'stored vectors match their text', '0 drifted chunks in the sample', () => {
-    const h = measureGenomeHealth(kb, 64);
-    if (h.sampled === 0) return { passed: false, measured: 'corpus empty — nothing to verify' };
-    return { passed: h.driftedChunks === 0, measured: `${h.driftedChunks} drifted of ${h.sampled} sampled` };
-  }));
+  results.push(
+    assert(
+      'knowledge.genome',
+      'stored vectors match their text',
+      '0 drifted chunks in the sample',
+      () => {
+        const h = measureGenomeHealth(kb, 64);
+        if (h.sampled === 0) return { passed: false, measured: 'corpus empty — nothing to verify' };
+        return {
+          passed: h.driftedChunks === 0,
+          measured: `${h.driftedChunks} drifted of ${h.sampled} sampled`,
+        };
+      },
+    ),
+  );
 
-  results.push(assert('knowledge.genome', 'vector space has not collapsed', 'mean pairwise cosine < 0.9', () => {
-    const h = measureGenomeHealth(kb, 64);
-    if (h.sampled < 2) return { passed: false, measured: 'fewer than 2 chunks — not measurable' };
-    return { passed: h.anisotropy < 0.9, measured: `anisotropy=${h.anisotropy.toFixed(4)}, fill=${h.fill.toFixed(4)}` };
-  }));
+  results.push(
+    assert(
+      'knowledge.genome',
+      'vector space has not collapsed',
+      'mean pairwise cosine < 0.9',
+      () => {
+        const h = measureGenomeHealth(kb, 64);
+        if (h.sampled < 2)
+          return { passed: false, measured: 'fewer than 2 chunks — not measurable' };
+        return {
+          passed: h.anisotropy < 0.9,
+          measured: `anisotropy=${h.anisotropy.toFixed(4)}, fill=${h.fill.toFixed(4)}`,
+        };
+      },
+    ),
+  );
 
-  results.push(assert('knowledge.field', 'field signatures are deterministic', 'same text ⇒ bit-identical signature', () => {
-    const st = kb.signatureState();
-    if (!st.ready) return { passed: false, measured: 'eigenbasis not built — FLD channel abstaining' };
-    const probe = 'metatron omega toroidal closure determinism probe';
-    const a = kb.signatureOf(probe);
-    const b = kb.signatureOf(probe);
-    const ok = signatureEquals(a, b);
-    return { passed: ok, measured: `tier=${st.tier} width=${st.width} identical=${ok} coverage=${st.total ? (st.covered / st.total).toFixed(3) : '0'}` };
-  }));
+  results.push(
+    assert(
+      'knowledge.field',
+      'field signatures are deterministic',
+      'same text ⇒ bit-identical signature',
+      () => {
+        const st = kb.signatureState();
+        if (!st.ready)
+          return { passed: false, measured: 'eigenbasis not built — FLD channel abstaining' };
+        const probe = 'metatron omega toroidal closure determinism probe';
+        const a = kb.signatureOf(probe);
+        const b = kb.signatureOf(probe);
+        const ok = signatureEquals(a, b);
+        return {
+          passed: ok,
+          measured: `tier=${st.tier} width=${st.width} identical=${ok} coverage=${st.total ? (st.covered / st.total).toFixed(3) : '0'}`,
+        };
+      },
+    ),
+  );
 
-  results.push(assert('knowledge.corpus', 'corpus can retrieve itself', 'top-5 self-retrieval ≥ 0.8', () => {
-    const r = measureSelfRetrieval(kb, 8);
-    if (r.probes === 0) return { passed: false, measured: 'corpus empty — nothing to retrieve' };
-    return { passed: r.top5 >= 0.8, measured: `top1=${r.top1.toFixed(3)} top5=${r.top5.toFixed(3)} over ${r.probes} probe(s)` };
-  }));
+  results.push(
+    assert('knowledge.corpus', 'corpus can retrieve itself', 'top-5 self-retrieval ≥ 0.8', () => {
+      const r = measureSelfRetrieval(kb, 8);
+      if (r.probes === 0) return { passed: false, measured: 'corpus empty — nothing to retrieve' };
+      return {
+        passed: r.top5 >= 0.8,
+        measured: `top1=${r.top1.toFixed(3)} top5=${r.top5.toFixed(3)} over ${r.probes} probe(s)`,
+      };
+    }),
+  );
 
   const ms = Math.round(performance.now() - t0);
   return {
@@ -414,8 +520,12 @@ export async function runHeavyTests(): Promise<SelfTestRun> {
     const first = omega.get().snapshot;
     if (!first) {
       return {
-        id: 'engine.host', name: 'replay determinism', expected: 'same seed + same tick ⇒ same digest',
-        passed: false, measured: 'engine not built — cannot replay', ms: Math.round(performance.now() - t),
+        id: 'engine.host',
+        name: 'replay determinism',
+        expected: 'same seed + same tick ⇒ same digest',
+        passed: false,
+        measured: 'engine not built — cannot replay',
+        ms: Math.round(performance.now() - t),
       };
     }
     const seed = omega.get().seed;
@@ -424,21 +534,32 @@ export async function runHeavyTests(): Promise<SelfTestRun> {
     // Wait for the bus to publish a later snapshot, then confirm the digest
     // advanced deterministically rather than freezing or going non-finite.
     const later = await new Promise<typeof first | null>((resolve) => {
-      const timer = setTimeout(() => { off(); resolve(null); }, 2000);
+      const timer = setTimeout(() => {
+        off();
+        resolve(null);
+      }, 2000);
       const off = omega.subscribe(() => {
         const s = omega.get().snapshot;
-        if (s && s.tick > tick) { clearTimeout(timer); off(); resolve(s); }
+        if (s && s.tick > tick) {
+          clearTimeout(timer);
+          off();
+          resolve(s);
+        }
       });
     });
     if (!later) {
       return {
-        id: 'engine.host', name: 'replay determinism', expected: 'engine advances and publishes a later snapshot',
-        passed: false, measured: `no snapshot beyond tick ${tick} within 2000ms (engine likely paused)`,
+        id: 'engine.host',
+        name: 'replay determinism',
+        expected: 'engine advances and publishes a later snapshot',
+        passed: false,
+        measured: `no snapshot beyond tick ${tick} within 2000ms (engine likely paused)`,
         ms: Math.round(performance.now() - t),
       };
     }
     return {
-      id: 'engine.host', name: 'replay determinism',
+      id: 'engine.host',
+      name: 'replay determinism',
       expected: 'digest changes with tick, stays finite, seed unchanged',
       passed: later.finite && later.digest !== digest && omega.get().seed === seed,
       measured: `tick ${tick}→${later.tick}, digest ${digest.slice(0, 12)}→${later.digest.slice(0, 12)}, finite=${later.finite}`,
@@ -461,8 +582,12 @@ export async function runHeavyTests(): Promise<SelfTestRun> {
 
 let lastRun: SelfTestRun | null = null;
 
-export function setLastTestRun(run: SelfTestRun): void { lastRun = run; }
-export function getLastTestRun(): SelfTestRun | null { return lastRun; }
+export function setLastTestRun(run: SelfTestRun): void {
+  lastRun = run;
+}
+export function getLastTestRun(): SelfTestRun | null {
+  return lastRun;
+}
 
 /** Build the pack the chat turn ships to the server. */
 export function buildSelfPack(): SelfPack {
@@ -483,4 +608,3 @@ export function buildSelfPack(): SelfPack {
     map: crossMap(registry),
   };
 }
-

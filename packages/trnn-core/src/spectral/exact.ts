@@ -51,7 +51,7 @@ export const DD_ZERO: DD = { hi: 0, lo: 0 };
 export function twoSum(a: number, b: number): DD {
   const s = a + b;
   const bb = s - a;
-  const err = (a - (s - bb)) + (b - bb);
+  const err = a - (s - bb) + (b - bb);
   return { hi: s, lo: err };
 }
 
@@ -75,7 +75,7 @@ export function twoProduct(a: number, b: number): DD {
   const p = a * b;
   const [ah, al] = split(a);
   const [bh, bl] = split(b);
-  const err = ((ah * bh - p) + ah * bl + al * bh) + al * bl;
+  const err = ah * bh - p + ah * bl + al * bh + al * bl;
   return { hi: p, lo: err };
 }
 
@@ -124,7 +124,8 @@ export function compensatedSum(xs: ArrayLike<number>): number {
 
 /** Compensated Σ aᵢbᵢ — the reduction most exposed to cancellation. */
 export function exactDot(a: ArrayLike<number>, b: ArrayLike<number>): DD {
-  if (a.length !== b.length) throw new RangeError(`exactDot: length mismatch ${a.length} vs ${b.length}`);
+  if (a.length !== b.length)
+    throw new RangeError(`exactDot: length mismatch ${a.length} vs ${b.length}`);
   let acc: DD = DD_ZERO;
   for (let i = 0; i < a.length; i++) acc = ddAdd(acc, twoProduct(a[i], b[i]));
   return acc;

@@ -58,7 +58,11 @@ export function phiStencil(specs: readonly ModeSpec[]): ModeEdge[] {
 }
 
 /** Per-mode energy from split coefficient arrays. */
-export function modeEnergies(re: ArrayLike<number>, im: ArrayLike<number>, k: number): Float64Array {
+export function modeEnergies(
+  re: ArrayLike<number>,
+  im: ArrayLike<number>,
+  k: number,
+): Float64Array {
   const e = new Float64Array(k);
   for (let i = 0; i < k; i++) e[i] = re[i] * re[i] + im[i] * im[i];
   return e;
@@ -79,7 +83,11 @@ export interface ModeCurrentReading {
  * Edge currents from a pair of consecutive per-mode energy vectors.
  * Positive `J_ab` means energy moved from a to b.
  */
-export function edgeCurrent(prev: ArrayLike<number>, curr: ArrayLike<number>, edges: readonly ModeEdge[]): Float64Array {
+export function edgeCurrent(
+  prev: ArrayLike<number>,
+  curr: ArrayLike<number>,
+  edges: readonly ModeEdge[],
+): Float64Array {
   const J = new Float64Array(edges.length);
   for (let e = 0; e < edges.length; e++) {
     const { a, b, d } = edges[e];
@@ -97,7 +105,11 @@ export function edgeCurrent(prev: ArrayLike<number>, curr: ArrayLike<number>, ed
  * a 12×12 solve — deterministic, allocation-bounded and far cheaper than the
  * FFT that produced the coefficients.
  */
-export function hodgeSplit(J: ArrayLike<number>, edges: readonly ModeEdge[], nodes: number): ModeCurrentReading {
+export function hodgeSplit(
+  J: ArrayLike<number>,
+  edges: readonly ModeEdge[],
+  nodes: number,
+): ModeCurrentReading {
   const m = edges.length;
   let total = 0;
   for (let e = 0; e < m; e++) total += J[e] * J[e];

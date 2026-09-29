@@ -19,12 +19,13 @@ function toNumbers(v: unknown): number[] {
   if (typeof v === 'object') {
     const rec = v as Record<string, unknown>;
     // Array-like ({ length, 0, 1, ... }) or JSON-rendered typed array ({ "0": … }).
-    const len = typeof rec['length'] === 'number'
-      ? (rec['length'] as number)
-      : Object.keys(rec).reduce((m, k) => {
-          const i = Number(k);
-          return Number.isInteger(i) && i >= 0 ? Math.max(m, i + 1) : m;
-        }, 0);
+    const len =
+      typeof rec['length'] === 'number'
+        ? (rec['length'] as number)
+        : Object.keys(rec).reduce((m, k) => {
+            const i = Number(k);
+            return Number.isInteger(i) && i >= 0 ? Math.max(m, i + 1) : m;
+          }, 0);
     const out = new Array<number>(len);
     for (let i = 0; i < len; i++) {
       const x = rec[String(i)];

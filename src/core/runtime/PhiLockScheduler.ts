@@ -55,7 +55,9 @@ export class PhiLockScheduler {
     });
   }
 
-  unregister(name: string): void { this.jobs.delete(name); }
+  unregister(name: string): void {
+    this.jobs.delete(name);
+  }
 
   /** Per-tick global salience (set by capture kernel before run). */
   setSalience(name: string, salience: number): void {
@@ -78,7 +80,11 @@ export class PhiLockScheduler {
     eligible.sort((a, b) => b.priority - a.priority);
     const fired: PhiFiring[] = [];
     for (const e of eligible) {
-      try { e.job.run(now); } catch { /* swallow — scheduler stays alive */ }
+      try {
+        e.job.run(now);
+      } catch {
+        /* swallow — scheduler stays alive */
+      }
       e.job.lastRun = now;
       e.job.fires++;
       const f: PhiFiring = { tick: now, name: e.job.name, priority: e.priority, dt: e.dt };
@@ -89,15 +95,33 @@ export class PhiLockScheduler {
     return fired;
   }
 
-  recentLog(n = 32): PhiFiring[] { return this.log.slice(-n).reverse(); }
+  recentLog(n = 32): PhiFiring[] {
+    return this.log.slice(-n).reverse();
+  }
 
   stats() {
-    const out: Array<{ name: string; depth: number; period: number; fires: number; lastRun: number }> = [];
+    const out: Array<{
+      name: string;
+      depth: number;
+      period: number;
+      fires: number;
+      lastRun: number;
+    }> = [];
     for (const j of this.jobs.values()) {
-      out.push({ name: j.name, depth: j.depth, period: j.periodTicks, fires: j.fires, lastRun: j.lastRun });
+      out.push({
+        name: j.name,
+        depth: j.depth,
+        period: j.periodTicks,
+        fires: j.fires,
+        lastRun: j.lastRun,
+      });
     }
     return { tick: this.lastTick, jobs: out };
   }
 
-  clear(): void { this.jobs.clear(); this.log = []; this.lastTick = 0; }
+  clear(): void {
+    this.jobs.clear();
+    this.log = [];
+    this.lastTick = 0;
+  }
 }

@@ -17,11 +17,21 @@ export const Route = createFileRoute('/api/transcribe')({
     handlers: {
       POST: async ({ request }) => {
         const key = process.env.LOVABLE_API_KEY;
-        if (!key) return Response.json({ error: 'Speech service is not configured.' }, { status: 500 });
+        if (!key)
+          return Response.json({ error: 'Speech service is not configured.' }, { status: 500 });
         let form: FormData;
-        try { form = await request.formData(); } catch { return Response.json({ error: 'Expected audio upload.' }, { status: 400 }); }
+        try {
+          form = await request.formData();
+        } catch {
+          return Response.json({ error: 'Expected audio upload.' }, { status: 400 });
+        }
         const file = form.get('file');
-        if (!(file instanceof File) || !file.size || file.size > MAX_BYTES || !file.type.startsWith('audio/')) {
+        if (
+          !(file instanceof File) ||
+          !file.size ||
+          file.size > MAX_BYTES ||
+          !file.type.startsWith('audio/')
+        ) {
           return Response.json({ error: 'Invalid audio chunk.' }, { status: 400 });
         }
         const out = new FormData();
@@ -38,7 +48,11 @@ export const Route = createFileRoute('/api/transcribe')({
           const body = await res.text();
           console.error(`transcribe failed [${res.status}]: ${body}`);
           let message = 'Transcription failed.';
-          try { message = JSON.parse(body)?.error?.message ?? JSON.parse(body)?.message ?? message; } catch { /* keep */ }
+          try {
+            message = JSON.parse(body)?.error?.message ?? JSON.parse(body)?.message ?? message;
+          } catch {
+            /* keep */
+          }
           return Response.json({ error: message }, { status: res.status });
         }
         const data = (await res.json()) as { text?: string };

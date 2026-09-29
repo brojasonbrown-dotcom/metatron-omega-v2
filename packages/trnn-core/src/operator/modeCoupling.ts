@@ -60,8 +60,10 @@ export class ModeCoupling {
   private readonly pairs: { a: number; b: number; slot: number }[] = [];
 
   constructor(modes: number, rhoC = COUPLING_RHO_MAX) {
-    if (!Number.isInteger(modes) || modes <= 0) throw new RangeError(`ModeCoupling: modes must be a positive integer, got ${modes}`);
-    if (!(rhoC > 0) || !(rhoC < 1)) throw new RangeError(`ModeCoupling: rhoC must lie in (0,1), got ${rhoC}`);
+    if (!Number.isInteger(modes) || modes <= 0)
+      throw new RangeError(`ModeCoupling: modes must be a positive integer, got ${modes}`);
+    if (!(rhoC > 0) || !(rhoC < 1))
+      throw new RangeError(`ModeCoupling: rhoC must lie in (0,1), got ${rhoC}`);
     this.modes = modes;
     this.rhoC = rhoC;
     let slot = 0;
@@ -129,10 +131,18 @@ export class ModeCoupling {
    * Add g·C·c into (outRe,outIm). At `gate === 0` this returns immediately and
    * touches nothing — the byte-identical default path.
    */
-  apply(cRe: ArrayLike<number>, cIm: ArrayLike<number>, outRe: Float64Array, outIm: Float64Array, gate: number): void {
+  apply(
+    cRe: ArrayLike<number>,
+    cIm: ArrayLike<number>,
+    outRe: Float64Array,
+    outIm: Float64Array,
+    gate: number,
+  ): void {
     if (gate === 0) return;
     if (outRe.length < this.modes || outIm.length < this.modes) {
-      throw new RangeError(`ModeCoupling.apply: output shorter than the mode ladder (${this.modes})`);
+      throw new RangeError(
+        `ModeCoupling.apply: output shorter than the mode ladder (${this.modes})`,
+      );
     }
     for (let i = 0; i < this.pairs.length; i++) {
       const { a, b } = this.pairs[i];

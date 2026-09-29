@@ -22,8 +22,8 @@ export interface TreeHead {
 }
 
 export interface SignedTreeHead extends TreeHead {
-  readonly signature: string;   // base64
-  readonly publicKey: string;   // base64
+  readonly signature: string; // base64
+  readonly publicKey: string; // base64
 }
 
 export interface LogKeyPair {
@@ -39,12 +39,14 @@ export function keyPairFromSeed(seed: Uint8Array): LogKeyPair {
 }
 
 export function headBytes(head: TreeHead): Uint8Array {
-  return utf8(canonicalJson({
-    logId: head.logId,
-    size: head.size,
-    rootHex: head.rootHex,
-    timestamp: head.timestamp,
-  }));
+  return utf8(
+    canonicalJson({
+      logId: head.logId,
+      size: head.size,
+      rootHex: head.rootHex,
+      timestamp: head.timestamp,
+    }),
+  );
 }
 
 export function signTreeHead(head: TreeHead, keys: LogKeyPair): SignedTreeHead {

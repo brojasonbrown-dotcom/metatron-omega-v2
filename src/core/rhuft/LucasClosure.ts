@@ -35,8 +35,8 @@ export const CLOSURE_MODULUS = 13;
 export const LUCAS_MOD13_PERIOD = 28;
 
 /** φ and its conjugate ψ, to full float64 precision. */
-export const PHI_EXACT = 1.618033988749894848204586834365638117720;
-export const PSI_EXACT = -0.618033988749894848204586834365638117720;
+export const PHI_EXACT = 1.61803398874989484820458683436563811772;
+export const PSI_EXACT = -0.61803398874989484820458683436563811772;
 
 // ───────────────────────── exact integer sequences ─────────────────────────
 
@@ -45,14 +45,16 @@ const _fib: bigint[] = [0n, 1n];
 
 /** Exact Lucas number Lₙ (n ≥ 0). Memoized, BigInt — never lossy. */
 export function lucas(n: number): bigint {
-  if (!Number.isInteger(n) || n < 0) throw new RangeError(`lucas: n=${n} must be a non-negative integer`);
+  if (!Number.isInteger(n) || n < 0)
+    throw new RangeError(`lucas: n=${n} must be a non-negative integer`);
   while (_lucas.length <= n) _lucas.push(_lucas[_lucas.length - 1] + _lucas[_lucas.length - 2]);
   return _lucas[n];
 }
 
 /** Exact Fibonacci number Fₙ (n ≥ 0). Memoized, BigInt. */
 export function fib(n: number): bigint {
-  if (!Number.isInteger(n) || n < 0) throw new RangeError(`fib: n=${n} must be a non-negative integer`);
+  if (!Number.isInteger(n) || n < 0)
+    throw new RangeError(`fib: n=${n} must be a non-negative integer`);
   while (_fib.length <= n) _fib.push(_fib[_fib.length - 1] + _fib[_fib.length - 2]);
   return _fib[n];
 }
@@ -165,19 +167,28 @@ export function proveClosure(): ClosureProof {
   for (let n = 0; n < LUCAS_MOD13_PERIOD * 2; n++) {
     const a = Number(lucas(n) % 13n);
     const b = Number(lucas(n + LUCAS_MOD13_PERIOD) % 13n);
-    if (a !== b) { periodConfirmed = false; break; }
+    if (a !== b) {
+      periodConfirmed = false;
+      break;
+    }
   }
   // no zero in the cycle ⇒ 13 never divides a Lucas number
   let noZeroResidue = true;
   for (let n = 0; n < LUCAS_MOD13_PERIOD; n++) {
-    if (Number(lucas(n) % 13n) === 0) { noZeroResidue = false; break; }
+    if (Number(lucas(n) % 13n) === 0) {
+      noZeroResidue = false;
+      break;
+    }
   }
   // stable set is exactly n ≡ 1, 13, 15, 27 (mod 28)
   let stableCongruence = true;
   for (let n = 0; n < LUCAS_MOD13_PERIOD * 4; n++) {
     const m = n % LUCAS_MOD13_PERIOD;
     const expected = m === 1 || m === 13 || m === 15 || m === 27;
-    if (isLucasStable(n) !== expected) { stableCongruence = false; break; }
+    if (isLucasStable(n) !== expected) {
+      stableCongruence = false;
+      break;
+    }
   }
   const flux13Exact = Math.abs(validatorFlux(13) - 3.6840146919005873e-6) < 1e-20;
 
@@ -187,7 +198,8 @@ export function proveClosure(): ClosureProof {
     stableCongruence,
     flux13Exact,
     l13: lucas(13).toString(),
-    valid: periodConfirmed && noZeroResidue && stableCongruence && flux13Exact && lucas(13) === 521n,
+    valid:
+      periodConfirmed && noZeroResidue && stableCongruence && flux13Exact && lucas(13) === 521n,
   };
 }
 
