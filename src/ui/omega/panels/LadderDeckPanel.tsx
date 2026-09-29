@@ -39,7 +39,7 @@ export default function LadderDeckPanel() {
   useOmegaDescribe(Boolean(s.snapshot));
 
   const rungs = s.description?.rungs ?? [];
-  const maxTau = useMemo(() => Math.max(1e-12, ...rungs.map((r) => Math.abs(r.logTau))), [rungs]);
+  const maxTau = Math.max(1e-12, ...rungs.map((r) => Math.abs(r.logTau)));
 
   if (!s.snapshot) {
     return (

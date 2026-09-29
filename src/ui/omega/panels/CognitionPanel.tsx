@@ -243,11 +243,14 @@ function CorpusDeck() {
   const s = useSyncExternalStore(rt.subscribe, rt.getStats, rt.getStats);
   const [field, setField] = useState<string>('');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- version invalidates the mutable-store read
   const fields = useMemo(() => rt.kb.fields(), [rt, s.version]);
   const docs = useMemo(
     () => rt.kb.documents(field || undefined).slice(0, 300),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- version invalidates the mutable-store read
     [rt, field, s.version],
   );
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- version invalidates the mutable-store read
   const concepts = useMemo(() => rt.kb.concepts.top(28), [rt, s.version]);
 
   return (

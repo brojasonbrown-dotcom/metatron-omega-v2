@@ -36,5 +36,10 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
     },
   },
+  {
+    // Third-party HTTP payloads are untyped at this boundary; per-tool zod schemas are tracked in roadmap.md.
+    files: ['src/lib/chat/tools/intel.server.ts'],
+    rules: { '@typescript-eslint/no-explicit-any': 'off' },
+  },
   eslintPluginPrettier,
 );

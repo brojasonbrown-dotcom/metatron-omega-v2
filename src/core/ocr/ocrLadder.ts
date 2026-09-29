@@ -66,7 +66,10 @@ export function setPreferredOrder(order: OcrTierId[]): void {
 
 // ── browser tier (Tesseract WASM, dynamically imported) ───────────────────
 interface TesseractModule {
-  recognize?: (image: string, lang: string) => Promise<{ data: { text: string; confidence: number } }>;
+  recognize?: (
+    image: string,
+    lang: string,
+  ) => Promise<{ data: { text: string; confidence: number } }>;
 }
 let tesseractMod: TesseractModule | null = null;
 let tesseractTried = false;

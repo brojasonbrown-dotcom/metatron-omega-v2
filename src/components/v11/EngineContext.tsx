@@ -92,6 +92,7 @@ export function EngineProvider({ value, children }: { value: EngineCtx; children
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook is co-located with its provider by design
 export function useEngine(): EngineCtx {
   const v = useContext(Ctx);
   if (!v) throw new Error('useEngine must be used inside <EngineProvider>');
@@ -102,6 +103,7 @@ export function useEngine(): EngineCtx {
  * Zero-re-render accessor. The returned object is referentially stable;
  * read `.current` inside event handlers for the freshest engine state.
  */
+// eslint-disable-next-line react-refresh/only-export-components -- hook is co-located with its provider by design
 export function useEngineRef(): { readonly current: EngineCtx } {
   const v = useContext(RefCtx);
   if (!v) throw new Error('useEngineRef must be used inside <EngineProvider>');

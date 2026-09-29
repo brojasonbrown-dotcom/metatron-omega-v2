@@ -75,6 +75,7 @@ export function ActivityMap() {
 function Inspector({ word }: { word: string }) {
   const rt = getMemoryRuntime();
   const v = useMemoryVersion();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- version invalidates the mutable-store read
   const info = useMemo(() => rt.inspectWord(word), [rt, word, v]);
   return (
     <section className="rounded border border-primary/40 p-2 space-y-1">

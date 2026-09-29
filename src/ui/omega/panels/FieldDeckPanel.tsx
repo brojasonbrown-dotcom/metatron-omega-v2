@@ -51,7 +51,7 @@ export default function FieldDeckPanel() {
   }, [drawStrip]);
 
   const sig = frame?.signature ?? [];
-  const sigMax = useMemo(() => Math.max(1e-12, ...sig), [sig]);
+  const sigMax = Math.max(1e-12, ...sig);
 
   return (
     <div className="h-full overflow-auto p-2 space-y-2">

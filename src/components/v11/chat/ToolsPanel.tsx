@@ -415,6 +415,7 @@ function ChatTab() {
     }
   }, [
     input,
+    setInput,
     streaming,
     model,
     engineRef,
