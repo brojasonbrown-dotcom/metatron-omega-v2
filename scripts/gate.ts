@@ -35,7 +35,13 @@ run('lint', 'bunx', ['eslint', '.']);
 run('typecheck', 'bunx', ['tsgo', '--noEmit']);
 
 rmSync(REPORT, { force: true });
-run('test', 'bunx', ['vitest', 'run', '--reporter=default', '--reporter=json', `--outputFile=${REPORT}`]);
+run('test', 'bunx', [
+  'vitest',
+  'run',
+  '--reporter=default',
+  '--reporter=json',
+  `--outputFile=${REPORT}`,
+]);
 const rep = JSON.parse(readFileSync(REPORT, 'utf8')) as {
   numTotalTests: number;
   numPassedTests: number;
@@ -44,16 +50,24 @@ const rep = JSON.parse(readFileSync(REPORT, 'utf8')) as {
 };
 if (rep.numFailedTests > 0) fail('test', `${rep.numFailedTests} failed`);
 if (rep.numPassedTests < expected) {
-  fail('test-count', `passed=${rep.numPassedTests} < expected=${expected}; lower the marker in ${BASELINE} with a reason`);
+  fail(
+    'test-count',
+    `passed=${rep.numPassedTests} < expected=${expected}; lower the marker in ${BASELINE} with a reason`,
+  );
 }
 
 run('build', 'bunx', ['vite', 'build']);
 
 if (existsSync(BUILD_LOG)) {
-  const entries = readFileSync(BUILD_LOG, 'utf8').trim().split(/\n(?=\[?\d{4}-\d{2}-\d{2})/);
+  const entries = readFileSync(BUILD_LOG, 'utf8')
+    .trim()
+    .split(/\n(?=\[?\d{4}-\d{2}-\d{2})/);
   const last = entries[entries.length - 1] ?? '';
   if (last && !/build OK/i.test(last)) fail('build-log', `latest entry is not "build OK"`);
 }
 
-const grew = rep.numPassedTests > expected ? `  (+${rep.numPassedTests - expected}; raise marker)` : '';
-console.log(`GATE GREEN  lint 0 · tsgo 0 · tests ${rep.numPassedTests}/${rep.numTotalTests} (expected ≥${expected})${grew} · build OK`);
+const grew =
+  rep.numPassedTests > expected ? `  (+${rep.numPassedTests - expected}; raise marker)` : '';
+console.log(
+  `GATE GREEN  lint 0 · tsgo 0 · tests ${rep.numPassedTests}/${rep.numTotalTests} (expected ≥${expected})${grew} · build OK`,
+);
