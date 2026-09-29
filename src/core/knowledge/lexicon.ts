@@ -498,11 +498,6 @@ export class SoundWordMap {
     return this.lastTrial;
   }
 
-  /** Scored trials so far (the first trial is learn-only and never scored). */
-  get scored(): number { return this.hits1 + (this.recentMissesTotal()); }
-  private missesTotal = 0;
-  private recentMissesTotal(): number { return this.missesTotal; }
-
   stats() {
     const n = this.recent.length;
     const recentAcc = n > 0 ? this.recent.reduce((s, x) => s + x, 0) / n : 0;
