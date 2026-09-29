@@ -43,6 +43,8 @@ export interface MemoryRecall {
   trajectory: TrajectorySummary;
 }
 
+import { LexiconMemory } from '@/core/knowledge/lexicon';
+
 export interface MemorySnapshot {
   hebbian: HebbianSnapshot;
   patterns: PatternSignature[];
@@ -75,11 +77,34 @@ export class MemoryStore {
   readonly percepts = new PerceptRegistry(1024);         // L-S+ named recognition
   readonly visionField = new VisionFieldIndex();         // L-V bidirectional image↔field cosine index
   readonly kernel: MemoryCaptureKernel;
+  /** Ω-LEXICON — learned word meaning vectors (spelling ⊕ context). */
+  readonly lexicon = new LexiconMemory();
+  /** Words heard/read since the last memory tick; drained losslessly. */
+  private readonly wordQueue: { text: string; at: number }[] = [];
+  /** Scalar witness-coherence path the grounded predicates read. */
+  readonly coherencePath: number[] = [];
+  /** Last field → words transcription, null when nothing fired. */
+  lastDescription: string | null = null;
+  /** Word-rate counters: every enqueued token is either injected or still queued. */
+  wordsEnqueued = 0;
+  wordsInjected = 0;
   private lastHash: string | null = null;
 
   constructor() {
     this.reflective = new ReflectiveIndex(this.episodic);
     this.kernel = new MemoryCaptureKernel(this);
+  }
+
+  /** Enqueue an utterance at word rate; it is consumed by the next tick. */
+  hear(text: string, at = Date.now()): void {
+    if (!text || !text.trim()) return;
+    this.wordQueue.push({ text, at });
+    this.wordsEnqueued += text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).length;
+  }
+
+  /** Drain every queued utterance in arrival order. */
+  drainWords(): { text: string; at: number }[] {
+    return this.wordQueue.splice(0, this.wordQueue.length);
   }
 
   /** Modern capture entry — drives every layer through the PhiLock scheduler. */

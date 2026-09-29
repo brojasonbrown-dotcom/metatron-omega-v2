@@ -11,9 +11,11 @@ import { getMemoryRuntime } from "../memoryRuntime";
 import { useMemorySelector, useMemoryVersion } from "../useMemoryRuntime";
 import { densify } from "@/core/memory/PatternBitmapIndex";
 import { MERGE_THRESHOLD, zeckAddress, fingerprint } from "@/core/gematria";
+import { groundingStats } from "@/core/knowledge/lexicon";
 
-type Section = "substrate" | "patterns" | "episodes" | "percepts" | "pathways" | "journal" | "recall" | "corpus" | "capacity";
+type Section = "words" | "substrate" | "patterns" | "episodes" | "percepts" | "pathways" | "journal" | "recall" | "corpus" | "capacity";
 const SECTIONS: { id: Section; label: string }[] = [
+  { id: "words", label: "WORDS" },
   { id: "substrate", label: "SUBSTRATE" },
   { id: "patterns", label: "PATTERNS" },
   { id: "episodes", label: "EPISODES" },
@@ -77,6 +79,7 @@ export default function MemoryDeckPanel() {
         <Stat label="attractors merged" value={String(head.merged)} />
         <Stat label="merge floor" value={fmt(MERGE_THRESHOLD, 4)} />
       </div>
+      <WordsStrip />
 
       <nav className="flex flex-wrap gap-1">
         {SECTIONS.map((s) => (
@@ -573,5 +576,58 @@ function Recall() {
         </table>
       )}
     </div>
+  );
+}
+
+function WordsStrip() {
+  const rt = getMemoryRuntime();
+  useMemoryVersion();
+  const st = rt.lexiconStats();
+  const [draft, setDraft] = useState("");
+  const [probe, setProbe] = useState("");
+  const recall = useMemo(() => {
+    const w = probe.trim();
+    if (!w) return null;
+    return rt.recallWord(w);
+  }, [probe, rt, st.tokens]);
+  const grounding = useMemo(() => groundingStats(), []);
+  return (
+    <section className="rounded border border-border/60 p-2 space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-display text-[10px] tracking-[0.28em] text-primary">WORDS</span>
+        <button
+          onClick={() => void rt.setListening(st.hearing !== "listening")}
+          className="px-2 py-0.5 rounded border border-border/60 text-[10px] tracking-wider"
+        >
+          {st.hearing === "listening" ? "STOP LISTENING" : "LISTEN"}
+        </button>
+        <span className="text-muted-foreground">{st.hearing}</span>
+        {st.lastHeard && <span className="text-muted-foreground truncate">heard: “{st.lastHeard}”</span>}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <Stat label="words known" value={String(st.words)} />
+        <Stat label="tokens learned" value={String(st.tokens)} />
+        <Stat label="queued → placed" value={`${st.enqueued} → ${st.injected}`} />
+        <Stat label="grounded words" value={`${grounding.grounded}/${grounding.entries}`} />
+        <Stat label="field says" value={st.description ?? "—"} />
+      </div>
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => { e.preventDefault(); if (draft.trim()) { rt.hear(draft); setDraft(""); } }}
+      >
+        <input value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="Type a sentence for the brain to read"
+          className="flex-1 rounded border border-border/60 bg-background px-2 py-1" />
+        <button className="px-2 py-1 rounded border border-primary/60 text-primary text-[10px]">READ</button>
+      </form>
+      <div className="flex gap-2 items-center">
+        <input value={probe} onChange={(e) => setProbe(e.target.value)} placeholder="Recall a word"
+          className="flex-1 rounded border border-border/60 bg-background px-2 py-1" />
+        {recall && (
+          <span className="text-muted-foreground tabular-nums">
+            {recall.hits.map((h) => `${h.word} ${h.score.toFixed(2)}`).join(" · ")} · β={recall.beta.toFixed(1)} · {recall.crisp ? "crisp" : "blend"}
+          </span>
+        )}
+      </div>
+    </section>
   );
 }

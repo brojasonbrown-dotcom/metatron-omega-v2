@@ -209,6 +209,83 @@ class MemoryRuntime {
     return result;
   }
 
+  // ── Ω-LEXICON: hearing and reading words ───────────────────────────────
+  private recorder: MediaRecorder | null = null;
+  private micStream: MediaStream | null = null;
+  hearingStatus = 'off';
+  lastHeard = '';
+
+  /** Feed read/typed words into the field at word rate. */
+  hear(text: string): void {
+    this.store.hear(text);
+    this.bump();
+  }
+
+  recallWord(w: string) {
+    const lex = this.store.lexicon;
+    return lex.recall(lex.signature(w), 5);
+  }
+
+  lexiconStats() {
+    const s = this.store;
+    return {
+      words: s.lexicon.size,
+      tokens: s.lexicon.tokens,
+      enqueued: s.wordsEnqueued,
+      injected: s.wordsInjected,
+      description: s.lastDescription,
+      hearing: this.hearingStatus,
+      lastHeard: this.lastHeard,
+    };
+  }
+
+  /** Start/stop the microphone teacher: 4 s chunks → speech-to-text → hear(). */
+  async setListening(on: boolean): Promise<void> {
+    if (!on) {
+      this.recorder?.stop();
+      this.micStream?.getTracks().forEach((t) => t.stop());
+      this.recorder = null; this.micStream = null;
+      this.hearingStatus = 'off'; this.bump();
+      return;
+    }
+    if (this.recorder || typeof navigator === 'undefined' || !navigator.mediaDevices) return;
+    try {
+      this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      this.hearingStatus = 'microphone blocked'; this.bump();
+      return;
+    }
+    const startChunk = () => {
+      if (!this.micStream) return;
+      const rec = new MediaRecorder(this.micStream);
+      this.recorder = rec;
+      rec.ondataavailable = async (e) => {
+        if (!e.data.size) return;
+        const form = new FormData();
+        form.append('file', new File([e.data], 'chunk.webm', { type: e.data.type || 'audio/webm' }));
+        try {
+          const res = await fetch('/api/transcribe', { method: 'POST', body: form });
+          const body = (await res.json()) as { text?: string; error?: string };
+          if (!res.ok) {
+            // 402/403 are terminal: stop listening and show why.
+            this.hearingStatus = body.error ?? `error ${res.status}`;
+            if (res.status === 402 || res.status === 403 || res.status === 401) void this.setListening(false).then(() => { this.hearingStatus = body.error ?? 'stopped'; this.bump(); });
+          } else if (body.text) {
+            this.lastHeard = body.text;
+            this.store.hear(body.text);
+            this.hearingStatus = 'listening';
+          }
+        } catch { this.hearingStatus = 'network error'; }
+        this.bump();
+      };
+      rec.onstop = () => { if (this.recorder === rec && this.micStream) startChunk(); };
+      rec.start();
+      setTimeout(() => { if (rec.state === 'recording') rec.stop(); }, 4000);
+    };
+    this.hearingStatus = 'listening'; this.bump();
+    startChunk();
+  }
+
   // ── persistence ────────────────────────────────────────────────────────
   async save(): Promise<void> {
     this.status = 'saving'; this.statusText = 'saving…'; this.bump();

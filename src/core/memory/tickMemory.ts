@@ -23,7 +23,8 @@ import { isFibonacciTick } from './FibonacciPatterns';
 import { computeQualiaCorrelate, type QualiaCorrelateMeasurement } from '@/core/field/QualiaCorrelate';
 import { qualiaScalar as reflectQualiaScalar } from '@/core/field/Reflect';
 import { PHI, PHI_INV } from '@/core/constants/WolframVerified';
-import { injectTextPsi, type TextInjection } from '@/core/gematria/lexeme';
+import { injectTextPsi, lexemeTokens, type TextInjection } from '@/core/gematria/lexeme';
+import { describeField } from '@/core/knowledge/lexicon';
 
 /**
  * Legacy flat 18-vector projection. Kept for parity tests / external callers.
@@ -214,7 +215,28 @@ export function tickMemory(
   // fabricates closure or coherence. Consequence: L1 Hebbian co-activation
   // now runs across (word, sound, image) simultaneously in one activation
   // vector, and L3/bitmap recall retrieves language by field resonance.
-  const textInjection = text && text.length > 0 ? injectTextPsi(psi, text) : null;
+  //
+  // Ω-LEXICON L1: words queued at word rate (store.hear) are drained here in
+  // full — every token of every utterance since the last tick is injected, so
+  // 20 words/s against a ~2 Hz tick loses nothing. Each utterance is also
+  // learned into the lexicon's context vectors, with learning gain set by
+  // how unfamiliar it is (predictive-coding: novel pairings teach faster).
+  const utterances = store.drainWords().map((u) => u.text);
+  if (text && text.length > 0) utterances.push(text);
+  let textInjection: TextInjection | null = null;
+  for (const u of utterances) {
+    const inj = injectTextPsi(psi, u);
+    store.wordsInjected += inj.tokens;
+    const toks = lexemeTokens(u);
+    let unfamiliar = 0;
+    for (const t of toks) if (store.lexicon.count(t) === 0) unfamiliar++;
+    store.lexicon.learn(toks, toks.length ? 0.25 + 0.75 * (unfamiliar / toks.length) : 0);
+    textInjection = textInjection
+      ? { tokens: textInjection.tokens + inj.tokens, inexact: textInjection.inexact + inj.inexact,
+          norm: Math.hypot(textInjection.norm, inj.norm), address: inj.address }
+      : inj;
+  }
+  const allText = utterances.length ? utterances.join(' ') : text;
 
   // Canonical qualia correlate on the post-injection Ψ. Pure derivation —
   // safe to compute every tick. The reflect scalar blends C/I/N/S/V to
@@ -233,13 +255,24 @@ export function tickMemory(
     I: correlate.Q,                  // integration ≈ overall Q
   });
 
+  // Ω-LEXICON L6: the grounded predicates read the witness-coherence path;
+  // when one fires, the field's state is transcribed back into words and
+  // those words are learned too — algorithm → word closes the loop.
+  store.coherencePath.push(witnessC);
+  if (store.coherencePath.length > 21) store.coherencePath.shift();
+  const recalledWord = store.lexicon.size > 0 && utterances.length > 0
+    ? lexemeTokens(utterances[utterances.length - 1]).at(-1) ?? null
+    : null;
+  const desc = describeField({ x: store.coherencePath }, recalledWord ? [recalledWord] : []);
+  store.lastDescription = desc ? desc.text : null;
+
   const m = store.capture({
     tick,
     psi,
     qualiaScalar: q,
     coherence: witnessC,
     energy: out.torusClosure,
-    text,
+    text: allText,
     forceReason: isFibonacciTick(tick) ? 'fibonacci' : undefined,
   });
   return {

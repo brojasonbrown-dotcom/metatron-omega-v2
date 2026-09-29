@@ -96,3 +96,5 @@ Notebook 2 governs the admission test, Notebook 3 the sensor→rung binding,
 Notebook 4 what turns a rung off.
 
 - [ ] Ω-LEXICON plan: full memory/recall/learning wiring review (store, recall, save, word↔pattern↔function binding)
+
+- [x] Ω-LEXICON L0–L7 implemented (hearing route, word queue, lexicon memory, calibrated β, grounded catalog, sentence binding, field→words, tests)
