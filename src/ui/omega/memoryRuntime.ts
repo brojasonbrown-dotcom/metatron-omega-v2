@@ -221,6 +221,11 @@ class MemoryRuntime {
     this.bump();
   }
 
+  recallWord(w: string) {
+    const lex = this.store.lexicon;
+    return lex.recall(lex.signature(w), 5);
+  }
+
   lexiconStats() {
     const s = this.store;
     return {

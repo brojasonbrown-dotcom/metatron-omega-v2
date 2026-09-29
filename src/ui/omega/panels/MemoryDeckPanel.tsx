@@ -588,8 +588,7 @@ function WordsStrip() {
   const recall = useMemo(() => {
     const w = probe.trim();
     if (!w) return null;
-    const lex = rt.getStats().store.lexicon;
-    return lex.recall(lex.signature(w), 5);
+    return rt.recallWord(w);
   }, [probe, rt, st.tokens]);
   const grounding = useMemo(() => groundingStats(), []);
   return (
