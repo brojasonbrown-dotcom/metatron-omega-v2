@@ -27,18 +27,18 @@ export type CarrierMode = 'fixed' | 'auto-max';
 export type BootMode = 'legacy' | 'fast' | 'full';
 
 export interface GovernorSettings {
-  ramBytes: number;        // R_max
+  ramBytes: number; // R_max
   ramCeilingBytes: number; // user-declared host RAM ceiling when browser underreports
-  cpuThreads: number;      // C_max
+  cpuThreads: number; // C_max
   computePressure: number; // deterministic field-relaxation passes per tick
-  coupling: boolean;       // ρ* lock
+  coupling: boolean; // ρ* lock
   rhoBytesPerCore: number; // ρ* (default 4 GB/core)
   precision: PrecisionMode;
   carrier: CarrierMode;
-  carrierHz: number;       // active carrier when carrier='fixed'
+  carrierHz: number; // active carrier when carrier='fixed'
   spiralEnabled: boolean;
   reflectEnabled: boolean;
-  bootMode: BootMode;      // cold-start M ceiling (legacy/fast/full)
+  bootMode: BootMode; // cold-start M ceiling (legacy/fast/full)
   /**
    * Phase 2b — strength α of the Wolfram-bank per-mode perturbation applied
    * inside the kernel: psi ← psi · (1 + α · coef_k). Default 0 keeps the
@@ -91,12 +91,12 @@ function migrateLegacy(raw: Partial<GovernorSettings>): Partial<GovernorSettings
 // detection in HardwareEnvelope still clamps these down if the box is small;
 // these are the *aspirational* ceilings the engine is allowed to climb to.
 const DEFAULTS: GovernorSettings = {
-  ramBytes: 64 * 1024 * 1024 * 1024,        // 64 GB working budget
+  ramBytes: 64 * 1024 * 1024 * 1024, // 64 GB working budget
   ramCeilingBytes: 256 * 1024 * 1024 * 1024, // 256 GB declared ceiling
   cpuThreads: 8,
   computePressure: 512,
   coupling: true,
-  rhoBytesPerCore: 8 * 1024 * 1024 * 1024,   // 8 GB / core
+  rhoBytesPerCore: 8 * 1024 * 1024 * 1024, // 8 GB / core
   precision: 'auto',
   carrier: 'fixed',
   carrierHz: 144,
@@ -106,7 +106,6 @@ const DEFAULTS: GovernorSettings = {
   // The constructor below downgrades to 'fast' on weak hosts (cores<8 or <16GB).
   bootMode: 'full',
   bankInfluence: 0,
-
 };
 
 /**
@@ -118,7 +117,10 @@ export function requiredDigits(M: number): number {
 }
 
 /** Smallest precision class that satisfies requiredDigits(M). */
-export function pickPrecision(M: number, mode: PrecisionMode): { kind: 'f64' | 'bd'; digits: number } {
+export function pickPrecision(
+  M: number,
+  mode: PrecisionMode,
+): { kind: 'f64' | 'bd'; digits: number } {
   if (mode === 'f64') return { kind: 'f64', digits: 16 };
   const need = requiredDigits(M);
   if (mode === 'auto') {
@@ -160,16 +162,27 @@ export class ResourceGovernor {
             if (legacy) {
               try {
                 stored = migrateLegacy(JSON.parse(legacy) as Partial<GovernorSettings>);
-              } catch { /* corrupt legacy — drop it */ }
-              try { localStorage.removeItem(k); } catch { /* quota */ }
+              } catch {
+                /* corrupt legacy — drop it */
+              }
+              try {
+                localStorage.removeItem(k);
+              } catch {
+                /* quota */
+              }
               break;
             }
           }
         }
-      } catch { /* corrupt — ignore */ }
+      } catch {
+        /* corrupt — ignore */
+      }
     }
 
-    const ramCeilingBytes = Math.max(hw.ramBytes, stored.ramCeilingBytes ?? stored.ramBytes ?? DEFAULTS.ramCeilingBytes);
+    const ramCeilingBytes = Math.max(
+      hw.ramBytes,
+      stored.ramCeilingBytes ?? stored.ramBytes ?? DEFAULTS.ramCeilingBytes,
+    );
     // Hardware-aware bootMode default: many browsers privacy-cap deviceMemory
     // at 8 GB even on workstation hardware, so CPU breadth is the reliable
     // signal for whether a host should cold-boot at the full governor ceiling.
@@ -180,7 +193,10 @@ export class ResourceGovernor {
       ...DEFAULTS,
       bootMode: defaultBoot,
       ramCeilingBytes,
-      ramBytes: Math.min(ramCeilingBytes, stored.ramBytes ?? Math.max(hw.ramBytes, DEFAULTS.ramBytes)),
+      ramBytes: Math.min(
+        ramCeilingBytes,
+        stored.ramBytes ?? Math.max(hw.ramBytes, DEFAULTS.ramBytes),
+      ),
       cpuThreads: Math.min(hw.cpuCores, stored.cpuThreads ?? hw.cpuCores),
       ...stored,
     };
@@ -199,7 +215,9 @@ export class ResourceGovernor {
           localStorage.setItem(STORAGE_KEY, json);
           this.lastPersistedJson = json;
         }
-      } catch { /* quota */ }
+      } catch {
+        /* quota */
+      }
     }
     return normalized;
   }
@@ -221,36 +239,59 @@ export class ResourceGovernor {
       if (json === this.lastPersistedJson) return; // no-op write — skip syscall
       localStorage.setItem(STORAGE_KEY, json);
       this.lastPersistedJson = json;
-    } catch { /* quota */ }
+    } catch {
+      /* quota */
+    }
   }
 
   private schedulePersist(): void {
-    if (typeof window === 'undefined') { this.persist(); return; }
+    if (typeof window === 'undefined') {
+      this.persist();
+      return;
+    }
     if (!this.unloadBound) {
       const flush = () => this.flushPersist();
       window.addEventListener('pagehide', flush);
-      window.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
+      window.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flush();
+      });
       this.unloadBound = true;
     }
     if (this.persistTimer !== null) clearTimeout(this.persistTimer);
-    this.persistTimer = setTimeout(() => { this.persistTimer = null; this.persist(); }, ResourceGovernor.PERSIST_DEBOUNCE_MS);
+    this.persistTimer = setTimeout(() => {
+      this.persistTimer = null;
+      this.persist();
+    }, ResourceGovernor.PERSIST_DEBOUNCE_MS);
   }
 
   /** Force-flush any pending debounced write (used on unload / hide). */
   flushPersist(): void {
-    if (this.persistTimer !== null) { clearTimeout(this.persistTimer); this.persistTimer = null; }
+    if (this.persistTimer !== null) {
+      clearTimeout(this.persistTimer);
+      this.persistTimer = null;
+    }
     this.persist();
   }
 
-  get settings(): GovernorSettings { return this.state; }
+  get settings(): GovernorSettings {
+    return this.state;
+  }
 
   update(patch: Partial<GovernorSettings>): GovernorSettings {
     const next: GovernorSettings = { ...this.state, ...patch };
-    next.ramCeilingBytes = Math.max(this.hw.ramBytes, Math.min(2 * 1024 ** 4, next.ramCeilingBytes));
+    next.ramCeilingBytes = Math.max(
+      this.hw.ramBytes,
+      Math.min(2 * 1024 ** 4, next.ramCeilingBytes),
+    );
     if (next.coupling) {
       // Snap RAM/CPU to ρ* if either side moved.
-      if (patch.cpuThreads !== undefined) next.ramBytes = Math.min(next.ramCeilingBytes, next.cpuThreads * next.rhoBytesPerCore);
-      else if (patch.ramBytes !== undefined) next.cpuThreads = Math.max(1, Math.min(this.hw.cpuCores, Math.round(next.ramBytes / next.rhoBytesPerCore)));
+      if (patch.cpuThreads !== undefined)
+        next.ramBytes = Math.min(next.ramCeilingBytes, next.cpuThreads * next.rhoBytesPerCore);
+      else if (patch.ramBytes !== undefined)
+        next.cpuThreads = Math.max(
+          1,
+          Math.min(this.hw.cpuCores, Math.round(next.ramBytes / next.rhoBytesPerCore)),
+        );
     }
     next.ramBytes = Math.max(64 * 1024 * 1024, Math.min(next.ramCeilingBytes, next.ramBytes));
     next.cpuThreads = Math.max(1, Math.min(this.hw.cpuCores, next.cpuThreads));
@@ -259,7 +300,9 @@ export class ResourceGovernor {
     if (next.carrierHz < 1) next.carrierHz = 1;
     // Phase 2b — hard-clamp bank influence so the perturbation can never
     // dominate the φ-harmonic carrier. NaN / undefined → 0 (legacy behavior).
-    next.bankInfluence = Number.isFinite(next.bankInfluence) ? Math.max(0, Math.min(0.1, next.bankInfluence)) : 0;
+    next.bankInfluence = Number.isFinite(next.bankInfluence)
+      ? Math.max(0, Math.min(0.1, next.bankInfluence))
+      : 0;
 
     // Structural-equality short-circuit — clamp logic can produce a `next` that
     // is byte-identical to `this.state` (e.g. slider already at ceiling). Skip
@@ -318,17 +361,20 @@ export class ResourceGovernor {
     else if (mode === 'dec500') structuralDigits = 500;
     else if (mode === 'mpfr') structuralDigits = 10000;
     else structuralDigits = Number.POSITIVE_INFINITY; // 'auto' — grows as needed
-    const M_struct = mode === 'auto'
-      ? 1_000_000  // arbitrary very-large; RAM will bite first
-      : Math.max(1, Math.floor((structuralDigits - 16) / 0.2089876402499087));
+    const M_struct =
+      mode === 'auto'
+        ? 1_000_000 // arbitrary very-large; RAM will bite first
+        : Math.max(1, Math.floor((structuralDigits - 16) / 0.2089876402499087));
 
     // RAM bound: binary-search the largest M whose estimateRamBytes fits.
-    let lo = 1, hi = M_struct;
+    let lo = 1,
+      hi = M_struct;
     while (lo < hi) {
       const mid = Math.min(hi, lo + Math.ceil((hi - lo + 1) / 2));
       const p = pickPrecision(mid, mode);
       const need = this.estimateRamBytes(mid, p.digits);
-      if (need <= this.state.ramBytes) lo = mid; else hi = mid - 1;
+      if (need <= this.state.ramBytes) lo = mid;
+      else hi = mid - 1;
     }
     return Math.max(1, lo);
   }
@@ -338,10 +384,19 @@ export class ResourceGovernor {
     if (M < 1) return { code: 'alias', message: 'M must be ≥ 1' };
     const p = pickPrecision(M, this.state.precision);
     const need = requiredDigits(M);
-    if (p.kind === 'f64' && need > 16) return { code: 'precision', message: `M=${M} needs ${need} digits; f64 has 16. Use precision=auto.` };
+    if (p.kind === 'f64' && need > 16)
+      return {
+        code: 'precision',
+        message: `M=${M} needs ${need} digits; f64 has 16. Use precision=auto.`,
+      };
     const ramNeed = this.estimateRamBytes(M, p.digits);
-    if (ramNeed > this.state.ramBytes) return { code: 'ram', message: `M=${M} @ ${p.digits}d needs ${(ramNeed / 1e9).toFixed(2)} GB; budget ${(this.state.ramBytes / 1e9).toFixed(2)} GB.` };
-    if (this.state.carrierHz > CARRIER_CEILING_HZ) return { code: 'planck', message: 'carrier exceeds Planck ceiling' };
+    if (ramNeed > this.state.ramBytes)
+      return {
+        code: 'ram',
+        message: `M=${M} @ ${p.digits}d needs ${(ramNeed / 1e9).toFixed(2)} GB; budget ${(this.state.ramBytes / 1e9).toFixed(2)} GB.`,
+      };
+    if (this.state.carrierHz > CARRIER_CEILING_HZ)
+      return { code: 'planck', message: 'carrier exceeds Planck ceiling' };
     return null;
   }
 
@@ -351,7 +406,10 @@ export class ResourceGovernor {
    * so the UI can honestly report *why* the ceiling is where it is.
    * `currentM` lets us distinguish "still at boot cap" from "actually pinned".
    */
-  ceilingSource(currentM: number, carrierHz: number): NonNullable<import('../bus/protocol').ScalerSnapshot['ceilingSource']> {
+  ceilingSource(
+    currentM: number,
+    carrierHz: number,
+  ): NonNullable<import('../bus/protocol').ScalerSnapshot['ceilingSource']> {
     const mode = this.state.precision;
     // Precision-bound: f64 caps at digits≤16 (M ≤ ~1), dec50 at ~162.
     if (mode === 'f64' && requiredDigits(currentM + 1) > 16) return 'precision';
@@ -359,7 +417,9 @@ export class ResourceGovernor {
     if (mode === 'dec500' && requiredDigits(currentM + 1) > 500) return 'precision';
     // Planck-bound: carrier × φᴹ would breach the ceiling.
     if (carrierHz > 0) {
-      const kMaxByCarrier = Math.floor(Math.log(CARRIER_CEILING_HZ / carrierHz) / Math.log(1.6180339887498949));
+      const kMaxByCarrier = Math.floor(
+        Math.log(CARRIER_CEILING_HZ / carrierHz) / Math.log(1.6180339887498949),
+      );
       if (currentM >= kMaxByCarrier) return 'planck';
     }
     // RAM-bound: next promotion would blow the working budget.

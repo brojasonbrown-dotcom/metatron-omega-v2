@@ -56,11 +56,7 @@ export {
 } from './measurement';
 
 // Phase 2 · Step 4 — Lyapunov candidate (RHUFT-F Layer 7).
-export {
-  lyapunovEnergy,
-  DEFAULT_LYAPUNOV_WEIGHTS,
-  LYAPUNOV_WEIGHTS_VERSION,
-} from './lyapunov';
+export { lyapunovEnergy, DEFAULT_LYAPUNOV_WEIGHTS, LYAPUNOV_WEIGHTS_VERSION } from './lyapunov';
 export type { LyapunovWeights, GraphSnapshot } from './lyapunov';
 
 // Phase 5 · Step 1 — canonical local-update interface (RHUFT-F U_n).
@@ -70,8 +66,4 @@ export {
   getLocalUpdate,
   listLocalUpdates,
 } from './localUpdate';
-export type {
-  LocalUpdate,
-  LocalUpdateContext,
-  LocalUpdateReport,
-} from './localUpdate';
+export type { LocalUpdate, LocalUpdateContext, LocalUpdateReport } from './localUpdate';

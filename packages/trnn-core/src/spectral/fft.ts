@@ -188,7 +188,8 @@ export function fftUnitary(re: Float64Array, im: Float64Array, inverse = false):
 /** Circular cross-correlation ℱ⁻¹{ℱ(a)·conj(ℱ(b))} — the Section E primitive. */
 export function crossCorrelate(a: Split, b: Split): Split {
   const n = a.re.length;
-  if (b.re.length !== n) throw new RangeError(`crossCorrelate: length mismatch ${n} vs ${b.re.length}`);
+  if (b.re.length !== n)
+    throw new RangeError(`crossCorrelate: length mismatch ${n} vs ${b.re.length}`);
   const fa = fft(a.re, a.im, false);
   const fb = fft(b.re, b.im, false);
   const pr = new Float64Array(n);

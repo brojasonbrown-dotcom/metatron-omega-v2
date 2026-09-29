@@ -5,7 +5,7 @@ export interface KDocument {
   field: string;
   url: string;
   title: string;
-  source: string;      // tool that produced it (web_fetch, wikipedia, sec_edgar…)
+  source: string; // tool that produced it (web_fetch, wikipedia, sec_edgar…)
   fetchedAt: number;
   chars: number;
   chunkIds: string[];
@@ -68,7 +68,6 @@ export interface RecallHit {
   contradicts: string[];
   score: number;
 }
-
 
 export interface KnowledgeStats {
   fields: number;

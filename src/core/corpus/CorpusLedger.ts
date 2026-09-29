@@ -13,12 +13,19 @@
  */
 
 import {
-  MerkleLog, toHex, fromHex, verifyInclusion, verifyConsistency,
+  MerkleLog,
+  toHex,
+  fromHex,
+  verifyInclusion,
+  verifyConsistency,
 } from '@metatron/trnn-core/ledger/merkle';
 import { canonicalJson, utf8 } from '@metatron/trnn-core/ledger/canonical';
 import {
-  keyPairFromSeed, signTreeHead, verifyTreeHead,
-  type LogKeyPair, type SignedTreeHead,
+  keyPairFromSeed,
+  signTreeHead,
+  verifyTreeHead,
+  type LogKeyPair,
+  type SignedTreeHead,
 } from '@metatron/trnn-core/ledger/sth';
 
 export const CORPUS_LOG_ID = 'omega.corpus.v1';
@@ -61,19 +68,21 @@ export interface ProofCarrying<T> {
 }
 
 function leafBytes(r: SealRecord): Uint8Array {
-  return utf8(canonicalJson({
-    kind: r.kind,
-    tier: r.tier,
-    index: r.index,
-    key: r.key,
-    tickFrom: Number.isFinite(r.tickFrom) ? r.tickFrom : null,
-    tickTo: Number.isFinite(r.tickTo) ? r.tickTo : null,
-    count: r.count,
-    width: r.width,
-    bytes: r.bytes,
-    payloadHashHex: r.payloadHashHex,
-    ...(r.priorHashHex === undefined ? {} : { priorHashHex: r.priorHashHex }),
-  }));
+  return utf8(
+    canonicalJson({
+      kind: r.kind,
+      tier: r.tier,
+      index: r.index,
+      key: r.key,
+      tickFrom: Number.isFinite(r.tickFrom) ? r.tickFrom : null,
+      tickTo: Number.isFinite(r.tickTo) ? r.tickTo : null,
+      count: r.count,
+      width: r.width,
+      bytes: r.bytes,
+      payloadHashHex: r.payloadHashHex,
+      ...(r.priorHashHex === undefined ? {} : { priorHashHex: r.priorHashHex }),
+    }),
+  );
 }
 
 const DEFAULT_SEED = new Uint8Array(32).fill(7);
@@ -88,12 +97,18 @@ export class CorpusLedger {
     this.keys = keyPairFromSeed(seed);
   }
 
-  get size(): number { return this.log.size; }
+  get size(): number {
+    return this.log.size;
+  }
   get head(): SignedTreeHead | null {
     return this.headHistory.length > 0 ? this.headHistory[this.headHistory.length - 1] : null;
   }
-  get rootHex(): string { return toHex(this.log.root()); }
-  entries(): readonly SealRecord[] { return this.records; }
+  get rootHex(): string {
+    return toHex(this.log.root());
+  }
+  entries(): readonly SealRecord[] {
+    return this.records;
+  }
 
   /** Seal a unit into the log and publish a signed head at `timestamp`. */
   seal(record: SealRecord, timestamp: number): SealedEntry {
@@ -121,18 +136,20 @@ export class CorpusLedger {
   /** Verify a proof-carrying read without consulting the store at all. */
   static verify<T>(p: ProofCarrying<T>): boolean {
     if (!verifyTreeHead(p.head)) return false;
-    const leaf = utf8(canonicalJson({
-      kind: p.record.kind,
-      tier: p.record.tier,
-      index: p.record.index,
-      key: p.record.key,
-      tickFrom: Number.isFinite(p.record.tickFrom) ? p.record.tickFrom : null,
-      tickTo: Number.isFinite(p.record.tickTo) ? p.record.tickTo : null,
-      count: p.record.count,
-      width: p.record.width,
-      bytes: p.record.bytes,
-      payloadHashHex: p.record.payloadHashHex,
-    }));
+    const leaf = utf8(
+      canonicalJson({
+        kind: p.record.kind,
+        tier: p.record.tier,
+        index: p.record.index,
+        key: p.record.key,
+        tickFrom: Number.isFinite(p.record.tickFrom) ? p.record.tickFrom : null,
+        tickTo: Number.isFinite(p.record.tickTo) ? p.record.tickTo : null,
+        count: p.record.count,
+        width: p.record.width,
+        bytes: p.record.bytes,
+        payloadHashHex: p.record.payloadHashHex,
+      }),
+    );
     return verifyInclusion(
       hashOfLeaf(leaf),
       p.leafIndex,
@@ -178,4 +195,6 @@ export class CorpusLedger {
 // The leaf hash function lives in merkle.ts behind `append`; re-derive it here
 // so a verifier never needs the log object itself.
 import { hashLeaf } from '@metatron/trnn-core/ledger/merkle';
-function hashOfLeaf(data: Uint8Array) { return hashLeaf(data); }
+function hashOfLeaf(data: Uint8Array) {
+  return hashLeaf(data);
+}

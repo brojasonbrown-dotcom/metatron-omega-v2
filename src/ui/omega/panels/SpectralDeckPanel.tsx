@@ -3,19 +3,15 @@
  * radial planes for one rung. The error figures are what the planes actually
  * returned on this frame, not a tolerance constant.
  */
-import { useCallback, useMemo, useState } from "react";
-import { getOmegaRuntime } from "../omegaRuntime";
-import { useOmegaState } from "../useOmegaRuntime";
-import { useOmegaPull, useOmegaDescribe } from "../useOmegaPull";
-import { useCognitive } from "../useCognitive";
-import {
-  descendTo,
-  closureDefect,
-  levelEnergies,
-} from "@metatron/trnn-core/operator/nestedField";
+import { useCallback, useMemo, useState } from 'react';
+import { getOmegaRuntime } from '../omegaRuntime';
+import { useOmegaState } from '../useOmegaRuntime';
+import { useOmegaPull, useOmegaDescribe } from '../useOmegaPull';
+import { useCognitive } from '../useCognitive';
+import { descendTo, closureDefect, levelEnergies } from '@metatron/trnn-core/operator/nestedField';
 
-const sci = (v: number) => (Number.isFinite(v) ? v.toExponential(3) : "—");
-const fx = (v: number, d = 4) => (Number.isFinite(v) ? v.toFixed(d) : "—");
+const sci = (v: number) => (Number.isFinite(v) ? v.toExponential(3) : '—');
+const fx = (v: number, d = 4) => (Number.isFinite(v) ? v.toFixed(d) : '—');
 
 function Witness({
   label,
@@ -36,13 +32,13 @@ function Witness({
         </span>
         <span
           className={`text-[11px] font-mono tabular-nums ${
-            value === "\u2014"
-              ? "text-muted-foreground"
+            value === '\u2014'
+              ? 'text-muted-foreground'
               : good === false
-                ? "text-amber-400"
+                ? 'text-amber-400'
                 : good
-                  ? "text-emerald-400"
-                  : "text-foreground"
+                  ? 'text-emerald-400'
+                  : 'text-foreground'
           }`}
         >
           {value}
@@ -66,7 +62,7 @@ function Plane({
       <div className="grid grid-cols-2 gap-x-4 text-[10px] font-mono">
         <span className="text-muted-foreground">roundtrip error</span>
         <span
-          className={`text-right tabular-nums ${report.roundtrip < 1e-9 ? "text-emerald-400" : "text-amber-400"}`}
+          className={`text-right tabular-nums ${report.roundtrip < 1e-9 ? 'text-emerald-400' : 'text-amber-400'}`}
         >
           {report.roundtrip.toExponential(3)}
         </span>
@@ -76,8 +72,8 @@ function Plane({
         <span className="text-right tabular-nums">{report.width}</span>
       </div>
       <p className="text-[9px] font-mono text-muted-foreground mt-1.5">
-        Roundtrip is measured against the plane&apos;s own quadrature weights; the Gram defect is the
-        pre-orthonormalization figure, so a small roundtrip beside a larger defect means the
+        Roundtrip is measured against the plane&apos;s own quadrature weights; the Gram defect is
+        the pre-orthonormalization figure, so a small roundtrip beside a larger defect means the
         re-orthogonalization did its job.
       </p>
     </div>
@@ -131,10 +127,7 @@ export default function SpectralDeckPanel() {
     }
   }, [view]);
 
-  const sigMax = useMemo(
-    () => Math.max(1e-12, ...(view?.signature ?? [1]).map(Math.abs)),
-    [view],
-  );
+  const sigMax = useMemo(() => Math.max(1e-12, ...(view?.signature ?? [1]).map(Math.abs)), [view]);
 
   if (!s.snapshot) {
     return (
@@ -161,7 +154,7 @@ export default function SpectralDeckPanel() {
           {rungs.length === 0 && <option value={0}>rung 0</option>}
         </select>
         <span className="text-[9px] font-mono text-muted-foreground ml-2">
-          {view ? view.source : "measuring…"}
+          {view ? view.source : 'measuring…'}
         </span>
       </div>
 
@@ -187,8 +180,8 @@ export default function SpectralDeckPanel() {
           </h3>
           <span className="text-[9px] font-mono text-muted-foreground">
             {cog.passes > 0
-              ? `${cog.passes} passes · rung ${cog.rank ?? "—"} · ${cog.salient} salient`
-              : "no spectral pass yet — run the engine"}
+              ? `${cog.passes} passes · rung ${cog.rank ?? '—'} · ${cog.salient} salient`
+              : 'no spectral pass yet — run the engine'}
           </span>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
@@ -219,8 +212,16 @@ export default function SpectralDeckPanel() {
             value={fx(cog.circulation)}
             note="driver-invariant mode-graph Hodge witness"
           />
-          <Witness label="ENTROPY" value={fx(cog.entropy)} note="spectral occupancy of the signature" />
-          <Witness label="RESIDUAL" value={sci(cog.residual)} note="analysis/synthesis residual this pass" />
+          <Witness
+            label="ENTROPY"
+            value={fx(cog.entropy)}
+            note="spectral occupancy of the signature"
+          />
+          <Witness
+            label="RESIDUAL"
+            value={sci(cog.residual)}
+            note="analysis/synthesis residual this pass"
+          />
           <Witness
             label="KNOWLEDGE"
             value={`${cog.latentBuilds} / ${cog.signatureSweeps}`}
@@ -236,9 +237,9 @@ export default function SpectralDeckPanel() {
               NESTING · RESIDUAL TORUS
             </h3>
             <span
-              className={`text-[9px] font-mono ${nest.closed ? "text-emerald-400" : "text-amber-400"}`}
+              className={`text-[9px] font-mono ${nest.closed ? 'text-emerald-400' : 'text-amber-400'}`}
             >
-              {nest.closed ? "CLOSED" : "NOT CLOSED"} · depth {nest.depth}
+              {nest.closed ? 'CLOSED' : 'NOT CLOSED'} · depth {nest.depth}
             </span>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
@@ -255,8 +256,8 @@ export default function SpectralDeckPanel() {
                 value={`${(100 * nest.shares[i]).toFixed(1)}%`}
                 note={
                   i === 0
-                    ? "coarsest view — what a flat rung would keep"
-                    : "energy no narrower rung could represent"
+                    ? 'coarsest view — what a flat rung would keep'
+                    : 'energy no narrower rung could represent'
                 }
               />
             ))}

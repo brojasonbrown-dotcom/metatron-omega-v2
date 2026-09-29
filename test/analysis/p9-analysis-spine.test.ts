@@ -12,11 +12,7 @@ import { SeedStream } from '@metatron/trnn-core/core/determinism';
 import { dsin, dcos } from '@metatron/trnn-core/core/dmath';
 import { STAT_FLOOR } from '@metatron/trnn-core/substrate/correlation';
 import { StreamWindow, ALIGN_TOLERANCE_FRACTION } from '../../src/core/analysis/streamWindow';
-import {
-  analyseWindow,
-  analysePair,
-  miToCorrelation,
-} from '../../src/core/analysis/analysisSpine';
+import { analyseWindow, analysePair, miToCorrelation } from '../../src/core/analysis/analysisSpine';
 
 /** A window with two channels sampled on the same clock. */
 function coupled(n: number, coupling: number, dtMs = 4): StreamWindow {

@@ -25,13 +25,18 @@ export function wave2(id: BankId, fallback: number): number {
     throw new Error(`[wave2] unknown bank id: ${String(id)}`);
   }
   // Wiring sanity (independent of flag): warn if literal drifts from bank.
-  const rel = Math.abs(entry.value - fallback) /
-              Math.max(Math.abs(entry.value), Math.abs(fallback), 1e-300);
+  const rel =
+    Math.abs(entry.value - fallback) / Math.max(Math.abs(entry.value), Math.abs(fallback), 1e-300);
   if (rel > 1e-3) {
     // Loud but non-fatal — the literal may be intentionally legacy.
     // Use stderr so production logs surface it without crashing.
-    try { console.warn(`[wave2] ${String(id)} fallback=${fallback} drifts ${rel.toExponential(2)} from bank=${entry.value}`); }
-    catch { /* environments without console.warn */ }
+    try {
+      console.warn(
+        `[wave2] ${String(id)} fallback=${fallback} drifts ${rel.toExponential(2)} from bank=${entry.value}`,
+      );
+    } catch {
+      /* environments without console.warn */
+    }
   }
   return wave2Enabled() ? entry.value : fallback;
 }

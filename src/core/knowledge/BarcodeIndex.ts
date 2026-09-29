@@ -11,8 +11,14 @@ import { BITMAP_WORDS, weightedDistance, bitmapToHex, bitmapFromHex } from '@/co
 
 /** (word index, bit offset, width) — Fibonacci widths over the 8 lanes. */
 const BANDS: Array<[number, number, number]> = [
-  [0, 0, 21], [1, 0, 13], [2, 0, 21], [3, 0, 13],
-  [4, 0, 13], [5, 0, 8], [6, 0, 13], [7, 0, 8],
+  [0, 0, 21],
+  [1, 0, 13],
+  [2, 0, 21],
+  [3, 0, 13],
+  [4, 0, 13],
+  [5, 0, 8],
+  [6, 0, 13],
+  [7, 0, 8],
 ];
 
 function bandKey(bm: Uint32Array, b: number): string {
@@ -31,7 +37,10 @@ export class BarcodeIndex {
     for (let b = 0; b < BANDS.length; b++) {
       const k = bandKey(bm, b);
       let s = this.buckets.get(k);
-      if (!s) { s = new Set(); this.buckets.set(k, s); }
+      if (!s) {
+        s = new Set();
+        this.buckets.set(k, s);
+      }
       s.add(id);
     }
   }
@@ -42,7 +51,10 @@ export class BarcodeIndex {
     for (let b = 0; b < BANDS.length; b++) {
       const k = bandKey(bm, b);
       const s = this.buckets.get(k);
-      if (s) { s.delete(id); if (s.size === 0) this.buckets.delete(k); }
+      if (s) {
+        s.delete(id);
+        if (s.size === 0) this.buckets.delete(k);
+      }
     }
     this.codes.delete(id);
   }
@@ -62,9 +74,15 @@ export class BarcodeIndex {
     return out.slice(0, topN);
   }
 
-  size(): number { return this.codes.size; }
-  bandCount(): number { return this.buckets.size; }
-  get(id: string): Uint32Array | undefined { return this.codes.get(id); }
+  size(): number {
+    return this.codes.size;
+  }
+  bandCount(): number {
+    return this.buckets.size;
+  }
+  get(id: string): Uint32Array | undefined {
+    return this.codes.get(id);
+  }
 
   snapshot(): Array<[string, string]> {
     return [...this.codes.entries()].map(([id, bm]) => [id, bitmapToHex(bm)]);
@@ -79,5 +97,8 @@ export class BarcodeIndex {
     }
   }
 
-  clear(): void { this.buckets.clear(); this.codes.clear(); }
+  clear(): void {
+    this.buckets.clear();
+    this.codes.clear();
+  }
 }

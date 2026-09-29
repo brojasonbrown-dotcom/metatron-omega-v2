@@ -76,7 +76,6 @@ export function spineUpTo(n: number): readonly number[] {
 
 export type FibSpineIndex = number;
 
-
 export interface WindowEnvironment {
   /** Temperature at rank 0, in the field's own units (0 = inert). */
   readonly baseTemperature?: number;
@@ -152,7 +151,9 @@ const DEFAULT_ENV: Required<WindowEnvironment> = {
 export function buildWindow(start: FibSpineIndex, opts: WindowOptions = {}): LadderWindow {
   const count = Math.max(1, Math.trunc(opts.count ?? DENSE_CORE_COUNT));
   if (count > DENSE_CORE_COUNT) {
-    throw new RangeError(`buildWindow: ${count} rungs exceeds the ${DENSE_CORE_COUNT}-rung dense core`);
+    throw new RangeError(
+      `buildWindow: ${count} rungs exceeds the ${DENSE_CORE_COUNT}-rung dense core`,
+    );
   }
   if (!Number.isInteger(start) || start < 0) {
     throw new RangeError(`buildWindow: start must be a non-negative integer, got ${start}`);
@@ -207,14 +208,21 @@ function stripUndefined(o: WindowOptions): WindowEnvironment {
 }
 
 /** Every window of `count` rungs the spine admits, narrowest first. */
-export function enumerateWindows(count = DENSE_CORE_COUNT, env: WindowEnvironment = {}): LadderWindow[] {
+export function enumerateWindows(
+  count = DENSE_CORE_COUNT,
+  env: WindowEnvironment = {},
+): LadderWindow[] {
   const out: LadderWindow[] = [];
   for (let s = 0; s + count <= FIB_SPINE.length; s++) out.push(buildWindow(s, { ...env, count }));
   return out;
 }
 
 /** Window whose top rung is exactly `nodes`, or undefined when off-spine. */
-export function windowByTopNodes(nodes: number, count = DENSE_CORE_COUNT, env: WindowEnvironment = {}): LadderWindow | undefined {
+export function windowByTopNodes(
+  nodes: number,
+  count = DENSE_CORE_COUNT,
+  env: WindowEnvironment = {},
+): LadderWindow | undefined {
   const top = FIB_SPINE.indexOf(nodes as (typeof FIB_SPINE)[number]);
   if (top < 0) return undefined;
   const start = top - count + 1;
@@ -236,6 +244,9 @@ export function isInertWindow(w: LadderWindow): boolean {
     e.baseTemperature === 0 &&
     e.baseMagnetic === 0 &&
     e.coherenceClock === 'uniform' &&
-    w.rungs.every((r) => r.lambda === LAMBDA_MEMORY && r.magneticPhase === 0 && r.coherenceDelay === COHERENCE_DELAY)
+    w.rungs.every(
+      (r) =>
+        r.lambda === LAMBDA_MEMORY && r.magneticPhase === 0 && r.coherenceDelay === COHERENCE_DELAY,
+    )
   );
 }

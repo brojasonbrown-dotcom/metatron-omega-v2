@@ -71,20 +71,29 @@ export class F9HyperGalacticMeasurement implements ScaleMeasurement {
     this.refSeed = seedTag;
   }
 
-  get referenceSeedTag(): string { return this.refSeed; }
+  get referenceSeedTag(): string {
+    return this.refSeed;
+  }
 
   measure(state: FieldStateN, _ctx: ScaleMeasurementContext): ScaleMeasurementResult {
     if (state.psi.length < NODES) {
-      return { scale: 8, closureResidual: NaN, closureScore: NaN, invariantScore: NaN, gamma: new Float64Array(NODES) };
+      return {
+        scale: 8,
+        closureResidual: NaN,
+        closureScore: NaN,
+        invariantScore: NaN,
+        gamma: new Float64Array(NODES),
+      };
     }
     const psi = state.psi;
     const ref = this.ref;
 
-    let normSq = 0, comp = 0;
+    let normSq = 0,
+      comp = 0;
     for (let i = 0; i < NODES; i++) {
       const x = psi[i] * psi[i];
       const t = normSq + x;
-      comp += Math.abs(normSq) >= x ? (normSq - t) + x : (x - t) + normSq;
+      comp += Math.abs(normSq) >= x ? normSq - t + x : x - t + normSq;
       normSq = t;
     }
     const norm = Math.sqrt(normSq + comp);
@@ -107,9 +116,7 @@ export class F9HyperGalacticMeasurement implements ScaleMeasurement {
     // Invariant witness: cosmic ≡ pineal × φ² is checked at the metric-bank
     // layer where both scales are available; here we report projection-magnitude
     // sanity: |y8| ≤ 1 within float tolerance.
-    const invariantScore = Number.isFinite(y8)
-      ? Math.exp(-Math.max(0, Math.abs(y8) - 1))
-      : NaN;
+    const invariantScore = Number.isFinite(y8) ? Math.exp(-Math.max(0, Math.abs(y8) - 1)) : NaN;
 
     // Reference: PHI_SQ retained as compile-time link to the cross-scale
     // invariant this module documents (checked at metric-bank layer).

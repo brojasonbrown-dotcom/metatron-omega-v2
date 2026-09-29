@@ -2,7 +2,7 @@
  * METATRON V11 — Chat module shared types.
  */
 
-export type ChatRole = "system" | "user" | "assistant" | "tool";
+export type ChatRole = 'system' | 'user' | 'assistant' | 'tool';
 
 export interface ChatMessage {
   id: string;
@@ -35,46 +35,98 @@ export interface ChatSession {
  */
 export type ChatModel = string;
 
-export const DEFAULT_MODEL: ChatModel = "google/gemini-3.6-flash";
+export const DEFAULT_MODEL: ChatModel = 'google/gemini-3.6-flash';
 
 export interface ModelOption {
   id: ChatModel;
   label: string;
-  group: "Lovable AI (agentic)" | "Kimi (agentic)" | "OpenAI (agentic)" | "Google" | "OpenAI";
+  group: 'Lovable AI (agentic)' | 'Kimi (agentic)' | 'OpenAI (agentic)' | 'Google' | 'OpenAI';
   hint?: string;
 }
 
 /** Canonical Moonshot model IDs — verified live from api.moonshot.ai/v1/models. */
 export const AVAILABLE_MODELS: ModelOption[] = [
   // ── Lovable AI Gateway (no external key needed · native tool loop) ───────
-  { id: "google/gemini-3.6-flash",     label: "Gemini 3.6 Flash",     group: "Lovable AI (agentic)", hint: "Default · fast reasoning + native tools" },
-  { id: "google/gemini-3.1-pro-preview", label: "Gemini 3.1 Pro",     group: "Lovable AI (agentic)", hint: "Deepest reasoning" },
-  { id: "google/gemini-3.1-flash-lite", label: "Gemini 3.1 Flash Lite", group: "Lovable AI (agentic)", hint: "High-volume / cheapest" },
+  {
+    id: 'google/gemini-3.6-flash',
+    label: 'Gemini 3.6 Flash',
+    group: 'Lovable AI (agentic)',
+    hint: 'Default · fast reasoning + native tools',
+  },
+  {
+    id: 'google/gemini-3.1-pro-preview',
+    label: 'Gemini 3.1 Pro',
+    group: 'Lovable AI (agentic)',
+    hint: 'Deepest reasoning',
+  },
+  {
+    id: 'google/gemini-3.1-flash-lite',
+    label: 'Gemini 3.1 Flash Lite',
+    group: 'Lovable AI (agentic)',
+    hint: 'High-volume / cheapest',
+  },
   // ── Kimi / Moonshot (verified) ───────────────────────────────────────────
-  { id: "moonshot/kimi-k3",                          label: "Kimi K3",                    group: "Kimi (agentic)", hint: "Frontier reasoning + native tools · 1M ctx" },
-  { id: "moonshot/kimi-k2.7-code",                   label: "Kimi K2.7 Code",             group: "Kimi (agentic)", hint: "Coding-tuned · 256K ctx" },
-  { id: "moonshot/kimi-k2.7-code-highspeed",         label: "Kimi K2.7 Code (highspeed)", group: "Kimi (agentic)", hint: "Fast coding endpoint" },
-  { id: "moonshot/kimi-k2.6",                        label: "Kimi K2.6",                  group: "Kimi (agentic)" },
-  { id: "moonshot/kimi-k2.5",                        label: "Kimi K2.5",                  group: "Kimi (agentic)" },
-  { id: "moonshot/moonshot-v1-auto",                 label: "Moonshot V1 (auto route)",   group: "Kimi (agentic)" },
-  { id: "moonshot/moonshot-v1-128k",                 label: "Moonshot V1 128k",           group: "Kimi (agentic)" },
-  { id: "moonshot/moonshot-v1-32k",                  label: "Moonshot V1 32k",            group: "Kimi (agentic)" },
-  { id: "moonshot/moonshot-v1-8k",                   label: "Moonshot V1 8k",             group: "Kimi (agentic)" },
-  { id: "moonshot/moonshot-v1-128k-vision-preview",  label: "Moonshot V1 128k Vision",    group: "Kimi (agentic)" },
-  { id: "moonshot/moonshot-v1-32k-vision-preview",   label: "Moonshot V1 32k Vision",     group: "Kimi (agentic)" },
+  {
+    id: 'moonshot/kimi-k3',
+    label: 'Kimi K3',
+    group: 'Kimi (agentic)',
+    hint: 'Frontier reasoning + native tools · 1M ctx',
+  },
+  {
+    id: 'moonshot/kimi-k2.7-code',
+    label: 'Kimi K2.7 Code',
+    group: 'Kimi (agentic)',
+    hint: 'Coding-tuned · 256K ctx',
+  },
+  {
+    id: 'moonshot/kimi-k2.7-code-highspeed',
+    label: 'Kimi K2.7 Code (highspeed)',
+    group: 'Kimi (agentic)',
+    hint: 'Fast coding endpoint',
+  },
+  { id: 'moonshot/kimi-k2.6', label: 'Kimi K2.6', group: 'Kimi (agentic)' },
+  { id: 'moonshot/kimi-k2.5', label: 'Kimi K2.5', group: 'Kimi (agentic)' },
+  { id: 'moonshot/moonshot-v1-auto', label: 'Moonshot V1 (auto route)', group: 'Kimi (agentic)' },
+  { id: 'moonshot/moonshot-v1-128k', label: 'Moonshot V1 128k', group: 'Kimi (agentic)' },
+  { id: 'moonshot/moonshot-v1-32k', label: 'Moonshot V1 32k', group: 'Kimi (agentic)' },
+  { id: 'moonshot/moonshot-v1-8k', label: 'Moonshot V1 8k', group: 'Kimi (agentic)' },
+  {
+    id: 'moonshot/moonshot-v1-128k-vision-preview',
+    label: 'Moonshot V1 128k Vision',
+    group: 'Kimi (agentic)',
+  },
+  {
+    id: 'moonshot/moonshot-v1-32k-vision-preview',
+    label: 'Moonshot V1 32k Vision',
+    group: 'Kimi (agentic)',
+  },
   // ── OpenAI direct (agentic tool-loop via OPENAI_API_KEY) ─────────────────
-  { id: "openai/gpt-5",       label: "GPT-5",        group: "OpenAI (agentic)", hint: "Direct via OPENAI_API_KEY" },
-  { id: "openai/gpt-5-mini",  label: "GPT-5 Mini",   group: "OpenAI (agentic)", hint: "Faster / cheaper tool loops" },
-  { id: "openai/gpt-5-nano",  label: "GPT-5 Nano",   group: "OpenAI (agentic)", hint: "High-volume tool calls" },
+  {
+    id: 'openai/gpt-5',
+    label: 'GPT-5',
+    group: 'OpenAI (agentic)',
+    hint: 'Direct via OPENAI_API_KEY',
+  },
+  {
+    id: 'openai/gpt-5-mini',
+    label: 'GPT-5 Mini',
+    group: 'OpenAI (agentic)',
+    hint: 'Faster / cheaper tool loops',
+  },
+  {
+    id: 'openai/gpt-5-nano',
+    label: 'GPT-5 Nano',
+    group: 'OpenAI (agentic)',
+    hint: 'High-volume tool calls',
+  },
   // ── Google (streaming, no native tools) ─────────────────────────────────
-  { id: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (preview)", group: "Google" },
-  { id: "google/gemini-2.5-pro",   label: "Gemini 2.5 Pro",             group: "Google" },
-  { id: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash",           group: "Google" },
+  { id: 'google/gemini-3-flash-preview', label: 'Gemini 3 Flash (preview)', group: 'Google' },
+  { id: 'google/gemini-2.5-pro', label: 'Gemini 2.5 Pro', group: 'Google' },
+  { id: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', group: 'Google' },
 ];
 
 /** Fast membership test — used by chatSettings to purge stale IDs. */
 export const AVAILABLE_MODEL_IDS: ReadonlySet<string> = new Set(AVAILABLE_MODELS.map((m) => m.id));
-
 
 // ─── Engine snapshot fed to the LLM each turn ──────────────────────────────
 
@@ -88,7 +140,7 @@ export interface EngineSnapshot {
   energy: number;
   /** UI resolution intent only; not runtime truth. */
   uiControls: {
-    requestedResolution: "auto" | number;
+    requestedResolution: 'auto' | number;
   };
   /** Actual native/fallback field engine telemetry from the current tick. */
   field: {
@@ -119,7 +171,13 @@ export interface EngineSnapshot {
     spiral: { kMin: number; kMax: number } | null;
     runtimeCoherence: number | null;
     runtimeEnergy: number | null;
-    driversSample: { id: string; kind: string; source: string; variance: number; modeIndex: number }[];
+    driversSample: {
+      id: string;
+      kind: string;
+      source: string;
+      variance: number;
+      modeIndex: number;
+    }[];
   };
   /** Additive chapter residuals and per-rung saturation from the real V11 output. */
   residuals: {
@@ -154,9 +212,12 @@ export interface EngineSnapshot {
     e: number;
   };
   /** Live framework snapshot (F1..F9 marker values). */
-  frameworks: Record<string, { scale: string; chainUpCoupling: number; closureResidual: number; masterMetric: number }>;
+  frameworks: Record<
+    string,
+    { scale: string; chainUpCoupling: number; closureResidual: number; masterMetric: number }
+  >;
   /** Λ stability scalar + 1/φ² floor — explicit so the model never reports Λ as a percentage. */
-  stability?: { value: number; floor: number; target: number; band: "green" | "amber" | "red" };
+  stability?: { value: number; floor: number; target: number; band: 'green' | 'amber' | 'red' };
   /**
    * MASTER readings — the *only* numbers the model is allowed to report as
    * "the coherence" / "the stability" / "tools available". Per-rung
@@ -185,24 +246,28 @@ export interface EngineSnapshot {
   /** Tool catalogue size + names. The model MUST cite `tools.available` for any count. */
   tools?: {
     available: number;
-    protocol: "markers" | "native" | "none";
+    protocol: 'markers' | 'native' | 'none';
     names: string[];
   };
   /** V10-ported Qualia Correlate measurement (Q, Q_inc, Q_stab, Q_res). */
-  qualia?: { Q: number; Q_inc: number; Q_stab: number; Q_res: number; N: number; attractorK: number; live: boolean };
+  qualia?: {
+    Q: number;
+    Q_inc: number;
+    Q_stab: number;
+    Q_res: number;
+    N: number;
+    attractorK: number;
+    live: boolean;
+  };
   /** Chapter 44 F8 boundary closure — boundaryIndex (≈40), boundaryClosure, sinkCoupling. */
   chapter44?: { boundaryIndex: number; boundaryClosure: number; sinkCoupling: number };
   /** ISO timestamp the snapshot was built. */
   builtAt: string;
 }
 
-
 // ─── Tool call protocol ────────────────────────────────────────────────────
 
-export type JsonValue =
-  | string | number | boolean | null
-  | JsonValue[]
-  | { [k: string]: JsonValue };
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [k: string]: JsonValue };
 
 export type ToolArgs = Record<string, JsonValue>;
 

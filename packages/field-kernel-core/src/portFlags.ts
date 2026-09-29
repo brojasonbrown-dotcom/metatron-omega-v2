@@ -52,11 +52,11 @@ type FlagKey =
   // F4 Geometric uplift (Phase F4-α..ε). All default OFF; bit-identical
   // to F4.golden.json when OFF. See .lovable/plan.md "F4 Geometric —
   // Completion & Stabilization Plan".
-  | 'FLAG_F4_CONST_BANK'      // α — constant-bank consolidation (no-op runtime)
-  | 'FLAG_F4_SILVER'          // β — silver-ratio / octagonal family
+  | 'FLAG_F4_CONST_BANK' // α — constant-bank consolidation (no-op runtime)
+  | 'FLAG_F4_SILVER' // β — silver-ratio / octagonal family
   | 'FLAG_F4_EXTENDED_SOLIDS' // γ — Archimedean/Catalan/Kepler-Poinsot catalog
-  | 'FLAG_F4_SPECTRUM'        // δ — 291-octave geometric scale spectrum
-  | 'FLAG_F4_PHI2K'           // ε — φ⁻²ᵏ ring decay + honeycomb layer
+  | 'FLAG_F4_SPECTRUM' // δ — 291-octave geometric scale spectrum
+  | 'FLAG_F4_PHI2K' // ε — φ⁻²ᵏ ring decay + honeycomb layer
   // Phase 2 (RHUFT-F Layers 1 + 4). Both default OFF; runtime bit-identical
   // to end-of-Phase-1 when OFF. When ON, the ShadowStateTape allocates
   // FieldStateN per scale and the metric bank publishes unclamped
@@ -69,15 +69,24 @@ type FlagKey =
   // — enables the new read-only measurement module for that scale). The
   // two are non-exclusive by design: the measurement module reads the
   // legacy output, it never replaces it.
-  | 'FLAG_LEGACY_FRAMEWORK_0'  | 'FLAG_RHUFTF_FRAMEWORK_0'
-  | 'FLAG_LEGACY_FRAMEWORK_1'  | 'FLAG_RHUFTF_FRAMEWORK_1'
-  | 'FLAG_LEGACY_FRAMEWORK_2'  | 'FLAG_RHUFTF_FRAMEWORK_2'
-  | 'FLAG_LEGACY_FRAMEWORK_3'  | 'FLAG_RHUFTF_FRAMEWORK_3'
-  | 'FLAG_LEGACY_FRAMEWORK_4'  | 'FLAG_RHUFTF_FRAMEWORK_4'
-  | 'FLAG_LEGACY_FRAMEWORK_5'  | 'FLAG_RHUFTF_FRAMEWORK_5'
-  | 'FLAG_LEGACY_FRAMEWORK_6'  | 'FLAG_RHUFTF_FRAMEWORK_6'
-  | 'FLAG_LEGACY_FRAMEWORK_7'  | 'FLAG_RHUFTF_FRAMEWORK_7'
-  | 'FLAG_LEGACY_FRAMEWORK_8'  | 'FLAG_RHUFTF_FRAMEWORK_8'
+  | 'FLAG_LEGACY_FRAMEWORK_0'
+  | 'FLAG_RHUFTF_FRAMEWORK_0'
+  | 'FLAG_LEGACY_FRAMEWORK_1'
+  | 'FLAG_RHUFTF_FRAMEWORK_1'
+  | 'FLAG_LEGACY_FRAMEWORK_2'
+  | 'FLAG_RHUFTF_FRAMEWORK_2'
+  | 'FLAG_LEGACY_FRAMEWORK_3'
+  | 'FLAG_RHUFTF_FRAMEWORK_3'
+  | 'FLAG_LEGACY_FRAMEWORK_4'
+  | 'FLAG_RHUFTF_FRAMEWORK_4'
+  | 'FLAG_LEGACY_FRAMEWORK_5'
+  | 'FLAG_RHUFTF_FRAMEWORK_5'
+  | 'FLAG_LEGACY_FRAMEWORK_6'
+  | 'FLAG_RHUFTF_FRAMEWORK_6'
+  | 'FLAG_LEGACY_FRAMEWORK_7'
+  | 'FLAG_RHUFTF_FRAMEWORK_7'
+  | 'FLAG_LEGACY_FRAMEWORK_8'
+  | 'FLAG_RHUFTF_FRAMEWORK_8'
   // Phase 5 · Step 2 — canonical local-update per-scale writers. Each
   // FLAG_RHUFTF_LOCAL_UPDATE_<n> gates registration of the corresponding
   // U_n module into the localUpdateRegistry (default OFF). When all off
@@ -123,7 +132,6 @@ type FlagKey =
   // bit-identical to the pre-P5 update.
   | 'FLAG_MEMRISTIVE_L1';
 
-
 const DEFAULTS: Record<FlagKey, boolean> = {
   FLAG_MEMRISTIVE_L1: false,
   // Wave 1 is non-behavioural (constants only) — safe to default ON.
@@ -167,15 +175,24 @@ const DEFAULTS: Record<FlagKey, boolean> = {
   // Step 3 — nine measurement operators O_n. LEGACY_FRAMEWORK_n stay ON so
   // the legacy scalar chain and the RHUFT-F ladder run side-by-side and any
   // divergence is visible rather than silent.
-  FLAG_LEGACY_FRAMEWORK_0: true,  FLAG_RHUFTF_FRAMEWORK_0: true,
-  FLAG_LEGACY_FRAMEWORK_1: true,  FLAG_RHUFTF_FRAMEWORK_1: true,
-  FLAG_LEGACY_FRAMEWORK_2: true,  FLAG_RHUFTF_FRAMEWORK_2: true,
-  FLAG_LEGACY_FRAMEWORK_3: true,  FLAG_RHUFTF_FRAMEWORK_3: true,
-  FLAG_LEGACY_FRAMEWORK_4: true,  FLAG_RHUFTF_FRAMEWORK_4: true,
-  FLAG_LEGACY_FRAMEWORK_5: true,  FLAG_RHUFTF_FRAMEWORK_5: true,
-  FLAG_LEGACY_FRAMEWORK_6: true,  FLAG_RHUFTF_FRAMEWORK_6: true,
-  FLAG_LEGACY_FRAMEWORK_7: true,  FLAG_RHUFTF_FRAMEWORK_7: true,
-  FLAG_LEGACY_FRAMEWORK_8: true,  FLAG_RHUFTF_FRAMEWORK_8: true,
+  FLAG_LEGACY_FRAMEWORK_0: true,
+  FLAG_RHUFTF_FRAMEWORK_0: true,
+  FLAG_LEGACY_FRAMEWORK_1: true,
+  FLAG_RHUFTF_FRAMEWORK_1: true,
+  FLAG_LEGACY_FRAMEWORK_2: true,
+  FLAG_RHUFTF_FRAMEWORK_2: true,
+  FLAG_LEGACY_FRAMEWORK_3: true,
+  FLAG_RHUFTF_FRAMEWORK_3: true,
+  FLAG_LEGACY_FRAMEWORK_4: true,
+  FLAG_RHUFTF_FRAMEWORK_4: true,
+  FLAG_LEGACY_FRAMEWORK_5: true,
+  FLAG_RHUFTF_FRAMEWORK_5: true,
+  FLAG_LEGACY_FRAMEWORK_6: true,
+  FLAG_RHUFTF_FRAMEWORK_6: true,
+  FLAG_LEGACY_FRAMEWORK_7: true,
+  FLAG_RHUFTF_FRAMEWORK_7: true,
+  FLAG_LEGACY_FRAMEWORK_8: true,
+  FLAG_RHUFTF_FRAMEWORK_8: true,
   // Step 4 — nine local-update kernels U_n. Gated by the canonical-vs-master
   // ULP suite, the delegate-invariant suite, and cross-runtime parity.
   // Note: MasterUpdateController force-registers U_0..U_8 for its own
@@ -202,7 +219,6 @@ const DEFAULTS: Record<FlagKey, boolean> = {
   FLAG_RHUFTF_DAEMON_BANK: true,
 };
 
-
 function parseBool(raw: string | undefined): boolean | undefined {
   if (raw === undefined) return undefined;
   return raw === '1' || raw === 'true';
@@ -215,14 +231,18 @@ function readEnv(k: FlagKey): boolean | undefined {
     const env = (import.meta as unknown as { env?: Record<string, string | undefined> }).env;
     const v = parseBool(env?.[key]);
     if (v !== undefined) return v;
-  } catch { /* not in a Vite context */ }
+  } catch {
+    /* not in a Vite context */
+  }
   // 2) process.env fallback (bun / node scripts, generators, CI, daemon).
   try {
     if (typeof process !== 'undefined' && process?.env) {
       const v = parseBool(process.env[key]);
       if (v !== undefined) return v;
     }
-  } catch { /* no process global */ }
+  } catch {
+    /* no process global */
+  }
   return undefined;
 }
 

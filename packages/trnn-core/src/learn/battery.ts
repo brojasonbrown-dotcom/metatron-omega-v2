@@ -24,7 +24,13 @@ import { PHI_INV, SIGNATURE_MODES, phiPow } from '../core/constants';
 import { SeedStream } from '../core/determinism';
 import { createField, type CField } from '../core/complex';
 import { createLattice } from '../torus/lattice';
-import { analyze, buildBasis, coeffBuffer, synthesize, type ModeBasis } from '../torus/superposition';
+import {
+  analyze,
+  buildBasis,
+  coeffBuffer,
+  synthesize,
+  type ModeBasis,
+} from '../torus/superposition';
 import { closureTarget } from '../cell/closure';
 import { SingleTorusEngine } from '../engine/SingleTorusEngine';
 import { LearnableCell } from './cell';
@@ -139,7 +145,13 @@ export interface ScoreReport {
   readonly pairs: number;
 }
 
-function scoreWindow(traj: Trajectory, cell: LearnableCell, from: number, count: number, sc: Scratch): ScoreReport {
+function scoreWindow(
+  traj: Trajectory,
+  cell: LearnableCell,
+  from: number,
+  count: number,
+  sc: Scratch,
+): ScoreReport {
   let num = 0;
   let den = 0;
   for (let k = from; k < from + count; k++) {
@@ -192,7 +204,10 @@ export interface BatteryReport {
  * kill verdict the cell is left at gate 0 with its raw parameters restored, so
  * the caller cannot accidentally ship an unproven model.
  */
-export function runBattery(traj: Trajectory, train: TrainOptions = {}): { cell: LearnableCell; report: BatteryReport } {
+export function runBattery(
+  traj: Trajectory,
+  train: TrainOptions = {},
+): { cell: LearnableCell; report: BatteryReport } {
   const iterations = train.iterations ?? 400;
   const a0 = train.stepScale ?? 1.5;
   const c0 = train.probeScale ?? 0.25;

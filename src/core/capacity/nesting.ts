@@ -17,7 +17,11 @@
 
 import { resample, bandLimit } from '@metatron/trnn-core/operator/resample';
 import {
-  descendTo, ascendAll, closureDefect, levelEnergies, nestFootprint,
+  descendTo,
+  ascendAll,
+  closureDefect,
+  levelEnergies,
+  nestFootprint,
 } from '@metatron/trnn-core/operator/nestedField';
 
 /** Rungs the probe nests through, coarse→fine. */
@@ -74,7 +78,10 @@ function field(n: number, ks: readonly number[]) {
   return { re, im, n };
 }
 
-function relErr(a: { re: Float64Array; im: Float64Array }, b: { re: Float64Array; im: Float64Array; n: number }) {
+function relErr(
+  a: { re: Float64Array; im: Float64Array },
+  b: { re: Float64Array; im: Float64Array; n: number },
+) {
   let num = 0;
   let den = 0;
   for (let i = 0; i < b.n; i++) {

@@ -90,8 +90,10 @@ describe('N1-2 accumulator equals the FFT bin', () => {
     const samples: Array<[number, number]> = [];
     // a deterministic, spectrally rich signal — three tones plus a ramp
     const gen = (t: number): [number, number] => {
-      const a = Math.cos((2 * Math.PI * 7 * t) / DEPTH) + 0.4 * Math.cos((2 * Math.PI * 27 * t) / DEPTH);
-      const b = Math.sin((2 * Math.PI * 17 * t) / DEPTH) - 0.25 * Math.sin((2 * Math.PI * 3 * t) / DEPTH);
+      const a =
+        Math.cos((2 * Math.PI * 7 * t) / DEPTH) + 0.4 * Math.cos((2 * Math.PI * 27 * t) / DEPTH);
+      const b =
+        Math.sin((2 * Math.PI * 17 * t) / DEPTH) - 0.25 * Math.sin((2 * Math.PI * 3 * t) / DEPTH);
       return [a, b];
     };
     for (let t = 0; t < DEPTH; t++) samples.push(gen(t));

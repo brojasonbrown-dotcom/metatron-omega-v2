@@ -25,10 +25,11 @@ export const VECTOR_DIM_TIERS = [610, 1597, 2584, 6765] as const;
 export const VECTOR_DIM = 1597;
 
 const STOP = new Set(
-  ('a an and are as at be by for from has have he in is it its of on or that the to was were will with ' +
-   'this these those they them their we you your i not but if then than so such can could would should ' +
-   'about into over under after before between during also there here what which who whom whose how why')
-    .split(' '),
+  (
+    'a an and are as at be by for from has have he in is it its of on or that the to was were will with ' +
+    'this these those they them their we you your i not but if then than so such can could would should ' +
+    'about into over under after before between during also there here what which who whom whose how why'
+  ).split(' '),
 );
 
 /**
@@ -91,7 +92,7 @@ export function featureCounts(tokens: readonly string[]): Map<string, number> {
   const bump = (k: string, w = 1) => m.set(k, (m.get(k) ?? 0) + w);
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
-    if (i + 2 < tokens.length) bump(`${t}~${tokens[i + 2]}`);   // skip-1 order cue
+    if (i + 2 < tokens.length) bump(`${t}~${tokens[i + 2]}`); // skip-1 order cue
     if (t.length >= CHAR_MIN_TOKEN) {
       const w = `#${t}#`;
       for (let n = 3; n <= 4; n++) {
@@ -110,7 +111,11 @@ export type IdfFn = (term: string) => number;
  * L2-normalised. Three probes per feature with distinct FNV seeds average out
  * collision noise (count-sketch) while staying exactly deterministic.
  */
-export function hashVector(counts: Map<string, number>, dim = VECTOR_DIM, idf?: IdfFn): Float64Array {
+export function hashVector(
+  counts: Map<string, number>,
+  dim = VECTOR_DIM,
+  idf?: IdfFn,
+): Float64Array {
   const v = new Float64Array(dim);
   const probes = 3;
   const norm = 1 / Math.sqrt(probes);

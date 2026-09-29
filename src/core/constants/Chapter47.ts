@@ -25,13 +25,13 @@
  * where the leak naturally lands — see F8_SubPlanckian.chapter44.
  */
 
-export const PHI                = 1.6180339887498948;
-export const PHI_FLOOR_INV_SQ   = 0.3819660112501051;   // 1/φ² — Λ stable plateau
-export const PHI_FLOOR_INV_CB   = 0.2360679774997896;   // 1/φ³ — Λ settling
-export const HURWITZ_CONSTANT   = 0.4472135954999579;   // 1/√5
-export const SILVER_RATIO       = 2.4142135623730951;   // 1+√2 (δ_S)
-export const F17_RESOLUTION     = 1597;                  // Fibonacci(17)
-export const PHI_INV_40         = 4.575743210644582e-9;  // φ^-40 — F8 ZPE landing
+export const PHI = 1.618033988749895;
+export const PHI_FLOOR_INV_SQ = 0.3819660112501051; // 1/φ² — Λ stable plateau
+export const PHI_FLOOR_INV_CB = 0.2360679774997896; // 1/φ³ — Λ settling
+export const HURWITZ_CONSTANT = 0.4472135954999579; // 1/√5
+export const SILVER_RATIO = 2.414213562373095; // 1+√2 (δ_S)
+export const F17_RESOLUTION = 1597; // Fibonacci(17)
+export const PHI_INV_40 = 4.575743210644582e-9; // φ^-40 — F8 ZPE landing
 export const SILVER_GRID_SPOKES = 12;
 
 /** Silver-weighted 12-spoke load distribution. Heavier near the centre spokes
@@ -42,7 +42,8 @@ export function silverGridWeights(spokes: number = SILVER_GRID_SPOKES): number[]
   let total = 0;
   for (let k = 0; k < spokes; k++) {
     const w = Math.pow(SILVER_RATIO, -Math.abs(k - mid));
-    raw.push(w); total += w;
+    raw.push(w);
+    total += w;
   }
   return total > 0 ? raw.map((w) => w / total) : raw;
 }

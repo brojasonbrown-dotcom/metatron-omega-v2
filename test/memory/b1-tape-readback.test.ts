@@ -25,8 +25,8 @@ function fill(tape: FieldTape, n: number, startTick = 0): void {
       tick,
       psi: psi(tick),
       qualiaScalar: 0.5,
-      coherence: 0.3 + 0.001 * t,   // steadily rising
-      energy: 1 - 0.002 * t,        // steadily falling
+      coherence: 0.3 + 0.001 * t, // steadily rising
+      energy: 1 - 0.002 * t, // steadily falling
       salience: 0.4,
       novelty: 0.2,
       surprise: t === 50 ? 0.9 : 0.1,
@@ -72,8 +72,8 @@ describe('B1 — tape readback', () => {
     expect(w.length).toBe(43);
     expect(w[0].tick).toBe(79);
     expect(w.at(-1)!.tick).toBe(121);
-    expect(tape.window(0, 21, 21).length).toBe(22);      // clamped left
-    expect(tape.window(199, 21, 21).length).toBe(22);    // clamped right
+    expect(tape.window(0, 21, 21).length).toBe(22); // clamped left
+    expect(tape.window(199, 21, 21).length).toBe(22); // clamped right
     expect(new FieldTape(1 << 16, 8).window(0)).toEqual([]);
   });
 
@@ -99,13 +99,13 @@ describe('B2 — trajectory summary', () => {
     const t = summariseTrajectory(tape.window(100, 21, 21));
     expect(t.frames).toBe(43);
     expect(t.coherenceMean).toBeCloseTo(0.3 + 0.001 * 100, 3);
-    expect(t.coherenceDrift).toBeCloseTo(0.001, 6);   // rising
-    expect(t.energyDrift).toBeCloseTo(-0.002, 6);      // falling
+    expect(t.coherenceDrift).toBeCloseTo(0.001, 6); // rising
+    expect(t.energyDrift).toBeCloseTo(-0.002, 6); // falling
     expect(t.coherenceVolatility).toBeGreaterThan(0);
     expect(t.coherenceVolatility).toBeLessThan(0.02);
     expect(t.dominantMode).toBe(5);
     expect(t.modalPersistence).toBeGreaterThan(0.1);
-    expect(t.peakSurprise).toBeCloseTo(0.1, 6);        // the t=50 spike is outside
+    expect(t.peakSurprise).toBeCloseTo(0.1, 6); // the t=50 spike is outside
   });
 
   it('captures a surprise spike inside its window', () => {

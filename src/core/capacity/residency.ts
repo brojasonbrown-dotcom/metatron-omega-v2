@@ -51,7 +51,11 @@ export async function measureResidency(o: ResidencyOptions = {}): Promise<Reside
   const sealMs = now() - t0;
 
   const t1 = now();
-  const back = await corpus.recall({ tickFrom: 0, tickTo: frames, budgetNumbers: frames * width * 4 });
+  const back = await corpus.recall({
+    tickFrom: 0,
+    tickTo: frames,
+    budgetNumbers: frames * width * 4,
+  });
   const readMs = now() - t1;
 
   const s = corpus.stats();

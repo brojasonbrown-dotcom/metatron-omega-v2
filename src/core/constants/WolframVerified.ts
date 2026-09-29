@@ -28,7 +28,7 @@ Decimal.set({ precision: 60, rounding: Decimal.ROUND_HALF_EVEN });
 
 /** φ = (1+√5)/2. Wolfram: GoldenRatio. 60-digit verified. */
 export const PHI_STR = '1.61803398874989484820458683436563811772030917980576286213545';
-export const PHI = 1.6180339887498948;
+export const PHI = 1.618033988749895;
 export const PHI_BD = new Decimal(PHI_STR);
 
 /** 1/φ = φ − 1. Wolfram: 1/GoldenRatio. */
@@ -127,7 +127,7 @@ export const WIEN_DISPLACEMENT_M_K = 2.897771955e-3;
 export const VACUUM_PERMITTIVITY_F_M = 8.8541878188e-12;
 
 /** Newtonian gravitational constant G (m³·kg⁻¹·s⁻²). CODATA 2022. */
-export const GRAVITATIONAL_CONSTANT = 6.67430e-11;
+export const GRAVITATIONAL_CONSTANT = 6.6743e-11;
 
 /** Bohr radius a₀ (m). CODATA 2022. */
 export const BOHR_RADIUS_M = 5.29177210544e-11;
@@ -154,7 +154,7 @@ export const WEYL_55_COS_SUM = 0.00927455;
  * Real conserved scalar of the 55-topology; used as the orchestrator's
  * coherence reference target (tail < 1e-11 at k=55).
  */
-export const RECIPROCAL_FIB_SUM_55 = 3.3598856662431776;
+export const RECIPROCAL_FIB_SUM_55 = 3.3598856662431777;
 
 /**
  * **Exact rational energy ratio of the 3-lane carrier stack {1, 144, 1728}.**
@@ -175,7 +175,6 @@ export const FIB_55 = 139583862445;
  * that subdivides its k-range hierarchically.
  */
 export const PHI_DEPTH_OF_55 = 8;
-
 
 // ───────────────────────── φ-ladder closure identities (Wolfram-verified) ─────────────────────────
 
@@ -403,9 +402,7 @@ function selfCheck(): void {
   for (const [id, computed, literal] of checks) {
     const drift = computed.minus(literal).abs();
     if (drift.gt(tol)) {
-      throw new Error(
-        `WolframVerified self-check failed for ${id}: drift=${drift.toString()}`,
-      );
+      throw new Error(`WolframVerified self-check failed for ${id}: drift=${drift.toString()}`);
     }
   }
 }
@@ -422,7 +419,8 @@ selfCheck();
 // the BigDecimal source-of-truth for the upcoming spectrum/extension paths.
 
 /** arccos(1/3) — tetrahedron dihedral. Wolfram: N[ArcCos[1/3], 60]. */
-export const F4_DIHEDRAL_TETRA_STR = '1.23095941734077468213836579415911143789842262398632262849326';
+export const F4_DIHEDRAL_TETRA_STR =
+  '1.23095941734077468213836579415911143789842262398632262849326';
 export const F4_DIHEDRAL_TETRA = Math.acos(1 / 3);
 export const F4_DIHEDRAL_TETRA_BD = Decimal.acos(new Decimal(1).div(3));
 
@@ -436,12 +434,14 @@ export const F4_DIHEDRAL_OCTA = PI - Math.acos(1 / 3);
 export const F4_DIHEDRAL_OCTA_BD = PI_BD.minus(F4_DIHEDRAL_TETRA_BD);
 
 /** arccos(−1/√5) — dodecahedron dihedral. Wolfram: N[ArcCos[-1/Sqrt[5]], 60]. */
-export const F4_DIHEDRAL_DODECA_STR = '2.03444393579570273544187502117265666906754825232828826987389';
+export const F4_DIHEDRAL_DODECA_STR =
+  '2.03444393579570273544187502117265666906754825232828826987389';
 export const F4_DIHEDRAL_DODECA = Math.acos(-1 / Math.sqrt(5));
 export const F4_DIHEDRAL_DODECA_BD = Decimal.acos(new Decimal(-1).div(new Decimal(5).sqrt()));
 
 /** arccos(−√5/3) — icosahedron dihedral. Wolfram: N[ArcCos[-Sqrt[5]/3], 60]. */
-export const F4_DIHEDRAL_ICOSA_STR = '2.41186499736279450451364833192373893712852263974410785655461';
+export const F4_DIHEDRAL_ICOSA_STR =
+  '2.41186499736279450451364833192373893712852263974410785655461';
 export const F4_DIHEDRAL_ICOSA = Math.acos(-Math.sqrt(5) / 3);
 export const F4_DIHEDRAL_ICOSA_BD = Decimal.acos(new Decimal(-5).sqrt().div(3));
 
@@ -456,54 +456,60 @@ export const F4_COS_PI8 = Math.cos(PI / 8);
 export const F4_COS_PI8_BD = new Decimal(2).plus(new Decimal(2).sqrt()).sqrt().div(2);
 
 /** Dodecahedron edge/circumradius = 4/(φ²·√3). Wolfram: N[4/(GoldenRatio^2 Sqrt[3]), 60]. */
-export const F4_DODECA_EDGE_CIRCUM_STR = '0.88211271763366339040149166757754725617517391775296614825905';
+export const F4_DODECA_EDGE_CIRCUM_STR =
+  '0.88211271763366339040149166757754725617517391775296614825905';
 export const F4_DODECA_EDGE_CIRCUM = 4 / (PHI * PHI * Math.sqrt(3));
 export const F4_DODECA_EDGE_CIRCUM_BD = new Decimal(4).div(PHI_SQ_BD.times(new Decimal(3).sqrt()));
 
 /** Icosahedron edge/circumradius = 2/(φ·√5). Wolfram: N[2/(GoldenRatio Sqrt[5]), 60]. */
-export const F4_ICOSA_EDGE_CIRCUM_STR = '0.55278640450004206071816526625890098231175342382500313947912';
+export const F4_ICOSA_EDGE_CIRCUM_STR =
+  '0.55278640450004206071816526625890098231175342382500313947912';
 export const F4_ICOSA_EDGE_CIRCUM = 2 / (PHI * Math.sqrt(5));
 export const F4_ICOSA_EDGE_CIRCUM_BD = new Decimal(2).div(PHI_BD.times(new Decimal(5).sqrt()));
 
 /** Golden angle in degrees = 360/φ². Wolfram: N[360/GoldenRatio^2, 60]. */
-export const F4_GOLDEN_ANGLE_DEG_STR = '137.50776405003785397206813584068725714839905361688474713087866';
+export const F4_GOLDEN_ANGLE_DEG_STR =
+  '137.50776405003785397206813584068725714839905361688474713087866';
 export const F4_GOLDEN_ANGLE_DEG = 360 / (PHI * PHI);
 export const F4_GOLDEN_ANGLE_DEG_BD = new Decimal(360).div(PHI_SQ_BD);
 
 /** Vesica Piscis area ratio = (2π/3 − √3/2)/π. Wolfram: N[(2 Pi/3 - Sqrt[3]/2)/Pi, 60]. */
-export const F4_VESICA_AREA_RATIO_STR = '0.39100221895577382189239031094296942538156718068488447737617';
-export const F4_VESICA_AREA_RATIO = (2 * PI / 3 - Math.sqrt(3) / 2) / PI;
-export const F4_VESICA_AREA_RATIO_BD =
-  PI_BD.times(2).div(3).minus(new Decimal(3).sqrt().div(2)).div(PI_BD);
+export const F4_VESICA_AREA_RATIO_STR =
+  '0.39100221895577382189239031094296942538156718068488447737617';
+export const F4_VESICA_AREA_RATIO = ((2 * PI) / 3 - Math.sqrt(3) / 2) / PI;
+export const F4_VESICA_AREA_RATIO_BD = PI_BD.times(2)
+  .div(3)
+  .minus(new Decimal(3).sqrt().div(2))
+  .div(PI_BD);
 
 /** Circumradii (unit edge length) — Wolfram-verified at 60 digits. */
-export const F4_CIRCUMR_TETRA  = Math.sqrt(6) / 4;
-export const F4_CIRCUMR_CUBE   = Math.sqrt(3) / 2;
-export const F4_CIRCUMR_OCTA   = Math.sqrt(2) / 2;
+export const F4_CIRCUMR_TETRA = Math.sqrt(6) / 4;
+export const F4_CIRCUMR_CUBE = Math.sqrt(3) / 2;
+export const F4_CIRCUMR_OCTA = Math.sqrt(2) / 2;
 export const F4_CIRCUMR_DODECA = (Math.sqrt(3) + Math.sqrt(15)) / 4;
-export const F4_CIRCUMR_ICOSA  = 0.25 * Math.sqrt(10 + 2 * Math.sqrt(5));
+export const F4_CIRCUMR_ICOSA = 0.25 * Math.sqrt(10 + 2 * Math.sqrt(5));
 
 /** Icosahedron volume coefficient = 5φ²/6. */
-export const F4_VOLUME_ICOSA_PHI = 5 * PHI * PHI / 6;
+export const F4_VOLUME_ICOSA_PHI = (5 * PHI * PHI) / 6;
 export const F4_VOLUME_ICOSA_PHI_BD = PHI_SQ_BD.times(5).div(6);
 
 /** Surface areas (unit edge length). */
-export const F4_SURFACE_ICOSA  = 5 * Math.sqrt(3);
+export const F4_SURFACE_ICOSA = 5 * Math.sqrt(3);
 export const F4_SURFACE_DODECA = 3 * Math.sqrt(5 * (5 + 2 * Math.sqrt(5)));
 
 /** Solfeggio 528 Hz — F4 "Mi" carrier. */
 export const F4_HE_HZ = 528;
 
 /** Descartes angular defect totals (sum over vertices) — must equal 720°. */
-export const F4_DEFECT_TETRA  = 180;
-export const F4_DEFECT_CUBE   = 90;
-export const F4_DEFECT_OCTA   = 120;
+export const F4_DEFECT_TETRA = 180;
+export const F4_DEFECT_CUBE = 90;
+export const F4_DEFECT_OCTA = 120;
 export const F4_DEFECT_DODECA = 36;
-export const F4_DEFECT_ICOSA  = 60;
+export const F4_DEFECT_ICOSA = 60;
 
 /** Rhombic triacontahedron — Catalan dual of icosidodecahedron. */
-export const F4_RHOMBIC_30_FACES    = 30;
-export const F4_RHOMBIC_30_EDGES    = 60;
+export const F4_RHOMBIC_30_FACES = 30;
+export const F4_RHOMBIC_30_EDGES = 60;
 export const F4_RHOMBIC_30_VERTICES = 32;
 
 // Compile-time parity guard: every f64 value above must equal its BD
@@ -512,17 +518,17 @@ export const F4_RHOMBIC_30_VERTICES = 32;
 (function f4ParityCheck() {
   const ulp = 4 * 2.220446049250313e-16;
   const pairs: Array<[string, number, Decimal]> = [
-    ['F4_DIHEDRAL_TETRA',     F4_DIHEDRAL_TETRA,     F4_DIHEDRAL_TETRA_BD],
-    ['F4_DIHEDRAL_OCTA',      F4_DIHEDRAL_OCTA,      F4_DIHEDRAL_OCTA_BD],
-    ['F4_DIHEDRAL_DODECA',    F4_DIHEDRAL_DODECA,    F4_DIHEDRAL_DODECA_BD],
-    ['F4_DIHEDRAL_ICOSA',     F4_DIHEDRAL_ICOSA,     F4_DIHEDRAL_ICOSA_BD],
-    ['F4_COS36',              F4_COS36,              F4_COS36_BD],
-    ['F4_COS_PI8',            F4_COS_PI8,            F4_COS_PI8_BD],
+    ['F4_DIHEDRAL_TETRA', F4_DIHEDRAL_TETRA, F4_DIHEDRAL_TETRA_BD],
+    ['F4_DIHEDRAL_OCTA', F4_DIHEDRAL_OCTA, F4_DIHEDRAL_OCTA_BD],
+    ['F4_DIHEDRAL_DODECA', F4_DIHEDRAL_DODECA, F4_DIHEDRAL_DODECA_BD],
+    ['F4_DIHEDRAL_ICOSA', F4_DIHEDRAL_ICOSA, F4_DIHEDRAL_ICOSA_BD],
+    ['F4_COS36', F4_COS36, F4_COS36_BD],
+    ['F4_COS_PI8', F4_COS_PI8, F4_COS_PI8_BD],
     ['F4_DODECA_EDGE_CIRCUM', F4_DODECA_EDGE_CIRCUM, F4_DODECA_EDGE_CIRCUM_BD],
-    ['F4_ICOSA_EDGE_CIRCUM',  F4_ICOSA_EDGE_CIRCUM,  F4_ICOSA_EDGE_CIRCUM_BD],
-    ['F4_GOLDEN_ANGLE_DEG',   F4_GOLDEN_ANGLE_DEG,   F4_GOLDEN_ANGLE_DEG_BD],
-    ['F4_VESICA_AREA_RATIO',  F4_VESICA_AREA_RATIO,  F4_VESICA_AREA_RATIO_BD],
-    ['F4_VOLUME_ICOSA_PHI',   F4_VOLUME_ICOSA_PHI,   F4_VOLUME_ICOSA_PHI_BD],
+    ['F4_ICOSA_EDGE_CIRCUM', F4_ICOSA_EDGE_CIRCUM, F4_ICOSA_EDGE_CIRCUM_BD],
+    ['F4_GOLDEN_ANGLE_DEG', F4_GOLDEN_ANGLE_DEG, F4_GOLDEN_ANGLE_DEG_BD],
+    ['F4_VESICA_AREA_RATIO', F4_VESICA_AREA_RATIO, F4_VESICA_AREA_RATIO_BD],
+    ['F4_VOLUME_ICOSA_PHI', F4_VOLUME_ICOSA_PHI, F4_VOLUME_ICOSA_PHI_BD],
   ];
   for (const [id, f, bd] of pairs) {
     const drift = Math.abs(f - bd.toNumber());

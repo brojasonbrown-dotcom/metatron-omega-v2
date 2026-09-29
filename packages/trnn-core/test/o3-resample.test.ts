@@ -19,7 +19,8 @@ function bandLimited(n: number, ks: number[]): CField {
 
 function maxErr(a: CField, b: CField): number {
   let m = 0;
-  for (let i = 0; i < a.n; i++) m = Math.max(m, Math.abs(a.re[i] - b.re[i]), Math.abs(a.im[i] - b.im[i]));
+  for (let i = 0; i < a.n; i++)
+    m = Math.max(m, Math.abs(a.re[i] - b.re[i]), Math.abs(a.im[i] - b.im[i]));
   return m;
 }
 

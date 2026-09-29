@@ -19,7 +19,11 @@ import { MemoryStore } from '@/core/memory/MemoryStore';
 import { MemoryPersistence } from '@/core/memory/MemoryPersistence';
 import { computeMemoryCaps, type MemoryCaps } from '@/core/memory/MemoryGovernor';
 import { tickMemory, type TickMemoryResult } from '@/core/memory/tickMemory';
-import { LearningEngine, type LearningMetrics, type LearningOptions } from '@/core/memory/LearningEngine';
+import {
+  LearningEngine,
+  type LearningMetrics,
+  type LearningOptions,
+} from '@/core/memory/LearningEngine';
 import type { MetatronOutput } from '@/core/MetatronCore';
 import { registerFlush } from '@/lib/persist/flush';
 import { SoundWordMap, soundDescriptor } from '@/core/knowledge/lexicon';
@@ -33,10 +37,13 @@ async function chunkDescriptor(blob: Blob): Promise<Float64Array | null> {
     try {
       const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
       return soundDescriptor(buf.getChannelData(0), buf.sampleRate);
-    } finally { void ctx.close(); }
-  } catch { return null; }
+    } finally {
+      void ctx.close();
+    }
+  } catch {
+    return null;
+  }
 }
-
 
 const ENABLED_KEY = 'metatron.v13.memory.enabled';
 const LEARN_KEY = 'metatron.v13.memory.learning';
@@ -97,8 +104,12 @@ class MemoryRuntime {
     if (typeof window !== 'undefined') {
       // Periodic checkpoint (every 20 s while dirty) + a flush on page hide,
       // so no learned state depends on the user remembering to press save.
-      this.autoTimer = setInterval(() => { void this.autoSave(); }, 20_000);
-      registerFlush(() => { void this.autoSave(true); });
+      this.autoTimer = setInterval(() => {
+        void this.autoSave();
+      }, 20_000);
+      registerFlush(() => {
+        void this.autoSave(true);
+      });
     }
   }
 
@@ -112,15 +123,18 @@ class MemoryRuntime {
       await this.persistence.save(this.store);
       this.dirty = false;
       this.lastAutoSave = Date.now();
-    } catch { /* keep dirty; the next checkpoint retries */ }
+    } catch {
+      /* keep dirty; the next checkpoint retries */
+    }
     this.savingNow = false;
   }
-
 
   // ── external store plumbing ────────────────────────────────────────────
   subscribe = (cb: () => void): (() => void) => {
     this.listeners.add(cb);
-    return () => { this.listeners.delete(cb); };
+    return () => {
+      this.listeners.delete(cb);
+    };
   };
 
   getStats = (): MemoryRuntimeStats => {
@@ -152,7 +166,9 @@ class MemoryRuntime {
   }
 
   // ── configuration ──────────────────────────────────────────────────────
-  isEnabled(): boolean { return this.enabled; }
+  isEnabled(): boolean {
+    return this.enabled;
+  }
   setEnabled(on: boolean): void {
     this.enabled = on;
     if (typeof localStorage !== 'undefined') localStorage.setItem(ENABLED_KEY, on ? '1' : '0');
@@ -161,7 +177,9 @@ class MemoryRuntime {
     this.bump();
   }
 
-  isLearningEnabled(): boolean { return this.learnEnabled; }
+  isLearningEnabled(): boolean {
+    return this.learnEnabled;
+  }
   setLearningEnabled(on: boolean): void {
     this.learnEnabled = on;
     if (typeof localStorage !== 'undefined') localStorage.setItem(LEARN_KEY, on ? '1' : '0');
@@ -172,7 +190,9 @@ class MemoryRuntime {
     this.learning.setOptions(next);
     this.bump();
   }
-  learningOptions(): LearningOptions { return this.learning.options(); }
+  learningOptions(): LearningOptions {
+    return this.learning.options();
+  }
 
   /** Bytes the memory layers are measured to be holding right now. */
   usedBytes(): number {
@@ -242,23 +262,44 @@ class MemoryRuntime {
   private ensureFlushTimer(): void {
     if (this.flushTimer || typeof window === 'undefined') return;
     this.flushTimer = setInterval(() => {
-      if (this.store.flushPending() > 0) { this.dirty = true; this.bump(); }
+      if (this.store.flushPending() > 0) {
+        this.dirty = true;
+        this.bump();
+      }
     }, 500);
   }
 
-  pendingWords() { return this.store.pending.list(); }
-  heardHistory() { return this.store.pending.history; }
-  correctWord(id: number, index: number, word: string): void { if (this.store.pending.edit(id, index, word)) this.bump(); }
-  dropPending(id: number): void { if (this.store.pending.drop(id)) this.bump(); }
+  pendingWords() {
+    return this.store.pending.list();
+  }
+  heardHistory() {
+    return this.store.pending.history;
+  }
+  correctWord(id: number, index: number, word: string): void {
+    if (this.store.pending.edit(id, index, word)) this.bump();
+  }
+  dropPending(id: number): void {
+    if (this.store.pending.drop(id)) this.bump();
+  }
   confirmPending(id: number): void {
     const u = this.store.pending.take(id);
-    if (u) { this.store.commitPending(u); this.dirty = true; this.bump(); }
+    if (u) {
+      this.store.commitPending(u);
+      this.dirty = true;
+      this.bump();
+    }
   }
   confirmAll(): void {
     for (const u of [...this.store.pending.list()]) this.confirmPending(u.id);
   }
-  setHold(ms: number): void { this.store.pending.holdMs = Math.max(1000, Math.min(60000, ms)); this.bump(); }
-  setHoldPaused(p: boolean): void { this.store.pending.paused = p; this.bump(); }
+  setHold(ms: number): void {
+    this.store.pending.holdMs = Math.max(1000, Math.min(60000, ms));
+    this.bump();
+  }
+  setHoldPaused(p: boolean): void {
+    this.store.pending.paused = p;
+    this.bump();
+  }
 
   inspectWord(w: string) {
     const psi = this.lastResult?.psi;
@@ -314,7 +355,13 @@ class MemoryRuntime {
           if (this.activityPrev.has(id)) this.activityAt.set(id, now);
           this.activityPrev.set(id, value);
         }
-        return { id, label, value, lastChange: this.activityAt.get(id) ?? null, dormant: value === 0 };
+        return {
+          id,
+          label,
+          value,
+          lastChange: this.activityAt.get(id) ?? null,
+          dormant: value === 0,
+        };
       }),
       savedAt: this.lastAutoSave || null,
       unsaved: this.dirty,
@@ -332,28 +379,34 @@ class MemoryRuntime {
       this.recorder = null;
       rec?.stop();
       if (this.ownsMic) this.micStream?.getTracks().forEach((t) => t.stop());
-      this.micStream = null; this.ownsMic = false;
+      this.micStream = null;
+      this.ownsMic = false;
       if (this.enabledAudio) {
         const { getSensoryDriver } = await import('./sensoryDriver');
         getSensoryDriver().disable('audio');
         this.enabledAudio = false;
       }
-      this.hearingStatus = 'off'; this.bump();
+      this.hearingStatus = 'off';
+      this.bump();
       return;
     }
     if (this.recorder || typeof navigator === 'undefined' || !navigator.mediaDevices) return;
-    this.hearingStatus = 'starting'; this.bump();
+    this.hearingStatus = 'starting';
+    this.bump();
     const { getSensoryDriver } = await import('./sensoryDriver');
     const drv = getSensoryDriver();
     if (!drv.isLive('audio')) this.enabledAudio = await drv.enable('audio');
     const shared = drv.audioStream();
-    if (shared) { this.micStream = shared; this.ownsMic = false; }
-    else {
+    if (shared) {
+      this.micStream = shared;
+      this.ownsMic = false;
+    } else {
       try {
         this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
         this.ownsMic = true;
       } catch {
-        this.hearingStatus = 'microphone blocked'; this.bump();
+        this.hearingStatus = 'microphone blocked';
+        this.bump();
         return;
       }
     }
@@ -365,39 +418,56 @@ class MemoryRuntime {
       rec.ondataavailable = async (e) => {
         if (!e.data.size) return;
         const form = new FormData();
-        form.append('file', new File([e.data], 'chunk.webm', { type: e.data.type || 'audio/webm' }));
+        form.append(
+          'file',
+          new File([e.data], 'chunk.webm', { type: e.data.type || 'audio/webm' }),
+        );
         try {
           const res = await fetch('/api/transcribe', { method: 'POST', body: form });
           const body = (await res.json()) as { text?: string; error?: string };
           if (!res.ok) {
             // 401/402/403 are terminal: stop listening and show why.
             this.hearingStatus = body.error ?? `error ${res.status}`;
-            if (res.status === 402 || res.status === 403 || res.status === 401) void this.setListening(false).then(() => { this.hearingStatus = body.error ?? 'stopped'; this.bump(); });
+            if (res.status === 402 || res.status === 403 || res.status === 401)
+              void this.setListening(false).then(() => {
+                this.hearingStatus = body.error ?? 'stopped';
+                this.bump();
+              });
           } else if (body.text) {
             this.lastHeard = body.text;
             const descriptor = await chunkDescriptor(e.data);
             this.store.submit(body.text, 'heard', descriptor);
             if (this.recorder) this.hearingStatus = 'listening';
           }
-        } catch { this.hearingStatus = 'network error'; }
+        } catch {
+          this.hearingStatus = 'network error';
+        }
         this.bump();
       };
-      rec.onstop = () => { if (this.recorder === rec && this.micStream) startChunk(); };
+      rec.onstop = () => {
+        if (this.recorder === rec && this.micStream) startChunk();
+      };
       rec.start();
-      setTimeout(() => { if (rec.state === 'recording') rec.stop(); }, 4000);
+      setTimeout(() => {
+        if (rec.state === 'recording') rec.stop();
+      }, 4000);
     };
-    this.hearingStatus = 'listening'; this.bump();
+    this.hearingStatus = 'listening';
+    this.bump();
     startChunk();
   }
 
   // ── persistence ────────────────────────────────────────────────────────
   async save(): Promise<void> {
-    this.status = 'saving'; this.statusText = 'saving…'; this.bump();
+    this.status = 'saving';
+    this.statusText = 'saving…';
+    this.bump();
     try {
       await this.persistence.save(this.store);
       this.dirty = false;
       this.lastAutoSave = Date.now();
-      this.status = 'live'; this.statusText = 'saved to local storage';
+      this.status = 'live';
+      this.statusText = 'saved to local storage';
     } catch (err) {
       this.status = 'error';
       this.statusText = err instanceof Error ? err.message : 'save failed';
@@ -406,7 +476,9 @@ class MemoryRuntime {
   }
 
   async load(): Promise<void> {
-    this.status = 'loading'; this.statusText = 'loading…'; this.bump();
+    this.status = 'loading';
+    this.statusText = 'loading…';
+    this.bump();
     try {
       const ok = await this.persistence.restore(this.store);
       this.learning.reset();
@@ -422,7 +494,15 @@ class MemoryRuntime {
   async clear(): Promise<void> {
     try {
       await this.persistence.clear();
-      this.store.restore({ hebbian: { entries: [], dim: 0 }, patterns: [], pathway: [], journal: [], lexicon: { d: this.store.lexicon.d, total: 0, words: [] }, soundWords: new SoundWordMap(this.store.soundWords.d).snapshot(), lastHash: null });
+      this.store.restore({
+        hebbian: { entries: [], dim: 0 },
+        patterns: [],
+        pathway: [],
+        journal: [],
+        lexicon: { d: this.store.lexicon.d, total: 0, words: [] },
+        soundWords: new SoundWordMap(this.store.soundWords.d).snapshot(),
+        lastHash: null,
+      });
       this.store.percepts.clear();
       this.learning.reset();
       this.tick = 0;

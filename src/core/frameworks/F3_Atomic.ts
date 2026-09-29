@@ -32,64 +32,162 @@ const AC = {
   SUBSHELL_CAPACITIES: [2, 6, 10, 14] as readonly number[],
   NUCLEAR_MAGIC: [2, 8, 20, 28, 50, 82, 126] as readonly number[],
   DALET_HZ: 417,
-  PSI: SILVER, PSI_INV: SILVER_INV,
+  PSI: SILVER,
+  PSI_INV: SILVER_INV,
   GEOMETRIC_PROJECTION_GAP: Math.abs(528 * Math.pow(PHI, -0.5) - 417) / 417,
-  MAGIC_PHI_EXPONENTS: [1.4404, 4.3213, 6.2254, 6.9246, 8.1295, 9.1575, 10.0502] as readonly number[],
+  MAGIC_PHI_EXPONENTS: [
+    1.4404, 4.3213, 6.2254, 6.9246, 8.1295, 9.1575, 10.0502,
+  ] as readonly number[],
   NOBLE_GAS_RATIOS: [5.0, 1.8, 2.0, 1.5, 1.593, 1.372] as readonly number[],
   SHELL_PHASE_LEAD: PHI / 2,
   AUFBAU_ORDER: [
-    [1,0],[2,0],[2,1],[3,0],[3,1],[4,0],[3,2],[4,1],[5,0],[4,2],
-    [5,1],[6,0],[4,3],[5,2],[6,1],[7,0],[5,3],[6,2],[7,1],
+    [1, 0],
+    [2, 0],
+    [2, 1],
+    [3, 0],
+    [3, 1],
+    [4, 0],
+    [3, 2],
+    [4, 1],
+    [5, 0],
+    [4, 2],
+    [5, 1],
+    [6, 0],
+    [4, 3],
+    [5, 2],
+    [6, 1],
+    [7, 0],
+    [5, 3],
+    [6, 2],
+    [7, 1],
   ] as readonly (readonly number[])[],
-  PSI_SHELL_CORRECTIONS: Array.from({ length: 16 }, (_, n) =>
-    (1 + Math.pow(PHI, -(n + 1)) / 2) / SILVER) as number[],
+  PSI_SHELL_CORRECTIONS: Array.from(
+    { length: 16 },
+    (_, n) => (1 + Math.pow(PHI, -(n + 1)) / 2) / SILVER,
+  ) as number[],
 } as const;
 
 interface AtomicElementMode {
-  period: number; capacity: number; shellType: string; nobleGas: string;
-  nobleGasZ: number; ionizationTrend: number; resonance: number; coupling: number;
+  period: number;
+  capacity: number;
+  shellType: string;
+  nobleGas: string;
+  nobleGasZ: number;
+  ionizationTrend: number;
+  resonance: number;
+  coupling: number;
 }
 const PERIOD_DEFINITIONS: Omit<AtomicElementMode, 'resonance' | 'coupling'>[] = [
-  { period: 1, capacity: 2,  shellType: '1s',     nobleGas: 'He', nobleGasZ: 2,   ionizationTrend: 1.0 },
-  { period: 2, capacity: 8,  shellType: '2s2p',   nobleGas: 'Ne', nobleGasZ: 10,  ionizationTrend: 0.88 },
-  { period: 3, capacity: 8,  shellType: '3s3p',   nobleGas: 'Ar', nobleGasZ: 18,  ionizationTrend: 0.64 },
-  { period: 4, capacity: 18, shellType: '4s3d4p', nobleGas: 'Kr', nobleGasZ: 36,  ionizationTrend: 0.57 },
-  { period: 5, capacity: 18, shellType: '5s4d5p', nobleGas: 'Xe', nobleGasZ: 54,  ionizationTrend: 0.50 },
-  { period: 6, capacity: 32, shellType: '6s4f5d6p', nobleGas: 'Rn', nobleGasZ: 86, ionizationTrend: 0.43 },
-  { period: 7, capacity: 32, shellType: '7s5f6d7p', nobleGas: 'Og', nobleGasZ: 118, ionizationTrend: 0.38 },
+  { period: 1, capacity: 2, shellType: '1s', nobleGas: 'He', nobleGasZ: 2, ionizationTrend: 1.0 },
+  {
+    period: 2,
+    capacity: 8,
+    shellType: '2s2p',
+    nobleGas: 'Ne',
+    nobleGasZ: 10,
+    ionizationTrend: 0.88,
+  },
+  {
+    period: 3,
+    capacity: 8,
+    shellType: '3s3p',
+    nobleGas: 'Ar',
+    nobleGasZ: 18,
+    ionizationTrend: 0.64,
+  },
+  {
+    period: 4,
+    capacity: 18,
+    shellType: '4s3d4p',
+    nobleGas: 'Kr',
+    nobleGasZ: 36,
+    ionizationTrend: 0.57,
+  },
+  {
+    period: 5,
+    capacity: 18,
+    shellType: '5s4d5p',
+    nobleGas: 'Xe',
+    nobleGasZ: 54,
+    ionizationTrend: 0.5,
+  },
+  {
+    period: 6,
+    capacity: 32,
+    shellType: '6s4f5d6p',
+    nobleGas: 'Rn',
+    nobleGasZ: 86,
+    ionizationTrend: 0.43,
+  },
+  {
+    period: 7,
+    capacity: 32,
+    shellType: '7s5f6d7p',
+    nobleGas: 'Og',
+    nobleGasZ: 118,
+    ionizationTrend: 0.38,
+  },
 ];
 
 interface BohrOrbit {
-  n: number; radius_m: number; energy_ev: number;
-  phiCorrection: number; shellCapacity: number; angularMomentumStates: number;
-  lucasField: number; psiDampedCorrection: number;
+  n: number;
+  radius_m: number;
+  energy_ev: number;
+  phiCorrection: number;
+  shellCapacity: number;
+  angularMomentumStates: number;
+  lucasField: number;
+  psiDampedCorrection: number;
 }
 interface AtomicRingAnalysis {
-  ring: number; nodeCount: number; meanCoherence: number;
-  phaseUniformity: number; relativeFreq: number;
+  ring: number;
+  nodeCount: number;
+  meanCoherence: number;
+  phaseUniformity: number;
+  relativeFreq: number;
 }
 
 export interface F3Input {
-  coherence: number; nodeAmps: Float64Array; solfeggioCoherences: number[];
-  time: number; flowerCoherences: number[]; quantumChainUp: number;
+  coherence: number;
+  nodeAmps: Float64Array;
+  solfeggioCoherences: number[];
+  time: number;
+  flowerCoherences: number[];
+  quantumChainUp: number;
   /** V11 extension: extra Bohr orbits beyond n=7. Caller passes count. */
   extensionShells?: number;
 }
 
 export interface F3Output {
-  hydrogenCorrection: number; bohrOrbits: BohrOrbit[];
-  periodicResonance: number; shellHarmonics: number[];
-  periodModes: AtomicElementMode[]; atomicField55: number[];
+  hydrogenCorrection: number;
+  bohrOrbits: BohrOrbit[];
+  periodicResonance: number;
+  shellHarmonics: number[];
+  periodModes: AtomicElementMode[];
+  atomicField55: number[];
   ringAnalysis: AtomicRingAnalysis[];
-  fieldEntropy: number; fieldOrganization: number; dimensionalComplexity: number;
-  superposition55Composite: number; structuralFormations: number;
-  chainDownCoupling: number; chainUpCoupling: number; scaleRelativeTime: number;
-  nobleGasResonance: number; nuclearMagicResonance: number;
-  phiSquaredIdentity: number; rydbergPhiDecomposition: number;
-  subshellCoherence: number[]; ionizationGradient: number; atomicCoherence: number;
-  magicPhiAlignment: number; geometricProjection: number;
-  psiShellStability: number; aufbauCompleteness: number;
-  nobleGasPhiRatio: number; shellPhaseLead: number; trialityClosure: number;
+  fieldEntropy: number;
+  fieldOrganization: number;
+  dimensionalComplexity: number;
+  superposition55Composite: number;
+  structuralFormations: number;
+  chainDownCoupling: number;
+  chainUpCoupling: number;
+  scaleRelativeTime: number;
+  nobleGasResonance: number;
+  nuclearMagicResonance: number;
+  phiSquaredIdentity: number;
+  rydbergPhiDecomposition: number;
+  subshellCoherence: number[];
+  ionizationGradient: number;
+  atomicCoherence: number;
+  magicPhiAlignment: number;
+  geometricProjection: number;
+  psiShellStability: number;
+  aufbauCompleteness: number;
+  nobleGasPhiRatio: number;
+  shellPhaseLead: number;
+  trialityClosure: number;
   /** V11 Lyapunov closure residual on atomic 55-field. */
   closureResidual: number;
   /** V11 extension Bohr orbits for n>7 (empty by default). */
@@ -98,7 +196,12 @@ export interface F3Output {
 
 export function computeF3(input: F3Input): F3Output {
   const {
-    coherence, nodeAmps, solfeggioCoherences, time, flowerCoherences, quantumChainUp,
+    coherence,
+    nodeAmps,
+    solfeggioCoherences,
+    time,
+    flowerCoherences,
+    quantumChainUp,
     extensionShells = 0,
   } = input;
 
@@ -107,9 +210,11 @@ export function computeF3(input: F3Input): F3Output {
   for (let n = 1; n <= 7; n++) {
     const phiCorrection = 1 + Math.pow(PHI, -n) / 2;
     bohrOrbits.push({
-      n, radius_m: (n * n * AC.BOHR_RADIUS) * phiCorrection,
-      energy_ev: -AC.RYDBERG_EV / (n * n) * (1 - Math.pow(PHI, -n) / 4),
-      phiCorrection, shellCapacity: 2 * n * n,
+      n,
+      radius_m: n * n * AC.BOHR_RADIUS * phiCorrection,
+      energy_ev: (-AC.RYDBERG_EV / (n * n)) * (1 - Math.pow(PHI, -n) / 4),
+      phiCorrection,
+      shellCapacity: 2 * n * n,
       angularMomentumStates: n * n,
       lucasField: LUCAS[n],
       psiDampedCorrection: AC.PSI_SHELL_CORRECTIONS[n - 1],
@@ -121,12 +226,15 @@ export function computeF3(input: F3Input): F3Output {
     const n = 8 + k;
     const phiCorrection = 1 + Math.pow(PHI, -n) / 2;
     extensionOrbits.push({
-      n, radius_m: (n * n * AC.BOHR_RADIUS) * phiCorrection,
-      energy_ev: -AC.RYDBERG_EV / (n * n) * (1 - Math.pow(PHI, -n) / 4),
-      phiCorrection, shellCapacity: 2 * n * n,
+      n,
+      radius_m: n * n * AC.BOHR_RADIUS * phiCorrection,
+      energy_ev: (-AC.RYDBERG_EV / (n * n)) * (1 - Math.pow(PHI, -n) / 4),
+      phiCorrection,
+      shellCapacity: 2 * n * n,
       angularMomentumStates: n * n,
       lucasField: LUCAS[Math.min(n, LUCAS.length - 1)],
-      psiDampedCorrection: AC.PSI_SHELL_CORRECTIONS[Math.min(n - 1, AC.PSI_SHELL_CORRECTIONS.length - 1)],
+      psiDampedCorrection:
+        AC.PSI_SHELL_CORRECTIONS[Math.min(n - 1, AC.PSI_SHELL_CORRECTIONS.length - 1)],
     });
   }
 
@@ -134,19 +242,21 @@ export function computeF3(input: F3Input): F3Output {
 
   const periodModes: AtomicElementMode[] = PERIOD_DEFINITIONS.map((pd, i) => {
     const phaseOffset = (2 * PI * i) / 7;
-    const fieldPhase = time * AC.DALET_HZ / 1000 + phaseOffset + AC.SHELL_PHASE_LEAD;
+    const fieldPhase = (time * AC.DALET_HZ) / 1000 + phaseOffset + AC.SHELL_PHASE_LEAD;
     const modeOscillation = 0.5 + 0.5 * Math.sin(fieldPhase);
     const capacityWeight = Math.log2(pd.capacity + 1) / Math.log2(33);
     const phiIdentityFactor = (bohrOrbits[i].phiCorrection - 1) * 2;
     const psiWeight = bohrOrbits[i].psiDampedCorrection;
-    const resonance = Math.min(1,
+    const resonance = Math.min(
+      1,
       0.22 * coherence * modeOscillation +
-      0.18 * coherence * capacityWeight +
-      0.16 * pd.ionizationTrend * coherence +
-      0.14 * quantumChainUp * (0.5 + 0.5 * phiIdentityFactor) +
-      0.10 * coherence * (bohrOrbits[i].lucasField / 29) +
-      0.10 * (solfeggioCoherences[3] || 0) * coherence +
-      0.10 * coherence * psiWeight);
+        0.18 * coherence * capacityWeight +
+        0.16 * pd.ionizationTrend * coherence +
+        0.14 * quantumChainUp * (0.5 + 0.5 * phiIdentityFactor) +
+        0.1 * coherence * (bohrOrbits[i].lucasField / 29) +
+        0.1 * (solfeggioCoherences[3] || 0) * coherence +
+        0.1 * coherence * psiWeight,
+    );
     const coupling = Math.min(1, capacityWeight * coherence * (0.5 + 0.5 * modeOscillation));
     return { ...pd, resonance, coupling };
   });
@@ -156,21 +266,26 @@ export function computeF3(input: F3Input): F3Output {
   let nodeIdx = 0;
   for (let s = 0; s < 7; s++) {
     const nodesPerShell = Math.max(1, Math.floor(nNodes / 7));
-    let shellSum = 0; let shellCount = 0;
+    let shellSum = 0;
+    let shellCount = 0;
     for (let i = 0; i < nodesPerShell && nodeIdx < nNodes; i++, nodeIdx++) {
       const amp = Math.sqrt(
-        (nodeAmps[nodeIdx * 2] || 0) ** 2 + (nodeAmps[nodeIdx * 2 + 1] || 0) ** 2);
-      shellSum += amp; shellCount++;
+        (nodeAmps[nodeIdx * 2] || 0) ** 2 + (nodeAmps[nodeIdx * 2 + 1] || 0) ** 2,
+      );
+      shellSum += amp;
+      shellCount++;
     }
     const rawHarmonic = shellCount > 0 ? shellSum / shellCount : 0;
-    shellHarmonics.push(Math.min(1, rawHarmonic * coherence * (0.5 + 0.5 * periodModes[s].resonance)));
+    shellHarmonics.push(
+      Math.min(1, rawHarmonic * coherence * (0.5 + 0.5 * periodModes[s].resonance)),
+    );
   }
 
   const subshellCoherence: number[] = AC.SUBSHELL_CAPACITIES.map((cap, l) => {
     const periodsUsing = l === 0 ? 7 : l === 1 ? 6 : l === 2 ? 4 : 2;
     let subshellSum = 0;
     for (let p = 0; p < periodsUsing; p++) subshellSum += periodModes[Math.min(6, p + l)].resonance;
-    return Math.min(1, (subshellSum / periodsUsing) * coherence * (0.5 + 0.5 * cap / 14));
+    return Math.min(1, (subshellSum / periodsUsing) * coherence * (0.5 + (0.5 * cap) / 14));
   });
 
   let nobleGasSum = 0;
@@ -188,12 +303,16 @@ export function computeF3(input: F3Input): F3Output {
   }
   const nobleGasPhiRatio = nobleGasPhiSum / AC.NOBLE_GAS_RATIOS.length;
 
-  let magicSum = 0; let magicPhiSum = 0;
+  let magicSum = 0;
+  let magicPhiSum = 0;
   for (let i = 0; i < AC.NUCLEAR_MAGIC.length; i++) {
     const magicZ = AC.NUCLEAR_MAGIC[i];
     let periodIdx = 0;
     for (let p = 0; p < AC.NOBLE_GAS_Z.length; p++) {
-      if (magicZ <= AC.NOBLE_GAS_Z[p]) { periodIdx = p; break; }
+      if (magicZ <= AC.NOBLE_GAS_Z[p]) {
+        periodIdx = p;
+        break;
+      }
     }
     magicSum += periodModes[Math.min(6, periodIdx)].resonance * Math.pow(PHI, -(i * 0.5));
     const nearestInt = Math.round(AC.MAGIC_PHI_EXPONENTS[i]);
@@ -205,26 +324,27 @@ export function computeF3(input: F3Input): F3Output {
   const geometricProjection = 1 - AC.GEOMETRIC_PROJECTION_GAP;
 
   let psiConvergence = 0;
-  for (let n = 0; n < 7; n++) psiConvergence += periodModes[n].resonance * AC.PSI_SHELL_CORRECTIONS[n];
-  const psiShellStability = Math.min(1, psiConvergence / (7 * AC.PSI_INV) * coherence);
+  for (let n = 0; n < 7; n++)
+    psiConvergence += periodModes[n].resonance * AC.PSI_SHELL_CORRECTIONS[n];
+  const psiShellStability = Math.min(1, (psiConvergence / (7 * AC.PSI_INV)) * coherence);
 
   let aufbauCorrect = 0;
   const aufbauLen = Math.min(AC.AUFBAU_ORDER.length, 19);
   for (let i = 0; i < aufbauLen; i++) {
     const [n, l] = AC.AUFBAU_ORDER[i];
-    if (i === 0 || (n + l) >= (AC.AUFBAU_ORDER[i - 1][0] + AC.AUFBAU_ORDER[i - 1][1])) aufbauCorrect++;
+    if (i === 0 || n + l >= AC.AUFBAU_ORDER[i - 1][0] + AC.AUFBAU_ORDER[i - 1][1]) aufbauCorrect++;
   }
   const aufbauCompleteness = (aufbauCorrect / aufbauLen) * coherence;
 
   let phaseLeadSum = 0;
   for (let n = 0; n < 7; n++) {
-    const shellPhase = time * AC.DALET_HZ / 1000 + n * AC.SHELL_PHASE_LEAD;
+    const shellPhase = (time * AC.DALET_HZ) / 1000 + n * AC.SHELL_PHASE_LEAD;
     phaseLeadSum += Math.abs(Math.cos(shellPhase)) * periodModes[n].resonance;
   }
   const shellPhaseLead = Math.min(1, phaseLeadSum / 7);
 
   let trialitySum = 0;
-  const trialityAngles = [0, 2 * PI / 3, 4 * PI / 3];
+  const trialityAngles = [0, (2 * PI) / 3, (4 * PI) / 3];
   for (const angle of trialityAngles) {
     let phaseMatch = 0;
     for (let i = 0; i < nNodes; i++) {
@@ -237,8 +357,10 @@ export function computeF3(input: F3Input): F3Output {
   const trialityClosure = phiSquaredIdentity;
 
   const rydbergFractional = AC.RYDBERG_LOG_PHI - Math.floor(AC.RYDBERG_LOG_PHI);
-  const rydbergPhiDecomposition = Math.min(1,
-    coherence * (0.5 + 0.5 * Math.cos(2 * PI * rydbergFractional * PHI)));
+  const rydbergPhiDecomposition = Math.min(
+    1,
+    coherence * (0.5 + 0.5 * Math.cos(2 * PI * rydbergFractional * PHI)),
+  );
 
   let gradientAccuracy = 0;
   for (let i = 0; i < 6; i++) {
@@ -252,25 +374,32 @@ export function computeF3(input: F3Input): F3Output {
   const ringAnalysis: AtomicRingAnalysis[] = [];
 
   for (let r = 0; r < 5; r++) {
-    const start = RING_STARTS[r]; const size = RING_SIZES[r];
-    let ringSum = 0; const phaseAngles: number[] = [];
+    const start = RING_STARTS[r];
+    const size = RING_SIZES[r];
+    let ringSum = 0;
+    const phaseAngles: number[] = [];
     for (let i = 0; i < size; i++) {
       const nodeIdx2 = start + i;
-      const flowerCoh = nodeIdx2 < flowerCoherences.length ? flowerCoherences[nodeIdx2] : coherence * 0.5;
-      const periodIdx = (r + Math.floor(i * 7 / size)) % 7;
+      const flowerCoh =
+        nodeIdx2 < flowerCoherences.length ? flowerCoherences[nodeIdx2] : coherence * 0.5;
+      const periodIdx = (r + Math.floor((i * 7) / size)) % 7;
       const periodInfluence = periodModes[periodIdx].resonance;
-      const subshellIdx = Math.floor(i * 4 / size) % 4;
+      const subshellIdx = Math.floor((i * 4) / size) % 4;
       const subshellInfluence = subshellCoherence[subshellIdx];
-      const phaseAngle = (2 * PI * i) / size + time * AC.DALET_HZ / 5000 + r * AC.SHELL_PHASE_LEAD;
+      const phaseAngle =
+        (2 * PI * i) / size + (time * AC.DALET_HZ) / 5000 + r * AC.SHELL_PHASE_LEAD;
       phaseAngles.push(phaseAngle);
-      const psiRigidity = r >= 3 ? (0.92 + 0.08 * psiShellStability) : 1.0;
-      atomicField55[nodeIdx2] = Math.min(1,
+      const psiRigidity = r >= 3 ? 0.92 + 0.08 * psiShellStability : 1.0;
+      atomicField55[nodeIdx2] = Math.min(
+        1,
         (0.28 * flowerCoh * coherence +
-         0.22 * periodInfluence +
-         0.15 * subshellInfluence +
-         0.13 * (0.5 + 0.5 * Math.cos(phaseAngle)) +
-         0.12 * quantumChainUp +
-         0.10 * geometricProjection * coherence) * psiRigidity);
+          0.22 * periodInfluence +
+          0.15 * subshellInfluence +
+          0.13 * (0.5 + 0.5 * Math.cos(phaseAngle)) +
+          0.12 * quantumChainUp +
+          0.1 * geometricProjection * coherence) *
+          psiRigidity,
+      );
       ringSum += atomicField55[nodeIdx2];
     }
     let uniformitySum = 0;
@@ -279,19 +408,25 @@ export function computeF3(input: F3Input): F3Output {
         uniformitySum += Math.abs(Math.cos(phaseAngles[i] - phaseAngles[j]));
       }
     }
-    const pairs = Math.max(1, size * (size - 1) / 2);
-    const relativeFreq = Math.pow(PHI, 5 + r) * AC.DALET_HZ / 1000;
-    ringAnalysis.push({ ring: r, nodeCount: size,
+    const pairs = Math.max(1, (size * (size - 1)) / 2);
+    const relativeFreq = (Math.pow(PHI, 5 + r) * AC.DALET_HZ) / 1000;
+    ringAnalysis.push({
+      ring: r,
+      nodeCount: size,
       meanCoherence: ringSum / size,
-      phaseUniformity: 1 - uniformitySum / pairs, relativeFreq });
+      phaseUniformity: 1 - uniformitySum / pairs,
+      relativeFreq,
+    });
   }
 
   const orgBins = new Array(7).fill(0);
   for (const c of atomicField55) orgBins[Math.min(6, Math.floor(Math.max(0, c) * 7))]++;
   let entropy = 0;
-  for (const count of orgBins) if (count > 0) {
-    const p = count / 55; entropy -= p * Math.log2(p);
-  }
+  for (const count of orgBins)
+    if (count > 0) {
+      const p = count / 55;
+      entropy -= p * Math.log2(p);
+    }
   const fieldEntropy = entropy;
   const fieldOrganization = 1 - entropy / Math.log2(7);
   const superposition55Composite = atomicField55.reduce((s, v) => s + v, 0) / 55;
@@ -303,36 +438,59 @@ export function computeF3(input: F3Input): F3Output {
   for (const pm of periodModes) periodComplexity += pm.resonance * (pm.capacity / 32);
   periodComplexity /= 7;
 
-  const dimensionalComplexity = Math.min(1,
-    0.20 * periodComplexity + 0.15 * fieldOrganization +
-    0.12 * superposition55Composite + 0.12 * nobleGasResonance +
-    0.10 * nuclearMagicResonance + 0.10 * quantumChainUp +
-    0.08 * magicPhiAlignment + 0.08 * psiShellStability +
-    0.05 * ionizationGradient);
+  const dimensionalComplexity = Math.min(
+    1,
+    0.2 * periodComplexity +
+      0.15 * fieldOrganization +
+      0.12 * superposition55Composite +
+      0.12 * nobleGasResonance +
+      0.1 * nuclearMagicResonance +
+      0.1 * quantumChainUp +
+      0.08 * magicPhiAlignment +
+      0.08 * psiShellStability +
+      0.05 * ionizationGradient,
+  );
 
   const scaleRelativeTime = 25;
-  const chainDownCoupling = Math.min(1,
-    quantumChainUp * coherence * (0.5 + 0.5 * periodModes[0].resonance));
+  const chainDownCoupling = Math.min(
+    1,
+    quantumChainUp * coherence * (0.5 + 0.5 * periodModes[0].resonance),
+  );
   const avgSubshell = subshellCoherence.reduce((a, b) => a + b, 0) / 4;
-  const chainUpCoupling = Math.min(1,
-    0.25 * fieldOrganization + 0.25 * nobleGasResonance + 0.20 * coherence +
-    0.15 * avgSubshell + 0.15 * psiShellStability);
+  const chainUpCoupling = Math.min(
+    1,
+    0.25 * fieldOrganization +
+      0.25 * nobleGasResonance +
+      0.2 * coherence +
+      0.15 * avgSubshell +
+      0.15 * psiShellStability,
+  );
 
   const periodicResonance = shellHarmonics.reduce((s, v) => s + v, 0) / shellHarmonics.length;
 
-  const fieldDynamicA = Math.min(1,
-    0.15 * periodicResonance + 0.13 * superposition55Composite +
-    0.12 * nobleGasResonance + 0.10 * dimensionalComplexity +
-    0.09 * nuclearMagicResonance + 0.09 * chainDownCoupling +
-    0.08 * phiSquaredIdentity + 0.07 * rydbergPhiDecomposition +
-    0.06 * ionizationGradient + 0.06 * magicPhiAlignment +
-    0.05 * psiShellStability);
+  const fieldDynamicA = Math.min(
+    1,
+    0.15 * periodicResonance +
+      0.13 * superposition55Composite +
+      0.12 * nobleGasResonance +
+      0.1 * dimensionalComplexity +
+      0.09 * nuclearMagicResonance +
+      0.09 * chainDownCoupling +
+      0.08 * phiSquaredIdentity +
+      0.07 * rydbergPhiDecomposition +
+      0.06 * ionizationGradient +
+      0.06 * magicPhiAlignment +
+      0.05 * psiShellStability,
+  );
   const atomicCoherence = Math.min(1, fieldDynamicA);
 
   // ─── V11 LYAPUNOV CLOSURE on atomic 55-field ───────────────────────────
-  let resR = 0, resI = 0, ampSum = 0;
+  let resR = 0,
+    resI = 0,
+    ampSum = 0;
   for (let r = 0; r < 5; r++) {
-    const start = RING_STARTS[r]; const size = RING_SIZES[r];
+    const start = RING_STARTS[r];
+    const size = RING_SIZES[r];
     for (let i = 0; i < size; i++) {
       const a = atomicField55[start + i];
       const theta = (2 * PI * i) / size;
@@ -341,19 +499,39 @@ export function computeF3(input: F3Input): F3Output {
       ampSum += a;
     }
   }
-  const closureResidual = ampSum > 1e-9
-    ? Math.sqrt(resR * resR + resI * resI) / ampSum : 1.0;
+  const closureResidual = ampSum > 1e-9 ? Math.sqrt(resR * resR + resI * resI) / ampSum : 1.0;
 
   return {
-    hydrogenCorrection, bohrOrbits, periodicResonance, shellHarmonics,
-    periodModes, atomicField55, ringAnalysis,
-    fieldEntropy, fieldOrganization, dimensionalComplexity,
-    superposition55Composite, structuralFormations,
-    chainDownCoupling, chainUpCoupling, scaleRelativeTime,
-    nobleGasResonance, nuclearMagicResonance, phiSquaredIdentity,
-    rydbergPhiDecomposition, subshellCoherence, ionizationGradient, atomicCoherence,
-    magicPhiAlignment, geometricProjection, psiShellStability,
-    aufbauCompleteness, nobleGasPhiRatio, shellPhaseLead, trialityClosure,
-    closureResidual, extensionOrbits,
+    hydrogenCorrection,
+    bohrOrbits,
+    periodicResonance,
+    shellHarmonics,
+    periodModes,
+    atomicField55,
+    ringAnalysis,
+    fieldEntropy,
+    fieldOrganization,
+    dimensionalComplexity,
+    superposition55Composite,
+    structuralFormations,
+    chainDownCoupling,
+    chainUpCoupling,
+    scaleRelativeTime,
+    nobleGasResonance,
+    nuclearMagicResonance,
+    phiSquaredIdentity,
+    rydbergPhiDecomposition,
+    subshellCoherence,
+    ionizationGradient,
+    atomicCoherence,
+    magicPhiAlignment,
+    geometricProjection,
+    psiShellStability,
+    aufbauCompleteness,
+    nobleGasPhiRatio,
+    shellPhaseLead,
+    trialityClosure,
+    closureResidual,
+    extensionOrbits,
   };
 }

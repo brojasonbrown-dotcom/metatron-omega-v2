@@ -8,8 +8,15 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  lexeme, lexemeValue, lexemeTokens, lexemeAddress, injectTextPsi,
-  LEXEME_EXACT_LEN, LEXEME_RADIX, LEXEME_RESIDUE_BITS, LEXEME_GAIN,
+  lexeme,
+  lexemeValue,
+  lexemeTokens,
+  lexemeAddress,
+  injectTextPsi,
+  LEXEME_EXACT_LEN,
+  LEXEME_RADIX,
+  LEXEME_RESIDUE_BITS,
+  LEXEME_GAIN,
 } from '@/core/gematria/lexeme';
 import { zeckendorf, unzeckendorf } from '@/core/gematria/zeckendorf';
 import { PatternBitmapIndex, REHEARSAL_TAU } from '@/core/memory/PatternBitmapIndex';
@@ -24,8 +31,24 @@ describe('lexeme — exact, injective word codes', () => {
     expect(lexemeValue('listen')).not.toBe(lexemeValue('silent'));
     expect(lexemeValue('ab')).not.toBe(lexemeValue('ba'));
     const seen = new Map<number, string>();
-    const words = ['a', 'i', 'to', 'be', 'or', 'not', 'the', 'light', 'field', 'torus',
-      'word', 'drow', 'mind', 'coherence', 'memory', 'resonance'];
+    const words = [
+      'a',
+      'i',
+      'to',
+      'be',
+      'or',
+      'not',
+      'the',
+      'light',
+      'field',
+      'torus',
+      'word',
+      'drow',
+      'mind',
+      'coherence',
+      'memory',
+      'resonance',
+    ];
     for (const w of words) {
       const v = lexemeValue(w);
       expect(seen.has(v)).toBe(false);
@@ -41,7 +64,7 @@ describe('lexeme — exact, injective word codes', () => {
   });
 
   it('declares inexactness instead of hiding truncation', () => {
-    expect(lexeme('coherence').exact).toBe(true);           // 9 letters
+    expect(lexeme('coherence').exact).toBe(true); // 9 letters
     expect(lexeme('incommensurability').exact).toBe(false); // 18 letters
   });
 
@@ -130,7 +153,8 @@ describe('injectTextPsi — words become field structure', () => {
 
 function sig(hash: string, tick: number, idx: number[], amps: number[]): PatternSignature {
   return {
-    hash, tick,
+    hash,
+    tick,
     indices: Int32Array.from(idx),
     amplitudes: Float64Array.from(amps),
     qualia: 0.5,
@@ -141,9 +165,10 @@ describe('recall rank — frequency and recency, not resonance alone', () => {
   it('rehearsal lifts an equally-resonant pattern above an unrehearsed one', () => {
     const ix = new PatternBitmapIndex();
     const cue = new Float64Array(8);
-    cue[0] = 1; cue[1] = 1;
+    cue[0] = 1;
+    cue[1] = 1;
     const a = sig('A', 10, [0, 1], [1, 1]);
-    const b = sig('B', 10, [0, 1], [1, 1]);   // identical resonance to A
+    const b = sig('B', 10, [0, 1], [1, 1]); // identical resonance to A
     const pats = [a, b];
     for (let i = 0; i < 20; i++) ix.search(cue, [a], 1, 34, 10); // rehearse A only
     const out = ix.search(cue, pats, 2, 34, 10);
@@ -164,7 +189,7 @@ describe('recall rank — frequency and recency, not resonance alone', () => {
     // alone: score = C · rehearsal · φ^(−Δt/τ).
     const rehearsalFresh = 1 + 0.6180339887498949 * Math.log1p(0);
     const rehearsalAged = 1 + 0.6180339887498949 * Math.log1p(1);
-    const decay = (aged.score / rehearsalAged) / (freshScore / rehearsalFresh);
+    const decay = aged.score / rehearsalAged / (freshScore / rehearsalFresh);
     expect(decay).toBeCloseTo(0.6180339887498949, 10);
   });
 
@@ -198,7 +223,8 @@ describe('Hopfield energy gate — coherence measured, not asserted', () => {
     const proto = new Float64Array(16).fill(0);
     proto[0] = 1;
     const member = new Float64Array(16).fill(0);
-    member[0] = 0.99; member[1] = 0.1;
+    member[0] = 0.99;
+    member[1] = 0.1;
     const v = mergeAdmissible(proto, member);
     expect(v.admitted).toBe(true);
     expect(v.deltaE).toBeLessThanOrEqual(0);
@@ -229,24 +255,32 @@ describe('Hebbian bound — the documented ceiling is the real one', () => {
 describe('separation gate — the informative half of the admission test', () => {
   it('refuses a member that two prototypes claim equally', () => {
     const d = 64;
-    const a = new Float64Array(d); a[0] = 1;
-    const b = new Float64Array(d); b[1] = 1;
+    const a = new Float64Array(d);
+    a[0] = 1;
+    const b = new Float64Array(d);
+    b[1] = 1;
     const ambiguous = new Float64Array(d);
-    ambiguous[0] = 1; ambiguous[1] = 1; // exactly between a and b
+    ambiguous[0] = 1;
+    ambiguous[1] = 1; // exactly between a and b
     const v = mergeAdmissible(a, ambiguous, [b]);
     expect(Math.abs(v.margin)).toBeLessThan(1e-9);
     // admits only on the boundary; any tilt toward b must refuse
     const tilted = new Float64Array(d);
-    tilted[0] = 1; tilted[1] = 1.2;
+    tilted[0] = 1;
+    tilted[1] = 1.2;
     expect(mergeAdmissible(a, tilted, [b]).admitted).toBe(false);
     expect(mergeAdmissible(a, tilted, [b]).margin).toBeLessThan(0);
   });
 
   it('admits when the member clearly belongs to this prototype', () => {
     const d = 64;
-    const a = new Float64Array(d); a[0] = 1;
-    const b = new Float64Array(d); b[1] = 1;
-    const near = new Float64Array(d); near[0] = 1; near[1] = 0.05;
+    const a = new Float64Array(d);
+    a[0] = 1;
+    const b = new Float64Array(d);
+    b[1] = 1;
+    const near = new Float64Array(d);
+    near[0] = 1;
+    near[1] = 0.05;
     const v = mergeAdmissible(a, near, [b]);
     expect(v.admitted).toBe(true);
     expect(v.margin).toBeGreaterThan(0);
@@ -254,9 +288,13 @@ describe('separation gate — the informative half of the admission test', () =>
 
   it('is scale-free: rescaling either vector cannot change the verdict', () => {
     const d = 64;
-    const a = new Float64Array(d); a[0] = 1;
-    const b = new Float64Array(d); b[1] = 1;
-    const near = new Float64Array(d); near[0] = 1; near[1] = 0.05;
+    const a = new Float64Array(d);
+    a[0] = 1;
+    const b = new Float64Array(d);
+    b[1] = 1;
+    const near = new Float64Array(d);
+    near[0] = 1;
+    near[1] = 0.05;
     const tiny = Float64Array.from(near, (x) => x * 1e-4);
     const huge = Float64Array.from(near, (x) => x * 1e4);
     const base = mergeAdmissible(a, near, [b]);
@@ -273,7 +311,10 @@ import { computeMetatron } from '@/core/MetatronCore';
 
 describe('witness coherence — the scored aggregate is measured, not blended', () => {
   const inputs = {
-    coherence: 0.7, energy: 0.5, time: 1.0, recursionDepth: 3,
+    coherence: 0.7,
+    energy: 0.5,
+    time: 1.0,
+    recursionDepth: 3,
   } as unknown as Parameters<typeof computeMetatron>[0];
 
   it('is a clamped φ-weighted mean of (1 − closureResidual) over all nine rungs', () => {
@@ -290,7 +331,8 @@ describe('witness coherence — the scored aggregate is measured, not blended', 
       [out.F8.closureResidual, PHI_INV ** 4],
       [out.F9.closureResidual, PHI_INV ** 4],
     ];
-    let lg = 0, w = 0;
+    let lg = 0,
+      w = 0;
     for (const [r, wi] of terms) {
       lg += wi * Math.log(Math.max(1e-12, Math.min(1, Math.max(0, 1 - r))));
       w += wi;
@@ -301,8 +343,9 @@ describe('witness coherence — the scored aggregate is measured, not blended', 
   });
 
   it('is deterministic, like every other engine quantity', () => {
-    expect(computeMetatron(inputs).metatronWitnessCoherence)
-      .toBe(computeMetatron(inputs).metatronWitnessCoherence);
+    expect(computeMetatron(inputs).metatronWitnessCoherence).toBe(
+      computeMetatron(inputs).metatronWitnessCoherence,
+    );
   });
 
   it('falls when a rung stops closing — the property the blend lacks', () => {

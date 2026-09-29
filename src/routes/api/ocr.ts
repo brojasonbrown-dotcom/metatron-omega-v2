@@ -33,13 +33,20 @@ export const Route = createFileRoute('/api/ocr')({
     handlers: {
       POST: async ({ request }) => {
         const json = (body: unknown, status = 200) =>
-          new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+          new Response(JSON.stringify(body), {
+            status,
+            headers: { 'Content-Type': 'application/json' },
+          });
 
         const key = process.env['LOVABLE_API_KEY'];
         if (!key) return json({ error: 'gateway key not configured', tier: 'gateway' }, 500);
 
         let body: { image?: string; mode?: string; hint?: string };
-        try { body = await request.json(); } catch { return json({ error: 'invalid JSON body' }, 400); }
+        try {
+          body = await request.json();
+        } catch {
+          return json({ error: 'invalid JSON body' }, 400);
+        }
 
         const image = String(body.image ?? '').trim();
         if (!image || !/^(https?:\/\/|data:image\/)/i.test(image)) {
@@ -54,19 +61,24 @@ export const Route = createFileRoute('/api/ocr')({
           headers: { 'Content-Type': 'application/json', 'Lovable-API-Key': key },
           body: JSON.stringify({
             model: MODEL,
-            messages: [{
-              role: 'user',
-              content: [
-                { type: 'text', text: hint ? `${prompt}\n\nContext: ${hint}` : prompt },
-                { type: 'image_url', image_url: { url: image } },
-              ],
-            }],
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: hint ? `${prompt}\n\nContext: ${hint}` : prompt },
+                  { type: 'image_url', image_url: { url: image } },
+                ],
+              },
+            ],
           }),
         });
 
         const raw = await res.text();
         if (!res.ok) {
-          return json({ error: raw.slice(0, 1200), status: res.status, tier: 'gateway', mode }, res.status);
+          return json(
+            { error: raw.slice(0, 1200), status: res.status, tier: 'gateway', mode },
+            res.status,
+          );
         }
         let text = '';
         try {

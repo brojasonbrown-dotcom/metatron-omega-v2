@@ -65,13 +65,12 @@ const flowerSlot: Slot = { buf: new Float32Array(55), ts: -Infinity };
  */
 const VISION_FRESHNESS_MS = 500; // survive one dropped vision frame at 5 Hz
 interface VisionSlot {
-  embed: Float32Array | null;   // L2-normalized model output
+  embed: Float32Array | null; // L2-normalized model output
   dim: number;
-  novelty: number;              // 0..1
+  novelty: number; // 0..1
   ts: number;
 }
 const visionSlot: VisionSlot = { embed: null, dim: 0, novelty: 0, ts: -Infinity };
-
 
 /**
  * Publish a 9-band solfeggio activity vector. Values SHOULD be in [0,1]
@@ -135,7 +134,11 @@ export function publishVisionEmbedding(embed: Float32Array, novelty: number): vo
  * published within VISION_FRESHNESS_MS. Returns an internal buffer —
  * do not mutate.
  */
-export function readVisionEmbedding(): { embed: Float32Array; dim: number; novelty: number } | null {
+export function readVisionEmbedding(): {
+  embed: Float32Array;
+  dim: number;
+  novelty: number;
+} | null {
   if (!visionSlot.embed) return null;
   if (now() - visionSlot.ts > VISION_FRESHNESS_MS) return null;
   return { embed: visionSlot.embed, dim: visionSlot.dim, novelty: visionSlot.novelty };
@@ -153,4 +156,3 @@ export function _resetSensoryBridge(): void {
   flowerSlot.buf.fill(0);
   if (visionSlot.embed) visionSlot.embed.fill(0);
 }
-

@@ -60,16 +60,23 @@ export function phiWeight(rank: number): number {
   return Math.exp(-rank * LN_PHI);
 }
 
-interface NAcc { s: number; c: number; }
-function nAcc(): NAcc { return { s: 0, c: 0 }; }
+interface NAcc {
+  s: number;
+  c: number;
+}
+function nAcc(): NAcc {
+  return { s: 0, c: 0 };
+}
 function nAdd(a: NAcc, x: number): void {
   if (!Number.isFinite(x)) return;
   const s = a.s;
   const t = s + x;
-  a.c += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+  a.c += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
   a.s = t;
 }
-function nVal(a: NAcc): number { return a.s + a.c; }
+function nVal(a: NAcc): number {
+  return a.s + a.c;
+}
 
 export function fuseOmega(inputs: readonly OmegaMetricInput[]): OmegaReport {
   const terms: OmegaTerm[] = [];
@@ -89,8 +96,14 @@ export function fuseOmega(inputs: readonly OmegaMetricInput[]): OmegaReport {
     if (abstain) {
       abstained++;
       terms.push({
-        id: m.id, label: m.label, rank: m.rank, weight: w,
-        value: NaN, dual: m.dual ?? NaN, logTerm: NaN, abstain: true,
+        id: m.id,
+        label: m.label,
+        rank: m.rank,
+        weight: w,
+        value: NaN,
+        dual: m.dual ?? NaN,
+        logTerm: NaN,
+        abstain: true,
       });
       continue;
     }
@@ -101,11 +114,20 @@ export function fuseOmega(inputs: readonly OmegaMetricInput[]): OmegaReport {
     nAdd(arith, m.value);
     counted++;
     if (logTerm < worst) {
-      worst = logTerm; vetoId = m.id; vetoLabel = m.label; vetoValue = m.value;
+      worst = logTerm;
+      vetoId = m.id;
+      vetoLabel = m.label;
+      vetoValue = m.value;
     }
     terms.push({
-      id: m.id, label: m.label, rank: m.rank, weight: w,
-      value: m.value, dual: m.dual ?? NaN, logTerm, abstain: false,
+      id: m.id,
+      label: m.label,
+      rank: m.rank,
+      weight: w,
+      value: m.value,
+      dual: m.dual ?? NaN,
+      logTerm,
+      abstain: false,
     });
   }
 

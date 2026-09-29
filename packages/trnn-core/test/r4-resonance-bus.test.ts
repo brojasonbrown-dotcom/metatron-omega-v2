@@ -8,19 +8,30 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  fuseResonance, phaseClosureGamma, circularPhaseDev, blendWithResonance,
-  KAPPA_PHASE, COHERENCE_GATE, RESONANCE_FLOOR, PHI_INV,
+  fuseResonance,
+  phaseClosureGamma,
+  circularPhaseDev,
+  blendWithResonance,
+  KAPPA_PHASE,
+  COHERENCE_GATE,
+  RESONANCE_FLOOR,
+  PHI_INV,
 } from '../src/index';
 
 const ch = (id: string, value: number) => ({ id, value });
 
 /** Legacy fusion exactly as src/core/memory/Resonance.ts computes it today. */
 function legacyMean(values: readonly number[]): number {
-  let logSum = 0, counted = 0, dead = false;
+  let logSum = 0,
+    counted = 0,
+    dead = false;
   for (const v of values) {
     if (!Number.isFinite(v)) continue;
     counted++;
-    if (v <= 0) { dead = true; continue; }
+    if (v <= 0) {
+      dead = true;
+      continue;
+    }
     logSum += Math.log(v);
   }
   if (counted === 0) return NaN;
@@ -84,7 +95,7 @@ describe('R4.1 fusion law', () => {
 
   it('clamps out-of-range channels instead of poisoning the log', () => {
     const r = fuseResonance([ch('hi', 4), ch('lo', -2)]);
-    expect(r.value).toBe(0);       // −2 clamps to a measured 0 → veto
+    expect(r.value).toBe(0); // −2 clamps to a measured 0 → veto
     expect(r.channels[0].value).toBe(1);
   });
 
@@ -179,11 +190,14 @@ describe('R4.4 A/B parity with the legacy geometric mean', () => {
     let worst = 0;
     for (const s of seeds) {
       let x = (s * 2654435761) >>> 0;
-      const next = () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296);
+      const next = () => (x = (x * 1664525 + 1013904223) >>> 0) / 4294967296;
       const vals = Array.from({ length: 5 }, () => (next() < 0.25 ? NaN : next()));
       const bus = fuseResonance(vals.map((v, i) => ch(`c${i}`, v))).value;
       const legacy = legacyMean(vals);
-      if (Number.isNaN(legacy)) { expect(bus).toBeNaN(); continue; }
+      if (Number.isNaN(legacy)) {
+        expect(bus).toBeNaN();
+        continue;
+      }
       worst = Math.max(worst, Math.abs(bus - legacy));
     }
     expect(worst).toBeLessThan(1e-12);
@@ -192,7 +206,7 @@ describe('R4.4 A/B parity with the legacy geometric mean', () => {
   it('produces an identical ranking to the legacy fusion', () => {
     const sets = Array.from({ length: 120 }, (_, s) => {
       let x = (s * 22695477 + 1) >>> 0;
-      const next = () => ((x = (x * 1664525 + 1013904223) >>> 0) / 4294967296);
+      const next = () => (x = (x * 1664525 + 1013904223) >>> 0) / 4294967296;
       return Array.from({ length: 4 }, () => (next() < 0.2 ? NaN : next()));
     });
     const key = (score: number, i: number) => `${Number.isNaN(score) ? -1 : score.toFixed(9)}|${i}`;

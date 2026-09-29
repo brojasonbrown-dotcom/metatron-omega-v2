@@ -38,10 +38,7 @@ import type {
  * Build a unit-ℓ² template of length `nodes` where entry i is `gen(i)`.
  * Called once per module at import time.
  */
-export function buildUnitTemplate(
-  nodes: number,
-  gen: (i: number) => number,
-): Float64Array {
+export function buildUnitTemplate(nodes: number, gen: (i: number) => number): Float64Array {
   const v = new Float64Array(nodes);
   let sq = 0;
   for (let i = 0; i < nodes; i++) {
@@ -55,11 +52,12 @@ export function buildUnitTemplate(
 
 /** Neumaier-compensated ℓ² norm of the first `n` entries of `v`. */
 function normL2(v: Float64Array, n: number): number {
-  let s = 0, c = 0;
+  let s = 0,
+    c = 0;
   for (let i = 0; i < n; i++) {
     const x = v[i] * v[i];
     const t = s + x;
-    c += Math.abs(s) >= x ? (s - t) + x : (x - t) + s;
+    c += Math.abs(s) >= x ? s - t + x : x - t + s;
     s = t;
   }
   const total = s + c;
@@ -75,7 +73,7 @@ function stepAlpha(dt: number): number {
 /** Compensated add of `x` into (`sum`, `carry`). Returns new `sum`. */
 function kAdd(sum: number, carry: { c: number }, x: number): number {
   const t = sum + x;
-  carry.c += Math.abs(sum) >= Math.abs(x) ? (sum - t) + x : (x - t) + sum;
+  carry.c += Math.abs(sum) >= Math.abs(x) ? sum - t + x : x - t + sum;
   return t;
 }
 
@@ -100,8 +98,8 @@ export function relaxTowardsTemplate(
   for (let i = 0; i < n; i++) {
     if (!Number.isFinite(state.psi[i])) {
       for (let j = 0; j < n; j++) {
-        out.psi[j]   = state.psi[j];
-        out.m[j]     = state.m[j];
+        out.psi[j] = state.psi[j];
+        out.m[j] = state.m[j];
         out.gamma[j] = 0;
       }
       return { psiDelta: 0, energyContribution: 0, admitted: false, gamma: 0 };
@@ -109,20 +107,23 @@ export function relaxTowardsTemplate(
   }
 
   const alpha = stepAlpha(ctx.dt);
-  const norm  = normL2(state.psi, n);
+  const norm = normL2(state.psi, n);
 
-  let dSum = 0; const dCarry = { c: 0 };
-  let eBefore = 0; const bCarry = { c: 0 };
-  let eAfter  = 0; const aCarry = { c: 0 };
+  let dSum = 0;
+  const dCarry = { c: 0 };
+  let eBefore = 0;
+  const bCarry = { c: 0 };
+  let eAfter = 0;
+  const aCarry = { c: 0 };
 
   for (let i = 0; i < n; i++) {
     const tgt = uPhi[i] * norm;
-    const p   = state.psi[i];
-    const np  = p - alpha * (p - tgt);
+    const p = state.psi[i];
+    const np = p - alpha * (p - tgt);
 
-    out.psi[i]   = np;
-    out.m[i]     = state.m[i];       // memory channel carried through
-    out.gamma[i] = p - tgt;          // signed residual to equilibrium
+    out.psi[i] = np;
+    out.m[i] = state.m[i]; // memory channel carried through
+    out.gamma[i] = p - tgt; // signed residual to equilibrium
 
     const dp = np - p;
     dSum = kAdd(dSum, dCarry, dp * dp);
@@ -131,11 +132,11 @@ export function relaxTowardsTemplate(
     eBefore = kAdd(eBefore, bCarry, rb * rb);
 
     const ra = np - tgt;
-    eAfter  = kAdd(eAfter,  aCarry, ra * ra);
+    eAfter = kAdd(eAfter, aCarry, ra * ra);
   }
 
   const psiDelta = Math.sqrt(Math.max(0, dSum + dCarry.c));
-  const energyContribution = 0.5 * ((eAfter + aCarry.c) - (eBefore + bCarry.c));
+  const energyContribution = 0.5 * (eAfter + aCarry.c - (eBefore + bCarry.c));
 
   return {
     psiDelta,
@@ -157,8 +158,8 @@ export function nullUpdate(
     return { psiDelta: NaN, energyContribution: NaN, admitted: false, gamma: 0 };
   }
   for (let i = 0; i < n; i++) {
-    out.psi[i]   = state.psi[i];
-    out.m[i]     = state.m[i];
+    out.psi[i] = state.psi[i];
+    out.m[i] = state.m[i];
     out.gamma[i] = 0;
   }
   return { psiDelta: 0, energyContribution: 0, admitted: true, gamma: 0 };

@@ -58,18 +58,27 @@ export function measureFanIn(dim: number, seed = 'omega-capacity'): FanInPoint {
 export function measureSignatureDigits(width = 233): number {
   const re = new Float64Array(width);
   const im = new Float64Array(width);
-  for (let i = 0; i < width; i++) re[i] = Math.cos((6.283185307179586 * 1.618033988749895 * (i + 1)) / width);
+  for (let i = 0; i < width; i++)
+    re[i] = Math.cos((6.283185307179586 * 1.618033988749895 * (i + 1)) / width);
   const f = fftUnitary(Float64Array.from(re), Float64Array.from(im));
   const g = fftUnitary(f.re, f.im, true);
-  let num = 0, den = 0;
-  for (let i = 0; i < width; i++) { const d = re[i] - g.re[i]; num += d * d; den += re[i] * re[i]; }
+  let num = 0,
+    den = 0;
+  for (let i = 0; i < width; i++) {
+    const d = re[i] - g.re[i];
+    num += d * d;
+    den += re[i] * re[i];
+  }
   const rel = den > 0 ? Math.sqrt(num / den) : 0;
   if (!(rel > 0)) return 16;
   return Math.max(0, -Math.log10(rel));
 }
 
 /** Distinct barcodes over a deterministic population — collisions measured. */
-export function measureBarcodeDistinct(population = 1024, dim = 233): { distinct: number; probed: number } {
+export function measureBarcodeDistinct(
+  population = 1024,
+  dim = 233,
+): { distinct: number; probed: number } {
   const seen = new Set<string>();
   for (let p = 0; p < population; p++) {
     const rng = new SeedStream(`barcode:${p}`);

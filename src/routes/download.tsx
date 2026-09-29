@@ -1,20 +1,20 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from '@tanstack/react-router';
 
-export const Route = createFileRoute("/download")({
+export const Route = createFileRoute('/download')({
   component: DownloadPage,
   head: () => ({
     meta: [
-      { title: "Download — Metatron V11 Native Engine" },
+      { title: 'Download — Metatron V11 Native Engine' },
       {
-        name: "description",
+        name: 'description',
         content:
-          "Native engine roadmap for the RHUFT runtime. Local-only, measurement-first, and currently in build.",
+          'Native engine roadmap for the RHUFT runtime. Local-only, measurement-first, and currently in build.',
       },
-      { property: "og:title", content: "Download — Metatron V11 Native Engine" },
+      { property: 'og:title', content: 'Download — Metatron V11 Native Engine' },
       {
-        property: "og:description",
+        property: 'og:description',
         content:
-          "The runtime remains local and reports only measured node, frequency, and hardware limits.",
+          'The runtime remains local and reports only measured node, frequency, and hardware limits.',
       },
     ],
   }),
@@ -25,15 +25,19 @@ function DownloadPage() {
     <div className="min-h-screen bg-background text-foreground font-mono">
       <div className="mx-auto max-w-4xl px-6 py-12">
         <header className="mb-8 border-b border-border pb-6">
-          <Link to="/" className="text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground">
+          <Link
+            to="/"
+            className="text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground"
+          >
             ← back to dashboard
           </Link>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
             Native Engine — coming next phase
           </h1>
           <p className="mt-3 text-sm text-muted-foreground">
-            The browser fallback reports its measured ceiling from the live worker pool.
-            Native builds are planned to expose stronger local compute without changing the honesty contract.
+            The browser fallback reports its measured ceiling from the live worker pool. Native
+            builds are planned to expose stronger local compute without changing the honesty
+            contract.
           </p>
         </header>
 
@@ -55,7 +59,8 @@ function DownloadPage() {
         </section>
 
         <p className="mt-6 text-xs text-muted-foreground">
-          Until then, this web app runs the browser fallback engine and shows its actual live ceiling in the Governor panels.
+          Until then, this web app runs the browser fallback engine and shows its actual live
+          ceiling in the Governor panels.
         </p>
       </div>
     </div>

@@ -204,7 +204,10 @@ export class TorusBraid {
   }
 
   /** Normalised real overlap of the probe with every stored pattern. */
-  private score(pre: Float64Array, pim: Float64Array): { best: number; second: number; arg: number } {
+  private score(
+    pre: Float64Array,
+    pim: Float64Array,
+  ): { best: number; second: number; arg: number } {
     const n = this.nodes;
     const pn = normOf(pre, pim, n);
     let best = -Infinity;
@@ -295,7 +298,16 @@ export class TorusBraid {
   recall(field: CField, key?: string): Recall {
     const beta = this.beta();
     if (this.meta.length === 0) {
-      return { stage: 'miss', key: null, index: -1, similarity: 0, margin: 0, sweeps: 0, beta, accepted: false };
+      return {
+        stage: 'miss',
+        key: null,
+        index: -1,
+        similarity: 0,
+        margin: 0,
+        sweeps: 0,
+        beta,
+        accepted: false,
+      };
     }
 
     // R1 — exact key
@@ -328,7 +340,9 @@ export class TorusBraid {
     // cosine against this original probe, so a sweep can never talk the braid
     // into a pattern the cue does not actually support.
     const candidates = new Set<number>();
-    const propose = (arg: number) => { if (arg >= 0) candidates.add(arg); };
+    const propose = (arg: number) => {
+      if (arg >= 0) candidates.add(arg);
+    };
 
     // R2 — linear overlap
     const r2 = this.score(this.probe.re, this.probe.im);
@@ -364,7 +378,9 @@ export class TorusBraid {
 
     // R6 — phase-only proposal (faded / clipped cue), then the final re-rank.
     for (let i = 0; i < n; i++) {
-      const a = Math.sqrt(this.probe.re[i] * this.probe.re[i] + this.probe.im[i] * this.probe.im[i]);
+      const a = Math.sqrt(
+        this.probe.re[i] * this.probe.re[i] + this.probe.im[i] * this.probe.im[i],
+      );
       if (a > 0) {
         this.work.re[i] = this.probe.re[i] / a;
         this.work.im[i] = this.probe.im[i] / a;
@@ -415,7 +431,12 @@ export class TorusBraid {
     return arg >= 0 && this.similarityTo(arg, this.probe) >= this.accept;
   }
 
-  private hit(stage: RetrievalStage, r: { best: number; second: number; arg: number }, sweeps: number, beta: number): Recall {
+  private hit(
+    stage: RetrievalStage,
+    r: { best: number; second: number; arg: number },
+    sweeps: number,
+    beta: number,
+  ): Recall {
     return {
       stage,
       key: r.arg >= 0 ? this.meta[r.arg].key : null,

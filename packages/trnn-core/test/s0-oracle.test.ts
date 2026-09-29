@@ -29,7 +29,6 @@ export const ORACLE_HASHES: Readonly<Record<string, string>> = {
   MICRO: 'b48fdafef2879ab9',
 };
 
-
 describe('S0 — regression oracle', () => {
   for (const cfg of ORACLE_CONFIGS) {
     it(`${cfg.id} reproduces its frozen 1000-tick hash`, () => {

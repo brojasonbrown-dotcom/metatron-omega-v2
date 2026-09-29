@@ -76,8 +76,8 @@ export class FieldTape {
   private readonly chunkBytes: number;
   private chunks: Float32Array[] = [];
   private chunksAllocated = 0;
-  private writeIndex = 0;        // next frame slot (mod cap)
-  private count = 0;             // total frames written
+  private writeIndex = 0; // next frame slot (mod cap)
+  private count = 0; // total frames written
   private totalTicks = 0;
   // measured write-rate (Hz) — EMA over real wall-clock deltas between
   // consecutive write() calls. Used by the HUD; never feeds back into
@@ -108,14 +108,25 @@ export class FieldTape {
     this.cap = next;
   }
 
-  capacity(): number { return this.cap; }
-  size(): number { return this.count; }
-  totalWrites(): number { return this.totalTicks; }
-  bytesUsed(): number { return this.chunksAllocated * this.chunkBytes; }
-  bytesBudget(): number { return Math.ceil(this.cap / FRAMES_PER_CHUNK) * this.chunkBytes; }
+  capacity(): number {
+    return this.cap;
+  }
+  size(): number {
+    return this.count;
+  }
+  totalWrites(): number {
+    return this.totalTicks;
+  }
+  bytesUsed(): number {
+    return this.chunksAllocated * this.chunkBytes;
+  }
+  bytesBudget(): number {
+    return Math.ceil(this.cap / FRAMES_PER_CHUNK) * this.chunkBytes;
+  }
   /** EMA-smoothed write rate in Hz (observation-only, never drives scheduling). */
-  measuredHz(): number { return this.measuredHzEma; }
-
+  measuredHz(): number {
+    return this.measuredHzEma;
+  }
 
   /** Append one compressed Ψ frame. O(N) over psi length (top-K selection). */
   write(input: FieldTapeFrameInput): void {
@@ -140,7 +151,10 @@ export class FieldTape {
     const K = this.topK;
     const idxOut = offset + FRAME_HEADER;
     const ampOut = offset + FRAME_HEADER + K;
-    for (let i = 0; i < K; i++) { buf[idxOut + i] = -1; buf[ampOut + i] = 0; }
+    for (let i = 0; i < K; i++) {
+      buf[idxOut + i] = -1;
+      buf[ampOut + i] = 0;
+    }
     const psi = input.psi;
     // Initial min slot 0, |amp|=0; first K real samples will displace.
     let minSlot = 0;
@@ -153,10 +167,15 @@ export class FieldTape {
         buf[ampOut + minSlot] = a;
         // Re-scan K slots to find new smallest.
         let ms = 0;
-        let mv = buf[ampOut]; mv = mv < 0 ? -mv : mv;
+        let mv = buf[ampOut];
+        mv = mv < 0 ? -mv : mv;
         for (let k = 1; k < K; k++) {
-          let x = buf[ampOut + k]; x = x < 0 ? -x : x;
-          if (x < mv) { mv = x; ms = k; }
+          let x = buf[ampOut + k];
+          x = x < 0 ? -x : x;
+          if (x < mv) {
+            mv = x;
+            ms = k;
+          }
         }
         minSlot = ms;
         minAbs = mv;
@@ -170,19 +189,19 @@ export class FieldTape {
     // Measured Hz EMA — only updated when we have a previous timestamp.
     // Uses performance.now() when available, else Date.now() — both fine
     // here because this metric is HUD-only, never fed back into scheduling.
-    const now = (typeof performance !== 'undefined') ? performance.now() : Date.now();
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
     if (this.lastWriteMs > 0) {
       const dt = now - this.lastWriteMs;
       if (dt > 0 && dt < 60000) {
         const instHz = 1000 / dt;
-        this.measuredHzEma = this.measuredHzEma === 0
-          ? instHz
-          : this.measuredHzEma + FieldTape.HZ_ALPHA * (instHz - this.measuredHzEma);
+        this.measuredHzEma =
+          this.measuredHzEma === 0
+            ? instHz
+            : this.measuredHzEma + FieldTape.HZ_ALPHA * (instHz - this.measuredHzEma);
       }
     }
     this.lastWriteMs = now;
   }
-
 
   /** Read the most recent n frames (newest first). */
   tail(n: number): FieldTapeFrame[] {
@@ -237,7 +256,10 @@ export class FieldTape {
     let bestD = Infinity;
     for (const f of this.frames()) {
       const d = Math.abs(f.tick - tick);
-      if (d < bestD) { bestD = d; best = f; }
+      if (d < bestD) {
+        bestD = d;
+        best = f;
+      }
     }
     return best;
   }

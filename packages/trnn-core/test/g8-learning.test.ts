@@ -26,7 +26,19 @@ import { createField } from '../src/core/complex';
 import { JURY_GAIN, phiPow } from '../src/core/constants';
 import { SeedStream } from '../src/core/determinism';
 
-const EXTREMES = [0, 1, -1, 1e-300, -1e-300, 1e8, -1e8, 1e300, -1e300, Number.MAX_VALUE, -Number.MAX_VALUE];
+const EXTREMES = [
+  0,
+  1,
+  -1,
+  1e-300,
+  -1e-300,
+  1e8,
+  -1e8,
+  1e300,
+  -1e300,
+  Number.MAX_VALUE,
+  -Number.MAX_VALUE,
+];
 
 describe('G8 — constrained parametrizations', () => {
   it('algebraic sigmoid stays in (-1,1) and is finite everywhere', () => {
@@ -198,7 +210,13 @@ describe('G8 — tiers', () => {
   it('T1 reports honestly when there is no adapter and when limits are short', async () => {
     expect((await probeTier1({ navigatorRef: {} })).available).toBe(false);
     const weak = await probeTier1({
-      navigatorRef: { gpu: { requestAdapter: async () => ({ limits: { maxStorageBufferBindingSize: 1024, maxComputeWorkgroupSizeX: 4 } }) } },
+      navigatorRef: {
+        gpu: {
+          requestAdapter: async () => ({
+            limits: { maxStorageBufferBindingSize: 1024, maxComputeWorkgroupSizeX: 4 },
+          }),
+        },
+      },
     });
     expect(weak.available).toBe(false);
     const strong = await probeTier1({
@@ -218,8 +236,14 @@ describe('G8 — tiers', () => {
   it('T2 and T3 are unavailable without a configured endpoint, available on a live answer', async () => {
     expect((await probeTier2({})).available).toBe(false);
     expect((await probeTier3({})).available).toBe(false);
-    const fetchImpl = async () => ({ ok: true, status: 200, json: async () => ({ engine: 'trnn', version: '1' }) });
-    expect((await probeTier2({ sidecarUrl: 'http://127.0.0.1:8765', fetchImpl })).available).toBe(true);
+    const fetchImpl = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ engine: 'trnn', version: '1' }),
+    });
+    expect((await probeTier2({ sidecarUrl: 'http://127.0.0.1:8765', fetchImpl })).available).toBe(
+      true,
+    );
     expect((await probeTier3({ hostedUrl: '/api/x', fetchImpl })).available).toBe(true);
   });
 

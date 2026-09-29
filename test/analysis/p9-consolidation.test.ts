@@ -34,7 +34,11 @@ function corr(p: number, s: number, d: number, mi: number) {
 
 function finding(a: string, b: string, over: Partial<PairFinding> = {}): PairFinding {
   return {
-    a, b, n: 128, unmatched: 0, toleranceMs: 32,
+    a,
+    b,
+    n: 128,
+    unmatched: 0,
+    toleranceMs: 32,
     verdict: 'report',
     correlation: corr(0.8, 0.78, 0.7, 0.4),
     causal: null,
@@ -80,10 +84,13 @@ describe('P9.4 encoding', () => {
 describe('P9.4 ingest', () => {
   it('ingests reported findings only — abstentions are not facts', () => {
     const c = new FindingConsolidator(seed);
-    const r = c.ingest(report([
-      finding('a', 'b'),
-      finding('c', 'd', { verdict: 'abstain', reason: 'n below floor', association: null }),
-    ]), 1000);
+    const r = c.ingest(
+      report([
+        finding('a', 'b'),
+        finding('c', 'd', { verdict: 'abstain', reason: 'n below floor', association: null }),
+      ]),
+      1000,
+    );
     expect(r.added).toBe(1);
     expect(c.size).toBe(1);
   });
@@ -140,8 +147,11 @@ describe('P9.4 sweeps', () => {
 
   it('verifies every genuine atom against the live root (sweep 8)', () => {
     const { c, rep } = build();
-    const m = c.run(rep, 2000).reports.find((r) => r.n === 8)!
-      .metric as { genuine: number; genuineVerified: number; accepted: readonly string[] };
+    const m = c.run(rep, 2000).reports.find((r) => r.n === 8)!.metric as {
+      genuine: number;
+      genuineVerified: number;
+      accepted: readonly string[];
+    };
     expect(m.genuine).toBe(m.genuineVerified);
     expect(m.accepted).toEqual([]);
   });
@@ -149,7 +159,11 @@ describe('P9.4 sweeps', () => {
   it('reflection agrees with the individual sweep verdicts', () => {
     const { c, rep } = build();
     const res = c.run(rep, 2000);
-    const m = res.reports[9].metric as { sweepsOk: number; sweepsTotal: number; failed: readonly string[] };
+    const m = res.reports[9].metric as {
+      sweepsOk: number;
+      sweepsTotal: number;
+      failed: readonly string[];
+    };
     const first9 = res.reports.slice(0, 9);
     expect(m.sweepsTotal).toBe(9);
     expect(m.sweepsOk).toBe(first9.filter((r) => r.ok).length);
@@ -169,17 +183,18 @@ describe('P9.4 sweeps', () => {
     const { c, rep } = build();
     const inputs = rescoreInputs(rep);
     expect(inputs.length).toBe(2);
-    const m = c.run(rep, 2000).reports.find((r) => r.n === 7)!
-      .metric as { items: number; rMean: number | null };
+    const m = c.run(rep, 2000).reports.find((r) => r.n === 7)!.metric as {
+      items: number;
+      rMean: number | null;
+    };
     expect(m.items).toBe(2);
     expect(m.rMean === null || (m.rMean > 0 && m.rMean <= 1)).toBe(true);
   });
 
   it('derives effect estimates only where a direction was measured', () => {
-    const est = effectEstimates(report([
-      finding('a', 'b'),
-      finding('c', 'd', { direction: null }),
-    ]));
+    const est = effectEstimates(
+      report([finding('a', 'b'), finding('c', 'd', { direction: null })]),
+    );
     expect(Object.keys(est)).toEqual(['a|b']);
     expect(est['a|b'].se).toBeCloseTo(1 / Math.sqrt(128), 12);
   });

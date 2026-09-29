@@ -107,8 +107,14 @@ export function encodeText(text: string, dim = FIELD_DIM): Float64Array {
 /** Cosine similarity — the resonance term the host scorer expects in [-1,1]. */
 export function resonance(a: Float64Array, b: Float64Array): number {
   const n = Math.min(a.length, b.length);
-  let dot = 0, na = 0, nb = 0;
-  for (let i = 0; i < n; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  let dot = 0,
+    na = 0,
+    nb = 0;
+  for (let i = 0; i < n; i++) {
+    dot += a[i] * b[i];
+    na += a[i] * a[i];
+    nb += b[i] * b[i];
+  }
   if (na === 0 || nb === 0) return 0;
   const r = dot / Math.sqrt(na * nb);
   return r > 1 ? 1 : r < -1 ? -1 : r;
@@ -124,12 +130,22 @@ export function factKey(d: FactDraft): string {
  * coverage can be asserted rather than assumed.
  */
 export const HOST_SUBJECTS: readonly SubjectType[] = [
-  'org', 'person', 'account', 'counterparty', 'contract', 'transaction', 'policy', 'kpi',
+  'org',
+  'person',
+  'account',
+  'counterparty',
+  'contract',
+  'transaction',
+  'policy',
+  'kpi',
 ] as const;
 
 /** Canonical CBOR of a fact's semantic identity — used for drawer content. */
 export function factContent(d: FactDraft): Uint8Array {
   return encodeCbor({
-    st: d.subject_type, si: d.subject_id, p: d.predicate, o: d.object_json,
+    st: d.subject_type,
+    si: d.subject_id,
+    p: d.predicate,
+    o: d.object_json,
   });
 }

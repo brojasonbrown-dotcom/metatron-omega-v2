@@ -9,21 +9,51 @@
 import { describe, it, expect } from 'vitest';
 import { sha3_256 } from '@noble/hashes/sha3.js';
 import {
-  toHex, encodeCbor, decodeCbor, hashHex, hlcZero, hlcTick, type CborValue,
+  toHex,
+  encodeCbor,
+  decodeCbor,
+  hashHex,
+  hlcZero,
+  hlcTick,
+  type CborValue,
 } from '../../src/core/interop/contract';
 import { BN_ONE, bnFromNumber, trustScoreMultiplier } from '../../src/core/interop/bn128';
 import {
-  wingId, roomId, drawerId, prefixedId, isValidDrawerId, sealDrawer, makeEntry, readEntry,
-  exportMemory, drawerToWire, retrievalScore, stageIndex, stageNext,
-  stageExpectedDurationSeconds, FIBONACCI_STAGES, OMEGA_ROOMS,
+  wingId,
+  roomId,
+  drawerId,
+  prefixedId,
+  isValidDrawerId,
+  sealDrawer,
+  makeEntry,
+  readEntry,
+  exportMemory,
+  drawerToWire,
+  retrievalScore,
+  stageIndex,
+  stageNext,
+  stageExpectedDurationSeconds,
+  FIBONACCI_STAGES,
+  OMEGA_ROOMS,
 } from '../../src/core/interop/rumf';
 import {
-  EvidenceChain, seal, verifyChain, recomputeContentHash, EvidenceError,
-  type FactDraft, type EvidenceEnvelope,
+  EvidenceChain,
+  seal,
+  verifyChain,
+  recomputeContentHash,
+  EvidenceError,
+  type FactDraft,
+  type EvidenceEnvelope,
 } from '../../src/core/interop/evidence';
 import { decideTier, admits, explain } from '../../src/core/interop/tierGate';
 import {
-  recallScore, baseScore, flooredRecency, rank, SCORE_WEIGHTS, RECENCY_FLOOR, PINNED_MULTIPLIER,
+  recallScore,
+  baseScore,
+  flooredRecency,
+  rank,
+  SCORE_WEIGHTS,
+  RECENCY_FLOOR,
+  PINNED_MULTIPLIER,
 } from '../../src/core/interop/recall';
 import { abstain, answer, health } from '../../src/core/interop/facade';
 
@@ -46,11 +76,16 @@ describe('R6 · RUMF transport honours Absolute Zero', () => {
     const x = hashHex(TE.encode('context'));
     const w = wingId('w');
     const r = roomId('r');
-    const expected = toHex(sha3_256(new Uint8Array([
-      ...Uint8Array.from(c.match(/../g)!.map((h) => parseInt(h, 16))),
-      ...Uint8Array.from(x.match(/../g)!.map((h) => parseInt(h, 16))),
-      ...TE.encode(w), ...TE.encode(r),
-    ])));
+    const expected = toHex(
+      sha3_256(
+        new Uint8Array([
+          ...Uint8Array.from(c.match(/../g)!.map((h) => parseInt(h, 16))),
+          ...Uint8Array.from(x.match(/../g)!.map((h) => parseInt(h, 16))),
+          ...TE.encode(w),
+          ...TE.encode(r),
+        ]),
+      ),
+    );
     expect(drawerId(c, x, w, r)).toBe(expected);
     expect(isValidDrawerId(drawerId(c, x, w, r))).toBe(true);
     expect(isValidDrawerId('NOTHEX')).toBe(false);
@@ -58,21 +93,26 @@ describe('R6 · RUMF transport honours Absolute Zero', () => {
 
   it('is content-addressed: identical memories in one room collapse to one drawer', () => {
     const hlc = hlcZero('omega');
-    const mk = () => sealDrawer({
-      content: { psi: [1, 2, 3], tick: 7 },
+    const mk = () =>
+      sealDrawer({
+        content: { psi: [1, 2, 3], tick: 7 },
+        context: { rung: 5 },
+        wing: wingId('omega.metatron'),
+        room: roomId(OMEGA_ROOMS.L3),
+        trust: 'T2',
+        stage: 'F1',
+        hlc,
+      });
+    expect(mk().id).toBe(mk().id);
+    // and different content must not collide
+    const other = sealDrawer({
+      content: { psi: [1, 2, 4], tick: 7 },
       context: { rung: 5 },
       wing: wingId('omega.metatron'),
       room: roomId(OMEGA_ROOMS.L3),
       trust: 'T2',
       stage: 'F1',
       hlc,
-    });
-    expect(mk().id).toBe(mk().id);
-    // and different content must not collide
-    const other = sealDrawer({
-      content: { psi: [1, 2, 4], tick: 7 }, context: { rung: 5 },
-      wing: wingId('omega.metatron'), room: roomId(OMEGA_ROOMS.L3),
-      trust: 'T2', stage: 'F1', hlc,
     });
     expect(other.id).not.toBe(mk().id);
   });
@@ -149,8 +189,9 @@ describe('R5 · evidence envelopes chain and verify', () => {
     expect(e.id.startsWith('fact_')).toBe(true);
     expect(e.prev_hash).toBeNull();
     // tags are sorted, so tag order cannot change the hash
-    expect(seal({ ...draft('value', 0.97), tags: ['measured', 'omega'] }, hlc, null).content_hash)
-      .toBe(e.content_hash);
+    expect(
+      seal({ ...draft('value', 0.97), tags: ['measured', 'omega'] }, hlc, null).content_hash,
+    ).toBe(e.content_hash);
   });
 
   it('refuses malformed drafts instead of sealing them', () => {
@@ -159,8 +200,9 @@ describe('R5 · evidence envelopes chain and verify', () => {
     expect(() => seal({ ...draft('v', 1), confidence: Number.NaN }, hlc, null)).toThrow(/\[0,1\]/);
     expect(() => seal({ ...draft('v', 1), predicate: '' }, hlc, null)).toThrow(/predicate/);
     expect(() => seal({ ...draft('v', 1), subject_id: '' }, hlc, null)).toThrow(/subject_id/);
-    expect(() => seal({ ...draft('v', 1), subject_type: 'ghost' as never }, hlc, null))
-      .toThrow(/unknown subject type/);
+    expect(() => seal({ ...draft('v', 1), subject_type: 'ghost' as never }, hlc, null)).toThrow(
+      /unknown subject type/,
+    );
   });
 
   it('chains appends and verifies the whole chain', () => {
@@ -188,7 +230,11 @@ describe('R5 · evidence envelopes chain and verify', () => {
 
     const forged = [...items];
     forged[0] = { ...items[0], id: 'fact_deadbeef' };
-    expect(verifyChain(forged)).toMatchObject({ ok: false, brokenAt: 0, reason: expect.stringContaining('id') });
+    expect(verifyChain(forged)).toMatchObject({
+      ok: false,
+      brokenAt: 0,
+      reason: expect.stringContaining('id'),
+    });
   });
 
   it('replays identically from injected time — no wall clock is read', () => {
@@ -198,7 +244,8 @@ describe('R5 · evidence envelopes chain and verify', () => {
       c.append(draft('value', 0.6), 1000); // same ms — counter must advance
       return c;
     };
-    const a = run(), b = run();
+    const a = run(),
+      b = run();
     expect(a.tip()).toBe(b.tip());
     expect(a.all()[1].hlc_logical).toBe(a.all()[0].hlc_logical + 1);
     expect(toHex(a.export())).toBe(toHex(b.export()));
@@ -218,8 +265,13 @@ describe('R5 · evidence envelopes chain and verify', () => {
 
 describe('R4 · one tier law, fail-closed', () => {
   const full = {
-    coherenceWarm: 0.97, warmRungs: 18, totalRungs: 18,
-    tapeFrames: 512, patterns: 144, sealedFindings: 34, chainVerified: true,
+    coherenceWarm: 0.97,
+    warmRungs: 18,
+    totalRungs: 18,
+    tapeFrames: 512,
+    patterns: 144,
+    sealedFindings: 34,
+    chainVerified: true,
   };
 
   it('withholds trust from a dormant engine and names every reason', () => {
@@ -233,7 +285,12 @@ describe('R4 · one tier law, fail-closed', () => {
   });
 
   it('does not report coherence for a cold ladder', () => {
-    const d = decideTier({ coherenceWarm: Number.NaN, warmRungs: 0, totalRungs: 18, tapeFrames: 0 });
+    const d = decideTier({
+      coherenceWarm: Number.NaN,
+      warmRungs: 0,
+      totalRungs: 18,
+      tapeFrames: 0,
+    });
     expect(d.trust).toBe('T0');
     expect(d.merged).toBe(0n);
   });
@@ -257,7 +314,8 @@ describe('R4 · one tier law, fail-closed', () => {
 
   it('is monotone: improving a reading never lowers the decision', () => {
     const tiers = [0, 21, 89, 200, 512].map((tapeFrames) =>
-      Number(decideTier({ ...full, tapeFrames }).trust.slice(1)));
+      Number(decideTier({ ...full, tapeFrames }).trust.slice(1)),
+    );
     for (let i = 1; i < tiers.length; i++) expect(tiers[i]).toBeGreaterThanOrEqual(tiers[i - 1]);
   });
 
@@ -275,8 +333,12 @@ describe('R7 · the host recall scorer, mirrored', () => {
 
   it('reproduces the host weights and sums to one without bonuses', () => {
     expect(baseScore(terms)).toBeCloseTo(1, 12);
-    expect(SCORE_WEIGHTS.keyword + SCORE_WEIGHTS.validity + SCORE_WEIGHTS.recency
-      + SCORE_WEIGHTS.importance).toBeCloseTo(1, 12);
+    expect(
+      SCORE_WEIGHTS.keyword +
+        SCORE_WEIGHTS.validity +
+        SCORE_WEIGHTS.recency +
+        SCORE_WEIGHTS.importance,
+    ).toBeCloseTo(1, 12);
   });
 
   it('keeps resonance strictly additive — zero regression for callers without it', () => {
@@ -289,8 +351,10 @@ describe('R7 · the host recall scorer, mirrored', () => {
   it('never lets recency fall below the floor', () => {
     expect(flooredRecency(0)).toBe(RECENCY_FLOOR);
     expect(flooredRecency(1)).toBe(1);
-    expect(baseScore({ ...terms, keyword: 0, validity: 0, importance: 0, recency: 0 }))
-      .toBeCloseTo(SCORE_WEIGHTS.recency * RECENCY_FLOOR, 12);
+    expect(baseScore({ ...terms, keyword: 0, validity: 0, importance: 0, recency: 0 })).toBeCloseTo(
+      SCORE_WEIGHTS.recency * RECENCY_FLOOR,
+      12,
+    );
   });
 
   it('applies the pinned multiplier to the base only', () => {
@@ -319,8 +383,13 @@ describe('R7 · the host recall scorer, mirrored', () => {
 
 describe('R8 · the facade abstains instead of fabricating', () => {
   const full = {
-    coherenceWarm: 0.97, warmRungs: 18, totalRungs: 18,
-    tapeFrames: 512, patterns: 144, sealedFindings: 34, chainVerified: true,
+    coherenceWarm: 0.97,
+    warmRungs: 18,
+    totalRungs: 18,
+    tapeFrames: 512,
+    patterns: 144,
+    sealedFindings: 34,
+    chainVerified: true,
   };
   const items = [{ key: 'k', score: 1, resonance: 0.5, payload: { a: 1 } as CborValue }];
 

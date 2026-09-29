@@ -222,7 +222,8 @@ export function spectralView(engine: MultiTorusEngine, rank: number): SpectralVi
   if (!eng) throw new RangeError(`spectralView: rank ${rank} out of range`);
   const snap = eng.snapshot();
   const amp = new Float64Array(eng.nodes);
-  for (let j = 0; j < eng.nodes; j++) amp[j] = Math.sqrt(snap.z.re[j] * snap.z.re[j] + snap.z.im[j] * snap.z.im[j]);
+  for (let j = 0; j < eng.nodes; j++)
+    amp[j] = Math.sqrt(snap.z.re[j] * snap.z.re[j] + snap.z.im[j] * snap.z.im[j]);
 
   // Shell width must be Fibonacci (Law 2.2) and no wider than the rung itself,
   // otherwise the "roundtrip" would be measuring interpolation, not the plane.

@@ -2,8 +2,8 @@
  * KokoroPanel — matrix chrome around our existing KokoroTTSPanel.
  * Zero changes to `src/lib/tts/**`.
  */
-import SourceChip from "./SourceChip";
-import { KokoroTTSPanel } from "@/components/v11/panels/KokoroTTSPanel";
+import SourceChip from './SourceChip';
+import { KokoroTTSPanel } from '@/components/v11/panels/KokoroTTSPanel';
 
 export default function KokoroPanel() {
   return (

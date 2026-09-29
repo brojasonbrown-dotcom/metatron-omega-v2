@@ -28,7 +28,6 @@ export interface SelfPack {
   map?: CrossMap | null;
 }
 
-
 function fmt(v: number | string | null, unit?: string): string {
   if (v === null) return 'n/a';
   if (typeof v === 'string') return v;
@@ -65,20 +64,24 @@ tools: self_describe (one module in full), self_test (execute deterministic chec
     ? `GENOME (${pack.genome.version}, dim ${pack.genome.dim}): chunks=${pack.genome.chunks} sampled=${pack.genome.sampled} fill=${pack.genome.fill.toFixed(4)} norm=${pack.genome.norm.toFixed(4)} anisotropy=${pack.genome.anisotropy.toFixed(4)} barcodeFalsePositive=${pack.genome.barcodeFalsePositive.toFixed(4)} reencodeExact=${pack.genome.reencodeExact} drifted=${pack.genome.driftedChunks} crossModal=${pack.genome.crossModal}`
     : 'GENOME: not measured this turn (corpus empty or unavailable).';
 
-  const meaning = pack.meaning && pack.meaning.terms > 0
-    ? `MEANING CORRELATION: ${pack.meaning.terms} concept(s) probed, mean term precision ${pack.meaning.meanPrecision.toFixed(3)}, mean field agreement ${pack.meaning.meanFieldAgreement.toFixed(3)}.`
-    : 'MEANING CORRELATION: not measured (no concepts in the graph).';
+  const meaning =
+    pack.meaning && pack.meaning.terms > 0
+      ? `MEANING CORRELATION: ${pack.meaning.terms} concept(s) probed, mean term precision ${pack.meaning.meanPrecision.toFixed(3)}, mean field agreement ${pack.meaning.meanFieldAgreement.toFixed(3)}.`
+      : 'MEANING CORRELATION: not measured (no concepts in the graph).';
 
-  const retrieval = pack.retrieval && pack.retrieval.probes > 0
-    ? `SELF-RETRIEVAL: ${pack.retrieval.probes} probe(s), top1 ${pack.retrieval.top1.toFixed(3)}, top5 ${pack.retrieval.top5.toFixed(3)}.`
-    : 'SELF-RETRIEVAL: not measured (corpus empty).';
+  const retrieval =
+    pack.retrieval && pack.retrieval.probes > 0
+      ? `SELF-RETRIEVAL: ${pack.retrieval.probes} probe(s), top1 ${pack.retrieval.top1.toFixed(3)}, top5 ${pack.retrieval.top5.toFixed(3)}.`
+      : 'SELF-RETRIEVAL: not measured (corpus empty).';
 
   const test = pack.lastTest
     ? `LAST SELF-TEST: scope=${pack.lastTest.scope} ${pack.lastTest.passed} passed / ${pack.lastTest.failed} failed, ${Math.round((Date.now() - pack.lastTest.at) / 1000)}s ago, ${pack.lastTest.ms}ms.
 ${pack.lastTest.results.map((r) => `  · ${r.id} ${r.name}: ${r.passed ? 'PASS' : 'FAIL'} — measured ${r.measured}; expected ${r.expected} (${r.ms}ms)`).join('\n')}`
     : 'LAST SELF-TEST: none executed. Any claim that an internal module "works" is UNTESTED until self_test returns a result.';
 
-  const map = pack.map ? buildMapBlock(pack.map) : 'STRUCTURAL MAP: not shipped this turn — do not reason about module wiring.';
+  const map = pack.map
+    ? buildMapBlock(pack.map)
+    : 'STRUCTURAL MAP: not shipped this turn — do not reason about module wiring.';
 
   return `${head}
 
@@ -96,19 +99,32 @@ ${test}`;
 /** Ω-MAP block: structure and unused pairings, kept strictly apart from capability. */
 function buildMapBlock(m: CrossMap): string {
   const c = m.counts;
-  const layers = Object.entries(m.layers).sort().map(([k, v]) => `${k}:${v}`).join(' · ');
+  const layers = Object.entries(m.layers)
+    .sort()
+    .map(([k, v]) => `${k}:${v}`)
+    .join(' · ');
   const edges = m.edges
-    .map((e) => `  · ${e.from} → ${e.to} [${e.status.toUpperCase()}] ${e.kinds.join(',') || 'no shared port kind'} (${e.why})`)
+    .map(
+      (e) =>
+        `  · ${e.from} → ${e.to} [${e.status.toUpperCase()}] ${e.kinds.join(',') || 'no shared port kind'} (${e.why})`,
+    )
     .join('\n');
-  const opps = m.opportunities.slice(0, 8)
-    .map((o) => `  · [SPEC] ${o.from} → ${o.to} via ${o.via} (${o.kind}) — ${o.because} Requires: ${o.requires}`)
+  const opps = m.opportunities
+    .slice(0, 8)
+    .map(
+      (o) =>
+        `  · [SPEC] ${o.from} → ${o.to} via ${o.via} (${o.kind}) — ${o.because} Requires: ${o.requires}`,
+    )
     .join('\n');
   const gaps = m.gaps.length
-    ? m.gaps.map((g) => `  · ${g.module}.${g.port} (${g.kind}, ${g.direction}) — ${g.why}`).join('\n')
+    ? m.gaps
+        .map((g) => `  · ${g.module}.${g.port} (${g.kind}, ${g.direction}) — ${g.why}`)
+        .join('\n')
     : '  · none';
-  const orphan = m.orphans.atlasOnly.length || m.orphans.registryOnly.length
-    ? `\nATLAS DRIFT: atlas-only [${m.orphans.atlasOnly.join(', ')}] registry-only [${m.orphans.registryOnly.join(', ')}] — the map disagrees with the runtime; say so before using it.`
-    : '';
+  const orphan =
+    m.orphans.atlasOnly.length || m.orphans.registryOnly.length
+      ? `\nATLAS DRIFT: atlas-only [${m.orphans.atlasOnly.join(', ')}] registry-only [${m.orphans.registryOnly.join(', ')}] — the map disagrees with the runtime; say so before using it.`
+      : '';
 
   return `STRUCTURAL MAP (Ω-MAP — atlas joined with the live registry)
 layers: ${layers}
@@ -122,15 +138,21 @@ ${gaps}
 Tool: self_map({ module?, kind? }) returns the full atlas entry, its edges, gaps and unused pairings.${orphan}`;
 }
 
-
-export interface SelfToolResult { ok: boolean; [k: string]: unknown }
+export interface SelfToolResult {
+  ok: boolean;
+  [k: string]: unknown;
+}
 
 export function runSelfTool(
   name: string,
   args: Record<string, unknown>,
   pack: SelfPack | null | undefined,
 ): SelfToolResult {
-  if (!pack) return { ok: false, error: 'self pack not available this turn — no evidence about internal modules' };
+  if (!pack)
+    return {
+      ok: false,
+      error: 'self pack not available this turn — no evidence about internal modules',
+    };
 
   if (name === 'self_describe') {
     const id = String(args.module ?? '').trim();
@@ -138,19 +160,29 @@ export function runSelfTool(
       return {
         ok: true,
         counts: pack.registry.counts,
-        modules: pack.registry.modules.map((m) => ({ id: m.id, state: m.state, title: m.title, detail: m.detail })),
+        modules: pack.registry.modules.map((m) => ({
+          id: m.id,
+          state: m.state,
+          title: m.title,
+          detail: m.detail,
+        })),
       };
     }
     const found = pack.registry.modules.find((m) => m.id === id || m.id.endsWith(`.${id}`));
     if (!found) {
-      return { ok: false, error: `no module '${id}'`, available: pack.registry.modules.map((m) => m.id) };
+      return {
+        ok: false,
+        error: `no module '${id}'`,
+        available: pack.registry.modules.map((m) => m.id),
+      };
     }
     return { ok: true, ...found };
   }
 
   if (name === 'self_map') {
     const m = pack.map;
-    if (!m) return { ok: false, error: 'no structural map shipped this turn — no evidence about wiring' };
+    if (!m)
+      return { ok: false, error: 'no structural map shipped this turn — no evidence about wiring' };
     const id = String(args.module ?? '').trim();
     const kind = String(args.kind ?? '').trim();
     if (!id) {
@@ -162,13 +194,20 @@ export function runSelfTool(
         states: m.states,
         edges: m.edges,
         gaps: m.gaps,
-        opportunities: kind ? m.opportunities.filter((o) => o.kind === kind) : m.opportunities.slice(0, 20),
+        opportunities: kind
+          ? m.opportunities.filter((o) => o.kind === kind)
+          : m.opportunities.slice(0, 20),
         orphans: m.orphans,
         modules: CAPABILITY_ATLAS.map((e) => ({ id: e.id, layer: e.layer, does: e.does })),
       };
     }
     const entry = ATLAS_BY_ID.get(id) ?? CAPABILITY_ATLAS.find((e) => e.id.endsWith(`.${id}`));
-    if (!entry) return { ok: false, error: `no atlas entry '${id}'`, available: CAPABILITY_ATLAS.map((e) => e.id) };
+    if (!entry)
+      return {
+        ok: false,
+        error: `no atlas entry '${id}'`,
+        available: CAPABILITY_ATLAS.map((e) => e.id),
+      };
     return {
       ok: true,
       note: 'affordances and opportunities are SPEC hypotheses, not capabilities',
@@ -180,7 +219,6 @@ export function runSelfTool(
     };
   }
 
-
   if (name === 'genome_health') {
     if (!pack.genome) return { ok: false, error: 'genome not measurable this turn (corpus empty)' };
     return { ok: true, genome: pack.genome, meaning: pack.meaning, retrieval: pack.retrieval };
@@ -190,7 +228,8 @@ export function runSelfTool(
     if (!pack.lastTest) {
       return {
         ok: false,
-        error: 'no self-test has been executed. Cheap checks run automatically each turn; heavy checks (engine replay determinism) must be started from the SELF deck.',
+        error:
+          'no self-test has been executed. Cheap checks run automatically each turn; heavy checks (engine replay determinism) must be started from the SELF deck.',
       };
     }
     const id = String(args.module ?? '').trim();
@@ -220,7 +259,12 @@ export const SELF_TOOLS = [
         "Describe the machine's own modules: what each one is for, the contract it must satisfy, whether it is live/dormant/absent, and its measured metrics. Call with no argument for the full list, or with a module id for one entry. Use this BEFORE claiming any internal capability.",
       parameters: {
         type: 'object',
-        properties: { module: { type: 'string', description: 'module id, e.g. engine.field, memory.substrate, knowledge.corpus' } },
+        properties: {
+          module: {
+            type: 'string',
+            description: 'module id, e.g. engine.field, memory.substrate, knowledge.corpus',
+          },
+        },
       },
     },
   },
@@ -254,13 +298,18 @@ export const SELF_TOOLS = [
       parameters: {
         type: 'object',
         properties: {
-          module: { type: 'string', description: 'atlas id, e.g. engine.field, memory.substrate, knowledge.genome' },
-          kind: { type: 'string', description: 'optional port kind filter, e.g. field-frame, series, vector, text' },
+          module: {
+            type: 'string',
+            description: 'atlas id, e.g. engine.field, memory.substrate, knowledge.genome',
+          },
+          kind: {
+            type: 'string',
+            description: 'optional port kind filter, e.g. field-frame, series, vector, text',
+          },
         },
       },
     },
   },
 ];
-
 
 export const SELF_TOOL_NAMES = new Set(SELF_TOOLS.map((t) => t.function.name));

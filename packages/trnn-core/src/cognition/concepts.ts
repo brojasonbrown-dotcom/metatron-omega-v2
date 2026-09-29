@@ -505,7 +505,7 @@ export class ConceptStore {
       const base = s * this.centroids * this.subDim;
       const off = s * this.subDim;
       // k-means++ init
-      let first = Math.min(n - 1, Math.floor(this.rand.next() * n));
+      const first = Math.min(n - 1, Math.floor(this.rand.next() * n));
       for (let d = 0; d < this.subDim; d++) {
         book[base + d] = this.vecs[first * this.dim + off + d];
       }

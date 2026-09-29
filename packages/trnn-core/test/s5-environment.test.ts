@@ -26,7 +26,9 @@ describe('S5 — window environment binding', () => {
   });
 
   it('refuses a λ above the frozen kernel (temperature may only shrink it)', () => {
-    expect(() => new SingleTorusEngine({ nodes: 89, lambda: LAMBDA_MEMORY * 1.0000001 })).toThrow(/lambda/);
+    expect(() => new SingleTorusEngine({ nodes: 89, lambda: LAMBDA_MEMORY * 1.0000001 })).toThrow(
+      /lambda/,
+    );
     expect(() => new SingleTorusEngine({ nodes: 89, lambda: 0 })).toThrow(/lambda/);
     expect(() => new SingleTorusEngine({ nodes: 89, modePhase: Number.NaN })).toThrow(/modePhase/);
   });
@@ -84,7 +86,12 @@ describe('S5 — window environment binding', () => {
       expect(r.lambda).toBeGreaterThan(0);
       expect(r.lambda).toBe(thermalLambda(r.temperature));
     }
-    const e = new MultiTorusEngine({ rungs: w.rungs.map((r) => r.rung), window: w, seed: 's5-T', modes: 13 });
+    const e = new MultiTorusEngine({
+      rungs: w.rungs.map((r) => r.rung),
+      window: w,
+      seed: 's5-T',
+      modes: 13,
+    });
     e.engines.forEach((eng, i) => expect(eng.lambda).toBe(w.rungs[i].lambda));
     const rep = run(e);
     expect(rep.finite).toBe(true);
@@ -95,7 +102,12 @@ describe('S5 — window environment binding', () => {
   it('magnetic bias rotates the modal phase without breaking the run', () => {
     const w = buildWindow(0, { count: 6, baseMagnetic: 0.15, magneticRamp: 1.1 });
     for (const r of w.rungs) expect(r.magneticPhase).not.toBe(0);
-    const biased = new MultiTorusEngine({ rungs: w.rungs.map((r) => r.rung), window: w, seed: 's5-B', modes: 13 });
+    const biased = new MultiTorusEngine({
+      rungs: w.rungs.map((r) => r.rung),
+      window: w,
+      seed: 's5-B',
+      modes: 13,
+    });
     const inert = new MultiTorusEngine({
       rungs: w.rungs.map((r) => r.rung),
       window: buildWindow(0, { count: 6 }),
@@ -114,7 +126,12 @@ describe('S5 — window environment binding', () => {
     const delays = w.rungs.map((r) => r.coherenceDelay);
     expect(new Set(delays).size).toBeGreaterThan(1);
     for (let i = 1; i < delays.length; i++) expect(delays[i]).toBeGreaterThanOrEqual(delays[i - 1]);
-    const e = new MultiTorusEngine({ rungs: w.rungs.map((r) => r.rung), window: w, seed: 's5-tau', modes: 13 });
+    const e = new MultiTorusEngine({
+      rungs: w.rungs.map((r) => r.rung),
+      window: w,
+      seed: 's5-tau',
+      modes: 13,
+    });
     expect(run(e).finite).toBe(true);
   });
 });

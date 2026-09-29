@@ -37,7 +37,14 @@ function cosine(a: ArrayLike<number>, b: ArrayLike<number>): number {
 }
 
 function buildStore(n: number, seed = 'g7', opts: Record<string, unknown> = {}) {
-  const store = new ConceptStore({ dim: DIM, capacity: n + 8, seed, sub: 8, centroids: 16, ...opts });
+  const store = new ConceptStore({
+    dim: DIM,
+    capacity: n + 8,
+    seed,
+    sub: 8,
+    centroids: 16,
+    ...opts,
+  });
   const rng = new SeedStream(`${seed}-data`);
   const raw: Float64Array[] = [];
   for (let i = 0; i < n; i++) {

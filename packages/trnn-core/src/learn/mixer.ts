@@ -70,7 +70,9 @@ export class SuperpositionMixer {
    */
   apply(coeffs: Float64Array): MixerReport {
     if (coeffs.length < 2 * this.modes) {
-      throw new RangeError(`SuperpositionMixer.apply: buffer holds ${coeffs.length / 2} modes, basis has ${this.modes}`);
+      throw new RangeError(
+        `SuperpositionMixer.apply: buffer holds ${coeffs.length / 2} modes, basis has ${this.modes}`,
+      );
     }
     let inE = 0;
     const occupied = new Uint8Array(this.modes);

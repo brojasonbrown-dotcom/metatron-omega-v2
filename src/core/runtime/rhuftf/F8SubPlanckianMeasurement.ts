@@ -40,15 +40,23 @@ export class F8SubPlanckianMeasurement implements ScaleMeasurement {
     const psi = state.psi;
     const N = psi.length;
     if (N === 0) {
-      return { scale: 7, closureResidual: 0, closureScore: 1, invariantScore: 1, gamma: new Float64Array(0) };
+      return {
+        scale: 7,
+        closureResidual: 0,
+        closureScore: 1,
+        invariantScore: 1,
+        gamma: new Float64Array(0),
+      };
     }
 
     // Compensated ‖ψ‖² and max|ψ|.
-    let normSq = 0, comp = 0, maxAbs = 0;
+    let normSq = 0,
+      comp = 0,
+      maxAbs = 0;
     for (let i = 0; i < N; i++) {
       const x = psi[i] * psi[i];
       const t = normSq + x;
-      comp += Math.abs(normSq) >= x ? (normSq - t) + x : (x - t) + normSq;
+      comp += Math.abs(normSq) >= x ? normSq - t + x : x - t + normSq;
       normSq = t;
       const a = Math.abs(psi[i]);
       if (a > maxAbs) maxAbs = a;

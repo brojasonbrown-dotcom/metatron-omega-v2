@@ -12,7 +12,13 @@ import { EngineHost } from '../src/runtime/host';
 
 describe('W2 — warm vs cold coherence', () => {
   it('cold rungs are excluded from the warm mean and reported as not warm', () => {
-    const web = new MultiTorusEngine({ rungs: LADDER.slice(0, 4), nodes: 89, clock: 'fibonacci', seed: 'w2', coherenceDelay: 8 });
+    const web = new MultiTorusEngine({
+      rungs: LADDER.slice(0, 4),
+      nodes: 89,
+      clock: 'fibonacci',
+      seed: 'w2',
+      coherenceDelay: 8,
+    });
     const first = web.step();
     // Nothing can be warm on tick 1: every ring is still empty.
     expect(first.warmRungs).toBe(0);
@@ -33,7 +39,13 @@ describe('W2 — warm vs cold coherence', () => {
   });
 
   it('the plain mean is never above the warm mean (cold zeros only drag down)', () => {
-    const web = new MultiTorusEngine({ rungs: LADDER.slice(0, 5), nodes: 89, clock: 'fibonacci', seed: 'w2b', coherenceDelay: 8 });
+    const web = new MultiTorusEngine({
+      rungs: LADDER.slice(0, 5),
+      nodes: 89,
+      clock: 'fibonacci',
+      seed: 'w2b',
+      coherenceDelay: 8,
+    });
     const rep = web.run(200);
     if (Number.isFinite(rep.coherenceWarm)) {
       expect(rep.coherence).toBeLessThanOrEqual(rep.coherenceWarm + 1e-12);

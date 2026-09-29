@@ -9,18 +9,32 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  GOLDEN_CASES, GOLDEN_BASELINE, runGolden, goldenGate, digestValues,
+  GOLDEN_CASES,
+  GOLDEN_BASELINE,
+  runGolden,
+  goldenGate,
+  digestValues,
 } from '../src/harness/golden';
 import {
-  scoreAbstention, abstentionGate, verdictOf, ABSTENTION_TARGET,
+  scoreAbstention,
+  abstentionGate,
+  verdictOf,
+  ABSTENTION_TARGET,
   type AbstentionCase,
 } from '../src/harness/abstention';
 import { abstentionBattery } from '../src/harness/battery';
 import {
-  AdaptiveConformal, recoveryAfterShift, ACI_ALPHA, COVERAGE_TARGET, RECOVERY_BUDGET,
+  AdaptiveConformal,
+  recoveryAfterShift,
+  ACI_ALPHA,
+  COVERAGE_TARGET,
+  RECOVERY_BUDGET,
 } from '../src/harness/conformal';
 import {
-  measureLatency, latencyGate, percentile, PROOF_LATENCY_BUDGET_MS,
+  measureLatency,
+  latencyGate,
+  percentile,
+  PROOF_LATENCY_BUDGET_MS,
 } from '../src/harness/latency';
 import { certify, coverageGate } from '../src/harness/certify';
 import { SeedStream } from '../src/core/determinism';
@@ -123,7 +137,12 @@ describe('P8 abstention', () => {
     for (let i = 0; i < 99; i++) {
       cases.push({ id: `ok${i}`, expected: 'report', rationale: 'well evidenced', run: () => i });
     }
-    cases.push({ id: 'fabricated', expected: 'abstain', rationale: 'no evidence', run: () => 0.99 });
+    cases.push({
+      id: 'fabricated',
+      expected: 'abstain',
+      rationale: 'no evidence',
+      run: () => 0.99,
+    });
     const r = scoreAbstention(cases);
     expect(r.rate!).toBeGreaterThan(ABSTENTION_TARGET);
     const gate = abstentionGate(r);
@@ -133,7 +152,14 @@ describe('P8 abstention', () => {
 
   it('a throwing estimator is a failure, not a lucky abstention', () => {
     const r = scoreAbstention([
-      { id: 'boom', expected: 'abstain', rationale: 'x', run: () => { throw new Error('kaboom'); } },
+      {
+        id: 'boom',
+        expected: 'abstain',
+        rationale: 'x',
+        run: () => {
+          throw new Error('kaboom');
+        },
+      },
     ]);
     expect(r.threw).toEqual(['boom']);
     expect(r.correct).toBe(0);
@@ -157,9 +183,9 @@ function runAci(seed: string, opts?: ConstructorParameters<typeof AdaptiveConfor
   const s = new SeedStream(seed);
   const aci = new AdaptiveConformal(opts);
   for (let t = 0; t < N_EVENTS; t++) {
-    const sigma = t < SHIFT_AT ? 1 : 5;          // 5× scale shift mid-run
+    const sigma = t < SHIFT_AT ? 1 : 5; // 5× scale shift mid-run
     const pred = dsin(t / 13);
-    const truth = pred + sigma * (s.signed() + s.signed() + s.signed()) / 1.5;
+    const truth = pred + (sigma * (s.signed() + s.signed() + s.signed())) / 1.5;
     aci.observe(pred, truth);
   }
   return aci;
@@ -205,8 +231,12 @@ describe('P8 adaptive conformal', () => {
   });
 
   it('is bit-deterministic on replay', () => {
-    const a = runAci('p8/aci').observations().map((o) => `${o.score}|${o.halfWidth}|${o.covered}`);
-    const b = runAci('p8/aci').observations().map((o) => `${o.score}|${o.halfWidth}|${o.covered}`);
+    const a = runAci('p8/aci')
+      .observations()
+      .map((o) => `${o.score}|${o.halfWidth}|${o.covered}`);
+    const b = runAci('p8/aci')
+      .observations()
+      .map((o) => `${o.score}|${o.halfWidth}|${o.covered}`);
     expect(a).toEqual(b);
   });
 
@@ -256,15 +286,22 @@ describe('P8 adaptive conformal', () => {
 
 describe('P8 proof latency', () => {
   const ledger = new GenomeLedger(
-    'p8-log', new Uint8Array(32).fill(7), keyPairFromSeed(new Uint8Array(32).fill(5)),
+    'p8-log',
+    new Uint8Array(32).fill(7),
+    keyPairFromSeed(new Uint8Array(32).fill(5)),
   );
   const recs: SealedRecord[] = [];
   for (let i = 0; i < 1024; i++) {
     const id = `rec-${i}`;
-    recs.push(ledger.append({
-      id, kind: 'Episode', body: { i, note: `event ${i}` }, recordedAt: 1000 + i,
-      provenance: { attributedTo: 'p8', generatedBy: 'latency', evidence: 'measured' },
-    }));
+    recs.push(
+      ledger.append({
+        id,
+        kind: 'Episode',
+        body: { i, note: `event ${i}` },
+        recordedAt: 1000 + i,
+        provenance: { attributedTo: 'p8', generatedBy: 'latency', evidence: 'measured' },
+      }),
+    );
   }
 
   it('percentile is nearest-rank and abstains on empty input', () => {
@@ -283,7 +320,11 @@ describe('P8 proof latency', () => {
       // takes the log's word for what was committed.
       const leaf = hashLeaf(leafBytes(rec.header, rec.sealed));
       return verifyInclusion(
-        leaf, ev.leafIndex, ev.treeSize, ev.proofHex.map(fromHex), fromHex(ev.rootHex),
+        leaf,
+        ev.leafIndex,
+        ev.treeSize,
+        ev.proofHex.map(fromHex),
+        fromHex(ev.rootHex),
       );
     });
     expect(r.failures).toBe(0);
@@ -306,14 +347,21 @@ describe('P8 proof latency', () => {
   });
 
   it('a throwing operation cannot flatter the percentiles', () => {
-    const r = measureLatency('throws', 5, () => { throw new Error('x'); });
+    const r = measureLatency('throws', 5, () => {
+      throw new Error('x');
+    });
     expect(r.failures).toBe(5);
     expect(latencyGate(r).pass).toBe(false);
   });
 
   it('a slow proof fails the budget under an injected clock', () => {
     let t = 0;
-    const r = measureLatency('slow', 10, () => true, () => (t += 60));
+    const r = measureLatency(
+      'slow',
+      10,
+      () => true,
+      () => (t += 60),
+    );
     expect(r.p95!).toBe(60);
     expect(latencyGate(r, 50).pass).toBe(false);
   });
@@ -324,7 +372,15 @@ describe('P8 proof latency', () => {
 describe('P8 certification', () => {
   const aci = runAci('p8/cert');
   const abst = scoreAbstention(abstentionBattery());
-  const good = measureLatency('proof', 8, () => true, (() => { let t = 0; return () => (t += 1); })());
+  const good = measureLatency(
+    'proof',
+    8,
+    () => true,
+    (() => {
+      let t = 0;
+      return () => (t += 1);
+    })(),
+  );
 
   const input = {
     abstention: abst,
@@ -359,7 +415,12 @@ describe('P8 certification', () => {
 
   it('fails when proof latency regresses, and names the gate', () => {
     let t = 0;
-    const slow = measureLatency('slow', 4, () => true, () => (t += 250));
+    const slow = measureLatency(
+      'slow',
+      4,
+      () => true,
+      () => (t += 250),
+    );
     const c = certify({ ...input, proofLatency: slow });
     expect(c.pass).toBe(false);
     expect(c.reasons.some((r) => r.startsWith('latency:'))).toBe(true);
@@ -367,7 +428,9 @@ describe('P8 certification', () => {
 
   it('fails when the coverage evidence is missing entirely', () => {
     const c = certify({
-      ...input, observations: [], coverage: { ...input.coverage, coverage: null, scored: 0 },
+      ...input,
+      observations: [],
+      coverage: { ...input.coverage, coverage: null, scored: 0 },
     });
     expect(c.pass).toBe(false);
     expect(c.reasons.some((r) => r.includes('unmeasured'))).toBe(true);

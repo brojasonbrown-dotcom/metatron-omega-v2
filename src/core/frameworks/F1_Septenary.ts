@@ -30,21 +30,16 @@ import { wave2 } from '../v12/audit/wave2Precision';
 
 // ───────────────────────── Wolfram-anchored constants (V10-identical) ──
 const KAPPA = 1 / (PHI * PI);
-const SILVER = 2.414213562373095;       // 1+√2 (bit-exact bank match)
-const SILVER_INV = wave2('SILVER_INV', 0.4142135623730951);  // √2-1 — flag-gated 50-dp uplift
+const SILVER = 2.414213562373095; // 1+√2 (bit-exact bank match)
+const SILVER_INV = wave2('SILVER_INV', 0.4142135623730951); // √2-1 — flag-gated 50-dp uplift
 const LAMBDA = 1 / (PHI * PHI);
 
 // V10 7-Toeplitz spectrum — Wolfram-verified to f64
 const TOEPLITZ_EIGENVALUES = [
-  3.127077489165245,
-  1.618033988749895,
-  0.849803239218899,
-  0.515170462035516,
-  0.359840318299413,
-  0.283203414213327,
-  0.246871088317703,
+  3.127077489165245, 1.618033988749895, 0.849803239218899, 0.515170462035516, 0.359840318299413,
+  0.283203414213327, 0.246871088317703,
 ];
-const TOEPLITZ_INV_EIGENVALUES = TOEPLITZ_EIGENVALUES.map(e => 1 / e);
+const TOEPLITZ_INV_EIGENVALUES = TOEPLITZ_EIGENVALUES.map((e) => 1 / e);
 const TOEPLITZ_GAP = TOEPLITZ_EIGENVALUES[0] - TOEPLITZ_EIGENVALUES[1];
 const TOEPLITZ_COND = TOEPLITZ_EIGENVALUES[0] / TOEPLITZ_EIGENVALUES[6];
 
@@ -55,11 +50,11 @@ const SEPTENARY_CONSTANTS = {
   SOLFEGGIO_CHAKRA: [174, 285, 396, 417, 528, 639, 741] as const,
   PSI: SILVER,
   PSI_INV: SILVER_INV,
-  PSI_DAMPED_EIGENVALUES: TOEPLITZ_EIGENVALUES.map(e => e / SILVER),
+  PSI_DAMPED_EIGENVALUES: TOEPLITZ_EIGENVALUES.map((e) => e / SILVER),
   TOEPLITZ_GAP,
   TOEPLITZ_COND,
   LUCAS_7: 29,
-  HEPTAGON_ANGLES: Array.from({ length: 7 }, (_, k) => 2 * PI * k / 7),
+  HEPTAGON_ANGLES: Array.from({ length: 7 }, (_, k) => (2 * PI * k) / 7),
 } as const;
 
 // EMERGENT-mode blend (V10 default: emergentBlend = 1.0 ⇒ pure natural flow)
@@ -89,7 +84,6 @@ function extendedToeplitzSpectrum(numModes: number): number[] {
   return out;
 }
 
-
 // Local FIB alias (we re-export FIB_F64 as the canonical Fibonacci spine).
 const FIB = FIB_F64;
 
@@ -113,7 +107,7 @@ interface SeptenaryOutputV10 {
   chakras: ChakraState[];
   overallAlignment: number;
   dominantOctave: number;
-  resonanceMatrix: number[];  // 7×7 flattened
+  resonanceMatrix: number[]; // 7×7 flattened
   // ═══ WOLFRAM-ENHANCED COMPUTATIONS ═══
   fibonacciDecomposition: { n: number; phiN: number; fCoeff: number; fConst: number }[];
   lucasTotal: number;
@@ -126,37 +120,48 @@ interface SeptenaryOutputV10 {
   ringCoherences: number[];
   fieldOrganization: number;
   // ═══ ψ-DAMPENED & KURAMOTO ENHANCEMENTS (2026-04-03) ═══
-  kuramotoOrder: number;          // Real Kuramoto order parameter r ∈ [0,1]
-  kuramotoPhase: number;          // Mean phase angle ψ̄ of synchronized nodes
-  psiDampedResonance: number;     // ψ-stabilized Toeplitz resonance
-  solfeggioAlignment: number;     // Alignment between φ^c and solfeggio frequencies
-  vacuumBridgeStrength: number;   // Inter-layer coupling: Sub-Planckian ↔ Quantum bridge
-  sevenFoldClosure: number;       // Verification of 7-fold field closure (target: 0)
-  lucasNormalized: number;        // Lucas total / L(7)=29 reference
-  heptagonCoherence: number;      // Phase coherence on heptagonal vertices
-  psiStabilityIndex: number;      // Silver ratio structural rigidity index
-  verticalFlow: number;           // Pranic column flow metric
-  centralColumn: number;          // Heart-anchored polar coupling
+  kuramotoOrder: number; // Real Kuramoto order parameter r ∈ [0,1]
+  kuramotoPhase: number; // Mean phase angle ψ̄ of synchronized nodes
+  psiDampedResonance: number; // ψ-stabilized Toeplitz resonance
+  solfeggioAlignment: number; // Alignment between φ^c and solfeggio frequencies
+  vacuumBridgeStrength: number; // Inter-layer coupling: Sub-Planckian ↔ Quantum bridge
+  sevenFoldClosure: number; // Verification of 7-fold field closure (target: 0)
+  lucasNormalized: number; // Lucas total / L(7)=29 reference
+  heptagonCoherence: number; // Phase coherence on heptagonal vertices
+  psiStabilityIndex: number; // Silver ratio structural rigidity index
+  verticalFlow: number; // Pranic column flow metric
+  centralColumn: number; // Heart-anchored polar coupling
   // ═══ WOLFRAM-VERIFIED SPECTRAL ENHANCEMENTS (2026-04-19) ═══
-  inversePhiMirror: number;       // Resonance projection onto 1/λ₂ = φ⁻¹ mode (second golden mirror)
+  inversePhiMirror: number; // Resonance projection onto 1/λ₂ = φ⁻¹ mode (second golden mirror)
   spectralGapUtilization: number; // How much of the λ₁−λ₂ mass gap the field actively uses (0..1)
-  conditionStability: number;     // 1 - normalized variance of resonances vs Toeplitz weights (0..1)
+  conditionStability: number; // 1 - normalized variance of resonances vs Toeplitz weights (0..1)
   // ═══ PHASE 2 — ψ-DAMPED HEPTAGONAL CLOSURE STABILISATION (2026-04-23) ═══
   // The engine measures its OWN distance from Wolfram-verified perfection
   // (Σcos(2πk/7)=0) and ψ-damps the residual so the F2 health metric breathes
   // within ≤2% rather than oscillating with raw sine modulation.
-  psiDampedClosure: number;       // Stabilised closure measure ∈ [0,1]; 1 = perfect heptagonal balance
-  closureBreathingBand: number;   // Width of allowed natural breathing this tick (target ≤ 0.02)
-  realityLagF2: number;           // L(F2) = 1 - psiDampedClosure × cos(0) — engine-internal lag scalar
+  psiDampedClosure: number; // Stabilised closure measure ∈ [0,1]; 1 = perfect heptagonal balance
+  closureBreathingBand: number; // Width of allowed natural breathing this tick (target ≤ 0.02)
+  realityLagF2: number; // L(F2) = 1 - psiDampedClosure × cos(0) — engine-internal lag scalar
 }
 function computeF1Core(
-  coherence: number, phases: Float64Array, time: number,
-  flowerCoherences: number[], subPlanckianChainUp: number
+  coherence: number,
+  phases: Float64Array,
+  time: number,
+  flowerCoherences: number[],
+  subPlanckianChainUp: number,
 ): SeptenaryOutputV10 {
   const BASE = 432;
 
   const chakraNames = ['Root', 'Sacral', 'Solar', 'Heart', 'Throat', 'Third Eye', 'Crown'];
-  const chakraColors = ['#DC143C', '#FF8C00', '#FFD700', '#50C878', '#007FFF', '#4B0082', '#EE82EE'];
+  const chakraColors = [
+    '#DC143C',
+    '#FF8C00',
+    '#FFD700',
+    '#50C878',
+    '#007FFF',
+    '#4B0082',
+    '#EE82EE',
+  ];
 
   const chakras: ChakraState[] = [];
   for (let c = 0; c < 7; c++) {
@@ -168,13 +173,13 @@ function computeF1Core(
     chakras.push({
       name: chakraNames[c],
       color: chakraColors[c],
-      hz: phiHz,                    // Preserved: original φ-scaled frequency
-      solfeggioHz: solfHz,          // NEW: true solfeggio anchor
+      hz: phiHz, // Preserved: original φ-scaled frequency
+      solfeggioHz: solfHz, // NEW: true solfeggio anchor
       resonance: 0,
       alignment: 0,
-      fibCoeff: FIB[c],           // F(c): φ^c = F(c)φ + F(c-1) — EXACT (Wolfram-verified)
+      fibCoeff: FIB[c], // F(c): φ^c = F(c)φ + F(c-1) — EXACT (Wolfram-verified)
       fibConstant: c > 0 ? FIB[c - 1] : 1, // F(c-1), with F(-1)=1 by convention
-      lucasField: LUCAS[c],       // L(0)=2, L(1)=1, ..., L(6)=18
+      lucasField: LUCAS[c], // L(0)=2, L(1)=1, ..., L(6)=18
       toeplitzMode: TOEPLITZ_EIGENVALUES[c],
       psiDampedMode: SEPTENARY_CONSTANTS.PSI_DAMPED_EIGENVALUES[c],
       heptagonAngle: SEPTENARY_CONSTANTS.HEPTAGON_ANGLES[c],
@@ -188,7 +193,7 @@ function computeF1Core(
     fibonacciDecomposition.push({
       n,
       phiN: Math.pow(PHI, n),
-      fCoeff: FIB[n],             // F(n) — coefficient of φ
+      fCoeff: FIB[n], // F(n) — coefficient of φ
       fConst: n > 0 ? FIB[n - 1] : 1, // F(n-1), with F(-1)=1
     });
   }
@@ -201,32 +206,34 @@ function computeF1Core(
     for (let i = 0; i < nPhases; i++) {
       const phase = Math.atan2(phases[i * 2 + 1] || 0, phases[i * 2] || 0);
       const diff = Math.abs(phase - targetPhase);
-      sum += Math.cos(diff) * Math.pow(PHI, -(Math.abs(i - c * 3)));
+      sum += Math.cos(diff) * Math.pow(PHI, -Math.abs(i - c * 3));
     }
-    const baseResonance = Math.max(0, Math.min(1, (sum / nPhases + 1) / 2 * coherence));
+    const baseResonance = Math.max(0, Math.min(1, ((sum / nPhases + 1) / 2) * coherence));
 
     // Heart (c=3) anchor — always use natural weight (mode-independent computation)
     // Root (c=0) has FIB[0]=0 — use floor of 1 so foundation always has weight
     const rawFibWeight = Math.max(1, chakras[c].fibCoeff) / 8; // F(6)=8 is max, floor=1 for Root
     // Internal computation is ALWAYS mode-independent — no toggle corruption
-    const fibWeight = (c === 3 ? Math.max(LAMBDA, rawFibWeight) : Math.max(0.1, rawFibWeight));
+    const fibWeight = c === 3 ? Math.max(LAMBDA, rawFibWeight) : Math.max(0.1, rawFibWeight);
     const eigenWeight = chakras[c].toeplitzMode / TOEPLITZ_EIGENVALUES[0];
     // Normalize by Lucas(7)=29 — the 7-octave reference field strength
     const lucasWeight = chakras[c].lucasField / LUCAS[7];
     // NEW: ψ-dampened structural weight — Silver Ratio rigidity
     const psiWeight = chakras[c].psiDampedMode / SEPTENARY_CONSTANTS.PSI_DAMPED_EIGENVALUES[0];
 
-    chakras[c].resonance = Math.min(1,
+    chakras[c].resonance = Math.min(
+      1,
       0.35 * baseResonance +
-      0.22 * baseResonance * (0.3 + 0.7 * fibWeight) +
-      0.18 * baseResonance * (0.3 + 0.7 * eigenWeight) +
-      0.13 * baseResonance * (0.3 + 0.7 * lucasWeight) +
-      0.12 * baseResonance * (0.3 + 0.7 * psiWeight)   // NEW: ψ-dampened contribution
+        0.22 * baseResonance * (0.3 + 0.7 * fibWeight) +
+        0.18 * baseResonance * (0.3 + 0.7 * eigenWeight) +
+        0.13 * baseResonance * (0.3 + 0.7 * lucasWeight) +
+        0.12 * baseResonance * (0.3 + 0.7 * psiWeight), // NEW: ψ-dampened contribution
     );
 
     // Use solfeggio Hz (compact range) instead of φ-scaled Hz to prevent phase drift
     // Phase wrapped with modulo 2π for long-session stability
-    const alignPhase = ((time * chakras[c].solfeggioHz / 1000 + c * PHI) % (2 * PI) + 2 * PI) % (2 * PI);
+    const alignPhase =
+      ((((time * chakras[c].solfeggioHz) / 1000 + c * PHI) % (2 * PI)) + 2 * PI) % (2 * PI);
     // ─── Phase 2: ψ-dampened breathing band ────────────────────────────────
     // At resonance=0  → factor=1 → original ±0.5·sin envelope (no regression).
     // At resonance=1  → factor=ψ⁻¹·(1−0.85·tanh(2)) ≈ 0.414·0.0316 ≈ 0.013 → σ ≤ 2%.
@@ -234,9 +241,8 @@ function computeF1Core(
     // F2 overallAlignment no longer pumps ±21% noise into the master loop.
     const r = chakras[c].resonance;
     const dampFactor = 1 - r + r * SEPTENARY_CONSTANTS.PSI_INV * (1 - 0.85 * Math.tanh(2 * r));
-    chakras[c].alignment = Math.max(0, Math.min(1,
-      0.5 + 0.5 * Math.sin(alignPhase) * dampFactor
-    )) * coherence;
+    chakras[c].alignment =
+      Math.max(0, Math.min(1, 0.5 + 0.5 * Math.sin(alignPhase) * dampFactor)) * coherence;
   }
 
   // ═══ 7×7 RESONANCE MATRIX (enhanced with φ-Toeplitz + ψ-dampening) ═══
@@ -247,15 +253,19 @@ function computeF1Core(
       const consonance = Math.abs(Math.cos(PI * harmonicRatio * PHI));
       const toeplitzPair = Math.sqrt(
         (TOEPLITZ_EIGENVALUES[i] / TOEPLITZ_EIGENVALUES[0]) *
-        (TOEPLITZ_EIGENVALUES[j] / TOEPLITZ_EIGENVALUES[0])
+          (TOEPLITZ_EIGENVALUES[j] / TOEPLITZ_EIGENVALUES[0]),
       );
       // NEW: ψ-dampened structural coupling between nodes i,j
-      const psiDamp = Math.sqrt(
-        SEPTENARY_CONSTANTS.PSI_DAMPED_EIGENVALUES[i] *
-        SEPTENARY_CONSTANTS.PSI_DAMPED_EIGENVALUES[j]
-      ) / SEPTENARY_CONSTANTS.PSI_DAMPED_EIGENVALUES[0];
-      matrix[i * 7 + j] = consonance * chakras[i].resonance * chakras[j].resonance *
-        (0.50 + 0.30 * toeplitzPair + 0.20 * psiDamp);
+      const psiDamp =
+        Math.sqrt(
+          SEPTENARY_CONSTANTS.PSI_DAMPED_EIGENVALUES[i] *
+            SEPTENARY_CONSTANTS.PSI_DAMPED_EIGENVALUES[j],
+        ) / SEPTENARY_CONSTANTS.PSI_DAMPED_EIGENVALUES[0];
+      matrix[i * 7 + j] =
+        consonance *
+        chakras[i].resonance *
+        chakras[j].resonance *
+        (0.5 + 0.3 * toeplitzPair + 0.2 * psiDamp);
     }
   }
 
@@ -267,7 +277,8 @@ function computeF1Core(
     eigenSum += TOEPLITZ_EIGENVALUES[c];
   }
   const toeplitzResonance = toeplitzSum / eigenSum;
-  const toeplitzPhiMode = chakras[1].resonance * TOEPLITZ_EIGENVALUES[1] / TOEPLITZ_EIGENVALUES[0];
+  const toeplitzPhiMode =
+    (chakras[1].resonance * TOEPLITZ_EIGENVALUES[1]) / TOEPLITZ_EIGENVALUES[0];
 
   // ═══ ψ-DAMPENED TOEPLITZ RESONANCE (Silver Ratio structural rigidity) ═══
   let psiDampedSum = 0;
@@ -281,9 +292,8 @@ function computeF1Core(
   // ═══ ψ-STABILITY INDEX ═══
   // Ratio of ψ-dampened to raw Toeplitz — measures structural rigidity contribution
   // When = 1.0, the Silver Ratio is perfectly channeling the Toeplitz modes
-  const psiStabilityIndex = psiEigenSum > 0
-    ? Math.min(1, psiDampedResonance / Math.max(0.001, toeplitzResonance))
-    : 0;
+  const psiStabilityIndex =
+    psiEigenSum > 0 ? Math.min(1, psiDampedResonance / Math.max(0.001, toeplitzResonance)) : 0;
 
   let lucasTotal = 0;
   for (let c = 0; c < 7; c++) lucasTotal += LUCAS[c] * chakras[c].resonance;
@@ -332,13 +342,14 @@ function computeF1Core(
   //   which is the regime where K > K_c produces synchronisation.
   // ─────────────────────────────────────────────────────────────────────────
   const TWO_PI = 2 * PI;
-  const tSec = time * 0.05;            // engine tick → seconds (20 Hz loop)
+  const tSec = time * 0.05; // engine tick → seconds (20 Hz loop)
   const naturalPhases: number[] = new Array(7);
   // Pass 1: compute each oscillator's natural phase and the mean-field vector
-  let mfReal = 0, mfImag = 0;
+  let mfReal = 0,
+    mfImag = 0;
   for (let c = 0; c < 7; c++) {
-    const omega_c = (SOLF[c] - meanOmega) / meanOmega;        // dimensionless detuning
-    const nat = ((omega_c * tSec * 0.05) % TWO_PI + TWO_PI) % TWO_PI;
+    const omega_c = (SOLF[c] - meanOmega) / meanOmega; // dimensionless detuning
+    const nat = (((omega_c * tSec * 0.05) % TWO_PI) + TWO_PI) % TWO_PI;
     naturalPhases[c] = nat;
     const w = chakras[c].resonance;
     mfReal += w * Math.cos(nat);
@@ -351,9 +362,14 @@ function computeF1Core(
   for (let c = 0; c < 7; c++) {
     const basePull = chakras[c].resonance * coherence;
     // Sigmoidal boost: at high coherence, pull approaches 1 regardless of resonance
-    const couplingPull = Math.min(0.99, Math.max(0, basePull + (1 - basePull) * coherence * coherence));
-    const cx = (1 - couplingPull) * Math.cos(naturalPhases[c]) + couplingPull * Math.cos(psiMeanField);
-    const cy = (1 - couplingPull) * Math.sin(naturalPhases[c]) + couplingPull * Math.sin(psiMeanField);
+    const couplingPull = Math.min(
+      0.99,
+      Math.max(0, basePull + (1 - basePull) * coherence * coherence),
+    );
+    const cx =
+      (1 - couplingPull) * Math.cos(naturalPhases[c]) + couplingPull * Math.cos(psiMeanField);
+    const cy =
+      (1 - couplingPull) * Math.sin(naturalPhases[c]) + couplingPull * Math.sin(psiMeanField);
     const mag = Math.sqrt(cx * cx + cy * cy);
     if (mag > 1e-12) {
       kuramotoRealSum += cx / mag;
@@ -363,9 +379,7 @@ function computeF1Core(
       kuramotoImagSum += Math.sin(psiMeanField);
     }
   }
-  const kuramotoOrder = Math.sqrt(
-    (kuramotoRealSum / 7) ** 2 + (kuramotoImagSum / 7) ** 2
-  );
+  const kuramotoOrder = Math.sqrt((kuramotoRealSum / 7) ** 2 + (kuramotoImagSum / 7) ** 2);
   const kuramotoPhase = Math.atan2(kuramotoImagSum, kuramotoRealSum);
 
   // ═══ SOLFEGGIO-φ ALIGNMENT ═══
@@ -398,17 +412,20 @@ function computeF1Core(
   let heptPairs = 0;
   for (let i = 0; i < 7; i++) {
     for (let j = i + 1; j < 7; j++) {
-      const expectedAngle = SEPTENARY_CONSTANTS.HEPTAGON_ANGLES[j] - SEPTENARY_CONSTANTS.HEPTAGON_ANGLES[i];
+      const expectedAngle =
+        SEPTENARY_CONSTANTS.HEPTAGON_ANGLES[j] - SEPTENARY_CONSTANTS.HEPTAGON_ANGLES[i];
       // Use solfeggio frequencies (compact 4.26x spread) + modulo 2π for stability
-      const phaseJ = ((time * chakras[j].solfeggioHz / 1000) % (2 * PI) + 2 * PI) % (2 * PI);
-      const phaseI = ((time * chakras[i].solfeggioHz / 1000) % (2 * PI) + 2 * PI) % (2 * PI);
-      const actualPhase = Math.atan2(
-        chakras[j].resonance * Math.sin(phaseJ),
-        chakras[j].resonance * Math.cos(phaseJ)
-      ) - Math.atan2(
-        chakras[i].resonance * Math.sin(phaseI),
-        chakras[i].resonance * Math.cos(phaseI)
-      );
+      const phaseJ = ((((time * chakras[j].solfeggioHz) / 1000) % (2 * PI)) + 2 * PI) % (2 * PI);
+      const phaseI = ((((time * chakras[i].solfeggioHz) / 1000) % (2 * PI)) + 2 * PI) % (2 * PI);
+      const actualPhase =
+        Math.atan2(
+          chakras[j].resonance * Math.sin(phaseJ),
+          chakras[j].resonance * Math.cos(phaseJ),
+        ) -
+        Math.atan2(
+          chakras[i].resonance * Math.sin(phaseI),
+          chakras[i].resonance * Math.cos(phaseI),
+        );
       heptPhaseSum += Math.abs(Math.cos(actualPhase - expectedAngle));
       heptPairs++;
     }
@@ -426,18 +443,19 @@ function computeF1Core(
     const size = RING_SIZES_S[r];
     // Ring mapping: center=Heart, expanding outward Root↔Crown polarity
     // Ring 0: Heart(center), Ring 1: Solar/Throat, Ring 2: Sacral/ThirdEye, Ring 3: Root/Crown, Ring 4: Crown/Root
-    const primaryChakra =   r === 0 ? 3 : r === 1 ? 2 : r === 2 ? 1 : r === 3 ? 0 : 6;
+    const primaryChakra = r === 0 ? 3 : r === 1 ? 2 : r === 2 ? 1 : r === 3 ? 0 : 6;
     const secondaryChakra = r === 0 ? 3 : r === 1 ? 4 : r === 2 ? 5 : r === 3 ? 6 : 0;
 
     let ringSum = 0;
     for (let i = 0; i < size; i++) {
       const nodeIdx = start + i;
-      const nodeCoh = nodeIdx < flowerCoherences.length ? flowerCoherences[nodeIdx] : coherence * 0.5;
+      const nodeCoh =
+        nodeIdx < flowerCoherences.length ? flowerCoherences[nodeIdx] : coherence * 0.5;
       const primaryInfluence = chakras[primaryChakra].resonance;
       const secondaryInfluence = chakras[secondaryChakra].resonance;
       const chakraBlend = 0.6 * primaryInfluence + 0.4 * secondaryInfluence;
       // NEW: apply ψ-dampened structural rigidity to outer rings
-      const psiRigidity = r >= 3 ? (0.9 + 0.1 * psiStabilityIndex) : 1.0;
+      const psiRigidity = r >= 3 ? 0.9 + 0.1 * psiStabilityIndex : 1.0;
       septenaryField55[nodeIdx] = Math.min(1, nodeCoh * (0.5 + 0.5 * chakraBlend) * psiRigidity);
       ringSum += septenaryField55[nodeIdx];
     }
@@ -465,13 +483,14 @@ function computeF1Core(
     fibComplexity += chakras[c].resonance * chakras[c].fibCoeff;
   }
   fibComplexity /= 20; // sum F(0)..F(6) = 0+1+1+2+3+5+8 = 20 (Wolfram-verified)
-  const dimensionalComplexity = Math.min(1,
+  const dimensionalComplexity = Math.min(
+    1,
     0.35 * fibComplexity +
-    0.20 * toeplitzResonance +
-    0.15 * subPlanckianChainUp +
-    0.10 * fieldOrganization +
-    0.10 * kuramotoOrder +             // NEW: phase synchronization contribution
-    0.10 * psiStabilityIndex           // NEW: structural rigidity contribution
+      0.2 * toeplitzResonance +
+      0.15 * subPlanckianChainUp +
+      0.1 * fieldOrganization +
+      0.1 * kuramotoOrder + // NEW: phase synchronization contribution
+      0.1 * psiStabilityIndex, // NEW: structural rigidity contribution
   );
 
   // ═══ HEART-ANCHORED CENTRAL COLUMN (computed first for chain coupling) ═══
@@ -487,12 +506,14 @@ function computeF1Core(
   // Heart-Throat bridge: geometric mean of the two critical bridge nodes
   const heartThroatBridge = Math.sqrt(Math.max(0.01, heartRes) * Math.max(0.01, throatRes));
   // Central column: polar coupling amplified by Heart-Throat bridge strength
-  const centralColumn = polarCoupling * (0.35 + 0.40 * heartThroatBridge + 0.25 * heartRes);
+  const centralColumn = polarCoupling * (0.35 + 0.4 * heartThroatBridge + 0.25 * heartRes);
   let verticalFlow = 0;
   for (let i = 0; i < 6; i++) {
-    const adjacentCoupling = Math.sqrt(Math.max(0.01, chakras[i].resonance) * Math.max(0.01, chakras[i + 1].resonance));
+    const adjacentCoupling = Math.sqrt(
+      Math.max(0.01, chakras[i].resonance) * Math.max(0.01, chakras[i + 1].resonance),
+    );
     // Extra weight for Heart-Throat channel (i=3→4): the critical bridge
-    const bridgeBoost = (i === 3) ? 1.0 + 0.5 * HEART_THROAT_RATIO / PHI : 1.0;
+    const bridgeBoost = i === 3 ? 1.0 + (0.5 * HEART_THROAT_RATIO) / PHI : 1.0;
     verticalFlow += adjacentCoupling * PHI_INV * bridgeBoost;
   }
   verticalFlow /= 6;
@@ -500,31 +521,34 @@ function computeF1Core(
   // ═══ VACUUM↔QUANTUM BRIDGE STRENGTH ═══
   // The Septenary sits between Sub-Planckian (F1) and Quantum (F3)
   // Bridge strength = how effectively it couples the vacuum to particle physics
-  const vacuumBridgeStrength = Math.min(1,
-    0.30 * subPlanckianChainUp +       // How much vacuum energy flows in
-    0.25 * centralColumn +              // Heart-anchored vertical coupling
-    0.20 * toeplitzResonance +          // Structural mode alignment
-    0.15 * psiDampedResonance +         // ψ-stabilized structural rigidity
-    0.10 * (1 - sevenFoldClosure)       // Field balance (lower closure deviation = stronger bridge)
+  const vacuumBridgeStrength = Math.min(
+    1,
+    0.3 * subPlanckianChainUp + // How much vacuum energy flows in
+      0.25 * centralColumn + // Heart-anchored vertical coupling
+      0.2 * toeplitzResonance + // Structural mode alignment
+      0.15 * psiDampedResonance + // ψ-stabilized structural rigidity
+      0.1 * (1 - sevenFoldClosure), // Field balance (lower closure deviation = stronger bridge)
   );
 
   // ═══ CHAIN COUPLING ═══
-  const chainDownCoupling = Math.min(1,
-    subPlanckianChainUp * coherence * (0.5 + 0.5 * chakras[0].resonance)
+  const chainDownCoupling = Math.min(
+    1,
+    subPlanckianChainUp * coherence * (0.5 + 0.5 * chakras[0].resonance),
   );
   // Enhanced: includes ψ-stability and Kuramoto synchronization
-  const chainUpCoupling = Math.min(1,
+  const chainUpCoupling = Math.min(
+    1,
     0.25 * crownRes +
-    0.20 * fieldOrganization +
-    0.20 * coherence +
-    0.15 * verticalFlow +
-    0.10 * kuramotoOrder +              // NEW: phase synchronization
-    0.10 * psiStabilityIndex            // NEW: structural rigidity
+      0.2 * fieldOrganization +
+      0.2 * coherence +
+      0.15 * verticalFlow +
+      0.1 * kuramotoOrder + // NEW: phase synchronization
+      0.1 * psiStabilityIndex, // NEW: structural rigidity
   );
 
   const avgResonance = chakras.reduce((s, c) => s + c.resonance, 0) / 7;
   const avgAlignment = chakras.reduce((s, c) => s + c.alignment, 0) / 7;
-  const baseAlignment = 0.40 * avgResonance + 0.30 * avgAlignment + 0.30 * coherence;
+  const baseAlignment = 0.4 * avgResonance + 0.3 * avgAlignment + 0.3 * coherence;
   const heartStrength = Math.sqrt(Math.max(0.01, centralColumn) * Math.max(0.01, verticalFlow));
   const chainBoost = 0.03 * chainDownCoupling + 0.02 * toeplitzResonance;
   const fieldDynamicSept = Math.min(1, baseAlignment * (1 + 0.12 * heartStrength) + chainBoost);
@@ -532,7 +556,10 @@ function computeF1Core(
   // The septenary mathematical structure is ALWAYS valid regardless of field state
   // LOCKED = 1.0 (mathematical perfection, Wolfram-verified) | EMERGENT = natural flow
   const overallAlignment = blendCoherence(fieldDynamicSept);
-  const dominantOctave = chakras.reduce((best, c, i) => c.resonance > chakras[best].resonance ? i : best, 0);
+  const dominantOctave = chakras.reduce(
+    (best, c, i) => (c.resonance > chakras[best].resonance ? i : best),
+    0,
+  );
 
   // ═══ INVERSE φ-MIRROR (1/λ₂ = φ⁻¹ exactly, Wolfram-proven 2026-04-19) ═══
   // Projects the chakra field onto the inverse-spectrum mode at φ⁻¹.
@@ -554,9 +581,10 @@ function computeF1Core(
   // 0.0 = field is locked into the pure φ (λ₂) mode.
   const dominantWeight = chakras[0].resonance * TOEPLITZ_EIGENVALUES[0];
   const phiModeWeight = chakras[1].resonance * TOEPLITZ_EIGENVALUES[1];
-  const spectralGapUtilization = Math.max(0, Math.min(1,
-    (dominantWeight - phiModeWeight) / SEPTENARY_CONSTANTS.TOEPLITZ_GAP
-  ));
+  const spectralGapUtilization = Math.max(
+    0,
+    Math.min(1, (dominantWeight - phiModeWeight) / SEPTENARY_CONSTANTS.TOEPLITZ_GAP),
+  );
 
   // ═══ CONDITION STABILITY ═══
   // 1 − normalized variance of (resonance × Toeplitz weight) across the 7 modes.
@@ -573,9 +601,10 @@ function computeF1Core(
   }
   condVar /= 7;
   const condScale = condMean > 1e-6 ? Math.sqrt(condVar) / condMean : 0;
-  const conditionStability = Math.max(0, Math.min(1,
-    1 - condScale * (1 / SEPTENARY_CONSTANTS.TOEPLITZ_COND) * 7
-  ));
+  const conditionStability = Math.max(
+    0,
+    Math.min(1, 1 - condScale * (1 / SEPTENARY_CONSTANTS.TOEPLITZ_COND) * 7),
+  );
 
   // ═══════════════════════════════════════════════════════════════════════
   // PHASE 2 — ψ-DAMPED HEPTAGONAL CLOSURE STABILISATION
@@ -605,9 +634,8 @@ function computeF1Core(
     closureResWeighted += w * Math.cos(SEPTENARY_CONSTANTS.HEPTAGON_ANGLES[c]);
     closureWeightSum += w;
   }
-  const closureResidual = closureWeightSum > 1e-9
-    ? Math.abs(closureResWeighted) / closureWeightSum
-    : 1.0; // No energy in field → maximum residual (engine cannot stabilise yet)
+  const closureResidual =
+    closureWeightSum > 1e-9 ? Math.abs(closureResWeighted) / closureWeightSum : 1.0; // No energy in field → maximum residual (engine cannot stabilise yet)
 
   // ψ-damped residual: stronger resonance pulls residual toward Wolfram zero
   const meanResonance = closureWeightSum / 7;
@@ -623,29 +651,48 @@ function computeF1Core(
   // Locked at ≤ 2% when closure is strong (psiDampedClosure ≥ 0.98), expanding
   // gracefully when the field genuinely needs to explore off-equilibrium states
   const rawBand = 1 - psiDampedClosure;
-  const closureBreathingBand = psiDampedClosure >= 0.98
-    ? Math.min(0.02, rawBand)
-    : Math.min(0.15, rawBand); // Hard ceiling at 15% — never wild oscillation
+  const closureBreathingBand =
+    psiDampedClosure >= 0.98 ? Math.min(0.02, rawBand) : Math.min(0.15, rawBand); // Hard ceiling at 15% — never wild oscillation
 
   // Reality Lag (F2): engine-internal scalar measuring distance from perfection
   // L(F2) = 1 − psiDampedClosure   (φ-octave-distance = 0 for the resident scale)
   const realityLagF2 = 1 - psiDampedClosure;
 
   return {
-    chakras, overallAlignment, dominantOctave, resonanceMatrix: matrix,
-    fibonacciDecomposition, lucasTotal, toeplitzResonance, toeplitzPhiMode,
-    dimensionalComplexity, chainDownCoupling, chainUpCoupling,
-    septenaryField55, ringCoherences, fieldOrganization,
+    chakras,
+    overallAlignment,
+    dominantOctave,
+    resonanceMatrix: matrix,
+    fibonacciDecomposition,
+    lucasTotal,
+    toeplitzResonance,
+    toeplitzPhiMode,
+    dimensionalComplexity,
+    chainDownCoupling,
+    chainUpCoupling,
+    septenaryField55,
+    ringCoherences,
+    fieldOrganization,
     // ═══ NEW METRICS ═══
-    kuramotoOrder, kuramotoPhase,
-    psiDampedResonance, solfeggioAlignment,
-    vacuumBridgeStrength, sevenFoldClosure,
-    lucasNormalized, heptagonCoherence,
-    psiStabilityIndex, verticalFlow, centralColumn,
+    kuramotoOrder,
+    kuramotoPhase,
+    psiDampedResonance,
+    solfeggioAlignment,
+    vacuumBridgeStrength,
+    sevenFoldClosure,
+    lucasNormalized,
+    heptagonCoherence,
+    psiStabilityIndex,
+    verticalFlow,
+    centralColumn,
     // ═══ WOLFRAM SPECTRAL ENHANCEMENTS (2026-04-19) ═══
-    inversePhiMirror, spectralGapUtilization, conditionStability,
+    inversePhiMirror,
+    spectralGapUtilization,
+    conditionStability,
     // ═══ PHASE 2 ψ-DAMPED CLOSURE STABILISATION (2026-04-23) ═══
-    psiDampedClosure, closureBreathingBand, realityLagF2,
+    psiDampedClosure,
+    closureBreathingBand,
+    realityLagF2,
   };
 }
 
@@ -671,8 +718,8 @@ export interface F1Output extends SeptenaryOutputV10 {
 
 export interface F1Input {
   coherence: number;
-  phases: Float64Array;          // ≥44 floats (22 complex)
-  time: number;                   // ms
+  phases: Float64Array; // ≥44 floats (22 complex)
+  time: number; // ms
   flowerCoherences: readonly number[]; // ≥55
   subPlanckianChainUp: number;
   /** V11 extension knob — defaults to 7 (V10 parity path). */
@@ -710,7 +757,8 @@ export function computeF1(input: F1Input): F1Output {
       const heptAngle = (2 * PI * m) / numModes;
       // Phase-projected resonance from the input field (averaged over the
       // canonical 7-block to avoid double-counting energy).
-      const meanCanonRes = core.chakras.reduce((s: number, c: ChakraState) => s + c.resonance, 0) / 7;
+      const meanCanonRes =
+        core.chakras.reduce((s: number, c: ChakraState) => s + c.resonance, 0) / 7;
       const decay = Math.pow(PHI_INV, m - 6);
       const resonance = Math.min(1, meanCanonRes * decay * (tEig / TOEPLITZ_EIGENVALUES[0]));
       const alignment = Math.min(1, resonance * input.coherence);
@@ -742,7 +790,9 @@ export function computeF1(input: F1Input): F1Output {
   const composedFieldStrength = (canonStrength + extStrength) / numModes;
 
   // Lyapunov closure residual over ALL modes (canonical + extension)
-  let cre = 0, cim = 0, totalAmp = 0;
+  let cre = 0,
+    cim = 0,
+    totalAmp = 0;
   for (let k = 0; k < 7; k++) {
     const a = core.chakras[k].resonance;
     const theta = (2 * PI * k) / numModes;
@@ -755,9 +805,7 @@ export function computeF1(input: F1Input): F1Output {
     cim += ext.resonance * Math.sin(ext.heptagonAngle);
     totalAmp += ext.resonance;
   }
-  const closureResidual = totalAmp > 1e-12
-    ? Math.sqrt(cre * cre + cim * cim) / totalAmp
-    : 0;
+  const closureResidual = totalAmp > 1e-12 ? Math.sqrt(cre * cre + cim * cim) / totalAmp : 0;
 
   return {
     ...core,
@@ -768,4 +816,3 @@ export function computeF1(input: F1Input): F1Output {
     refusedReasons: refused,
   };
 }
-

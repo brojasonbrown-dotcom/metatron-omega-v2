@@ -22,8 +22,8 @@ import {
   type HardwareProbe,
   type GovernorVerdict,
   type ProfileId,
-} from "@metatron/trnn-core";
-import type { OmegaCommand, OmegaEvent } from "./omegaProtocol";
+} from '@metatron/trnn-core';
+import type { OmegaCommand, OmegaEvent } from './omegaProtocol';
 
 let host: EngineHost | null = null;
 let probe: HardwareProbe | null = null;
@@ -47,13 +47,13 @@ function build(profileId: ProfileId, seed: string) {
 
   const p = profileById(profileId);
   post({
-    type: "built",
+    type: 'built',
     profile: profileId,
     seed,
     footprint: verifyFootprint(p, host.snapshot().predictedBytes),
     snapshot: host.snapshot(),
   });
-  post({ type: "described", description: host.describe() });
+  post({ type: 'described', description: host.describe() });
 }
 
 function loop() {
@@ -66,7 +66,7 @@ function loop() {
   const period = 1000 / Math.max(1, snap.busHz);
   if (now - lastEmit >= period) {
     lastEmit = now;
-    post({ type: "snapshot", snapshot: snap });
+    post({ type: 'snapshot', snapshot: snap });
   }
 }
 
@@ -78,11 +78,11 @@ self.onmessage = async (ev: MessageEvent<OmegaCommand>) => {
   const cmd = ev.data;
   try {
     switch (cmd.type) {
-      case "probe": {
+      case 'probe': {
         probe = await probeHardware();
         verdict = selectProfile(probe, { targetHz: cmd.targetHz ?? 64 });
         post({
-          type: "probed",
+          type: 'probed',
           probe,
           verdict: {
             selected: verdict.selected.id,
@@ -110,104 +110,104 @@ self.onmessage = async (ev: MessageEvent<OmegaCommand>) => {
         });
         break;
       }
-      case "build":
-        build(cmd.profile, cmd.seed ?? "metatron-omega");
+      case 'build':
+        build(cmd.profile, cmd.seed ?? 'metatron-omega');
         break;
-      case "start":
-        if (!host) build(verdict?.selected.id ?? "PICO", "metatron-omega");
+      case 'start':
+        if (!host) build(verdict?.selected.id ?? 'PICO', 'metatron-omega');
         host!.start();
         lastFrame = 0;
         ensureTimer();
-        post({ type: "running", running: true });
+        post({ type: 'running', running: true });
         break;
-      case "stop":
+      case 'stop':
         host?.stop();
-        post({ type: "running", running: false });
+        post({ type: 'running', running: false });
         break;
-      case "setHz":
+      case 'setHz':
         host?.setTargetHz(cmd.hz);
         break;
-      case "describe":
-        if (host) post({ type: "described", description: host.describe() });
+      case 'describe':
+        if (host) post({ type: 'described', description: host.describe() });
         break;
-      case "field":
-        if (host) post({ type: "field", frame: host.field(cmd.rank, cmd.maxSamples ?? 610) });
+      case 'field':
+        if (host) post({ type: 'field', frame: host.field(cmd.rank, cmd.maxSamples ?? 610) });
         break;
-      case "web":
-        if (host) post({ type: "web", view: host.web(cmd.tail ?? 24) });
+      case 'web':
+        if (host) post({ type: 'web', view: host.web(cmd.tail ?? 24) });
         break;
-      case "spectral":
-        if (host) post({ type: "spectral", view: host.spectral(cmd.rank) });
+      case 'spectral':
+        if (host) post({ type: 'spectral', view: host.spectral(cmd.rank) });
         break;
-      case "scan":
-        if (host) post({ type: "scan", rank: cmd.rank, report: host.scan(cmd.rank) });
+      case 'scan':
+        if (host) post({ type: 'scan', rank: cmd.rank, report: host.scan(cmd.rank) });
         break;
-      case "sense":
-        if (host) post({ type: "sense", view: host.sense() });
+      case 'sense':
+        if (host) post({ type: 'sense', view: host.sense() });
         break;
-      case "memory":
-        if (host) post({ type: "memory", view: host.memory() });
+      case 'memory':
+        if (host) post({ type: 'memory', view: host.memory() });
         break;
-      case "mind":
-        if (host) post({ type: "mind", report: host.cognition() });
+      case 'mind':
+        if (host) post({ type: 'mind', report: host.cognition() });
         break;
-      case "reflect":
-        if (host) post({ type: "reflect", trace: host.reflect(cmd.k ?? 5) });
+      case 'reflect':
+        if (host) post({ type: 'reflect', trace: host.reflect(cmd.k ?? 5) });
         break;
-      case "learn": {
+      case 'learn': {
         if (!host) break;
         // Explicit operator action. It is synchronous and takes seconds, so the
         // tick loop is paused for the duration and resumed exactly where it was
         // (the engine state is never touched by the battery).
         const wasRunning = host.snapshot().running;
-        post({ type: "learning", busy: true });
+        post({ type: 'learning', busy: true });
         if (wasRunning) host.stop();
         try {
           const run = host.learn({ iterations: cmd.iterations, nodes: cmd.nodes });
-          post({ type: "learn", run });
+          post({ type: 'learn', run });
         } finally {
           if (wasRunning) {
             host.start();
             lastFrame = 0;
           }
-          post({ type: "learning", busy: false });
+          post({ type: 'learning', busy: false });
         }
         break;
       }
-      case "tiers": {
+      case 'tiers': {
         const map = await probeTiers({
           sidecarUrl: cmd.sidecarUrl,
           hostedUrl: cmd.hostedUrl,
         });
-        post({ type: "tiers", map });
+        post({ type: 'tiers', map });
         break;
       }
-      case "senseDeclare":
+      case 'senseDeclare':
         host?.declareChannel(cmd.id, cmd.modality, cmd.nodes, cmd.gain ?? 1);
-        if (host) post({ type: "sense", view: host.sense() });
+        if (host) post({ type: 'sense', view: host.sense() });
         break;
-      case "sensePush":
+      case 'sensePush':
         if (host) {
           host.pushChannel(cmd.id, cmd.text ?? cmd.data ?? [], {
             width: cmd.width,
             height: cmd.height,
           });
-          post({ type: "sense", view: host.sense() });
+          post({ type: 'sense', view: host.sense() });
         }
         break;
-      case "senseMute":
+      case 'senseMute':
         host?.muteChannel(cmd.id);
-        if (host) post({ type: "sense", view: host.sense() });
+        if (host) post({ type: 'sense', view: host.sense() });
         break;
-      case "senseGain":
+      case 'senseGain':
         host?.setSenseGain(cmd.gain);
-        if (host) post({ type: "sense", view: host.sense() });
+        if (host) post({ type: 'sense', view: host.sense() });
         break;
-      case "checkpoint": {
-        if (host) post({ type: "checkpointed", tick: host.checkpoint().tick });
+      case 'checkpoint': {
+        if (host) post({ type: 'checkpointed', tick: host.checkpoint().tick });
         break;
       }
-      case "dispose":
+      case 'dispose':
         host?.stop();
         if (timer !== null) clearInterval(timer);
         timer = null;
@@ -215,6 +215,6 @@ self.onmessage = async (ev: MessageEvent<OmegaCommand>) => {
         break;
     }
   } catch (err) {
-    post({ type: "error", message: err instanceof Error ? err.message : String(err) });
+    post({ type: 'error', message: err instanceof Error ? err.message : String(err) });
   }
 };

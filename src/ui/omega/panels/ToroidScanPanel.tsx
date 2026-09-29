@@ -6,19 +6,19 @@
  * ABSENT and says why, rather than showing a zeroed gauge that would read
  * as a measurement of a quiet toroid.
  */
-import { useCallback, useMemo, useState } from "react";
-import { getOmegaRuntime } from "../omegaRuntime";
-import { useOmegaState } from "../useOmegaRuntime";
-import { useOmegaPull, useOmegaDescribe } from "../useOmegaPull";
-import type { RungScanReport } from "@metatron/trnn-core";
+import { useCallback, useMemo, useState } from 'react';
+import { getOmegaRuntime } from '../omegaRuntime';
+import { useOmegaState } from '../useOmegaRuntime';
+import { useOmegaPull, useOmegaDescribe } from '../useOmegaPull';
+import type { RungScanReport } from '@metatron/trnn-core';
 
-type Status = RungScanReport["census"]["status"];
+type Status = RungScanReport['census']['status'];
 
 const STATUS_CLASS: Record<Status, string> = {
-  OK: "text-emerald-400 border-emerald-400/40 bg-emerald-400/10",
-  DEFECT: "text-rose-400 border-rose-400/40 bg-rose-400/10",
-  ABSENT: "text-muted-foreground border-border/50 bg-muted/10",
-  WARMING: "text-amber-400 border-amber-400/40 bg-amber-400/10",
+  OK: 'text-emerald-400 border-emerald-400/40 bg-emerald-400/10',
+  DEFECT: 'text-rose-400 border-rose-400/40 bg-rose-400/10',
+  ABSENT: 'text-muted-foreground border-border/50 bg-muted/10',
+  WARMING: 'text-amber-400 border-amber-400/40 bg-amber-400/10',
 };
 
 function Badge({ status }: { status: Status }) {
@@ -46,7 +46,9 @@ function Section({
     <div className="rounded-md border border-border/40 bg-card/30 p-2">
       <div className="mb-1.5 flex items-center gap-2">
         <span className="text-[9px] font-mono text-muted-foreground">{code}</span>
-        <h3 className="flex-1 text-[9px] font-display tracking-[0.28em] text-primary/80">{title}</h3>
+        <h3 className="flex-1 text-[9px] font-display tracking-[0.28em] text-primary/80">
+          {title}
+        </h3>
         <Badge status={status} />
       </div>
       {children}
@@ -84,7 +86,7 @@ function Bars({ values, labels }: { values: readonly number[]; labels?: readonly
 }
 
 const ABSENT_NOTE =
-  "This section reports nothing because the rung carries no array for it — not because the measurement came back zero.";
+  'This section reports nothing because the rung carries no array for it — not because the measurement came back zero.';
 
 export default function ToroidScanPanel() {
   const s = useOmegaState();
@@ -110,7 +112,9 @@ export default function ToroidScanPanel() {
   return (
     <div className="h-full space-y-2 overflow-auto p-2">
       <div className="flex flex-wrap items-center gap-2 rounded-md border border-border/40 bg-background/40 px-2.5 py-2">
-        <span className="text-[9px] font-display tracking-[0.2em] text-muted-foreground">TOROID</span>
+        <span className="text-[9px] font-display tracking-[0.2em] text-muted-foreground">
+          TOROID
+        </span>
         <select
           value={rank}
           onChange={(e) => setRank(Number(e.target.value))}
@@ -129,11 +133,11 @@ export default function ToroidScanPanel() {
             <span
               className={`ml-auto rounded border px-2 py-0.5 text-[9px] font-display tracking-[0.2em] ${
                 r.verdict.pass
-                  ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-400"
-                  : "border-rose-400/40 bg-rose-400/10 text-rose-400"
+                  ? 'border-emerald-400/40 bg-emerald-400/10 text-emerald-400'
+                  : 'border-rose-400/40 bg-rose-400/10 text-rose-400'
               }`}
             >
-              {r.verdict.pass ? "SCAN CLEAN" : `${r.verdict.defects.length} DEFECT`}
+              {r.verdict.pass ? 'SCAN CLEAN' : `${r.verdict.defects.length} DEFECT`}
             </span>
           </>
         )}
@@ -149,13 +153,13 @@ export default function ToroidScanPanel() {
             <Section code="S1" title="GRID CENSUS" status={r.census.status}>
               <Rows
                 rows={[
-                  ["convergences", String(r.census.nodes)],
-                  ["lattice", r.census.latticeKind],
-                  ["lines per node", String(r.census.incidentLines)],
-                  ["golden stride", String(r.census.goldenStride)],
-                  ["min separation", `${r.census.minSeparation.toExponential(3)} rad`],
-                  ["separation × nodes", r.census.separationRatio.toFixed(6)],
-                  ["modal basis", String(r.census.modes)],
+                  ['convergences', String(r.census.nodes)],
+                  ['lattice', r.census.latticeKind],
+                  ['lines per node', String(r.census.incidentLines)],
+                  ['golden stride', String(r.census.goldenStride)],
+                  ['min separation', `${r.census.minSeparation.toExponential(3)} rad`],
+                  ['separation × nodes', r.census.separationRatio.toFixed(6)],
+                  ['modal basis', String(r.census.modes)],
                 ]}
               />
             </Section>
@@ -165,13 +169,13 @@ export default function ToroidScanPanel() {
                 <>
                   <Rows
                     rows={[
-                      ["mean local coherence", r.organs.report.meanLocalCoherence.toFixed(6)],
-                      ["mean participation", r.organs.report.meanParticipation.toFixed(6)],
-                      ["mean modal residual", r.organs.report.meanEigenResidual.toExponential(3)],
-                      ["max modal residual", r.organs.report.maxEigenResidual.toExponential(3)],
-                      ["live receptors", String(r.organs.report.receptors)],
-                      ["bank age", `${r.organs.report.age} ticks`],
-                      ["clean nodes", `${(r.organs.cleanFraction * 100).toFixed(1)}%`],
+                      ['mean local coherence', r.organs.report.meanLocalCoherence.toFixed(6)],
+                      ['mean participation', r.organs.report.meanParticipation.toFixed(6)],
+                      ['mean modal residual', r.organs.report.meanEigenResidual.toExponential(3)],
+                      ['max modal residual', r.organs.report.maxEigenResidual.toExponential(3)],
+                      ['live receptors', String(r.organs.report.receptors)],
+                      ['bank age', `${r.organs.report.age} ticks`],
+                      ['clean nodes', `${(r.organs.cleanFraction * 100).toFixed(1)}%`],
                     ]}
                   />
                   <p className="mt-1.5 text-[9px] font-mono text-muted-foreground">
@@ -185,20 +189,20 @@ export default function ToroidScanPanel() {
             </Section>
 
             <Section code="S3" title="VIBRATION SPECTRUM" status={r.spectral.status}>
-              {r.spectral.status === "ABSENT" ? (
+              {r.spectral.status === 'ABSENT' ? (
                 <p className="text-[9px] font-mono text-muted-foreground">{ABSENT_NOTE}</p>
               ) : (
                 <>
                   <Rows
                     rows={[
-                      ["bands × window", `${r.spectral.bands} × ${r.spectral.depth} ticks`],
-                      ["windows closed", String(r.spectral.windowsClosed)],
-                      ["window phase", `${r.spectral.windowPhase}/${r.spectral.depth}`],
-                      ["mean AC capture", r.spectral.meanCapture.toFixed(6)],
-                      ["worst node capture", r.spectral.minCapture.toFixed(6)],
-                      ["standing (DC) share", r.spectral.meanDcShare.toFixed(6)],
-                      ["silent receptors", String(r.spectral.silentNodes)],
-                      ["max bin drift", r.spectral.maxDrift.toExponential(3)],
+                      ['bands × window', `${r.spectral.bands} × ${r.spectral.depth} ticks`],
+                      ['windows closed', String(r.spectral.windowsClosed)],
+                      ['window phase', `${r.spectral.windowPhase}/${r.spectral.depth}`],
+                      ['mean AC capture', r.spectral.meanCapture.toFixed(6)],
+                      ['worst node capture', r.spectral.minCapture.toFixed(6)],
+                      ['standing (DC) share', r.spectral.meanDcShare.toFixed(6)],
+                      ['silent receptors', String(r.spectral.silentNodes)],
+                      ['max bin drift', r.spectral.maxDrift.toExponential(3)],
                     ]}
                   />
                   <p className="mt-1.5 text-[9px] font-mono text-muted-foreground">
@@ -211,12 +215,12 @@ export default function ToroidScanPanel() {
                   {r.spectral.probe && (
                     <div className="mt-2 border-t border-border/40 pt-1.5">
                       <p className="text-[9px] font-mono text-muted-foreground">
-                        full-spectrum probe · node {r.spectral.probe.node} · φ ladder holds{" "}
+                        full-spectrum probe · node {r.spectral.probe.node} · φ ladder holds{' '}
                         {(r.spectral.probe.ladderShare * 100).toFixed(2)}% of its motion
                       </p>
                       <Rows
                         rows={r.spectral.probe.lines.map((l) => [
-                          `${l.frequency.toFixed(4)} c/t ${l.onLadder ? "(on ladder)" : "(off ladder)"}`,
+                          `${l.frequency.toFixed(4)} c/t ${l.onLadder ? '(on ladder)' : '(off ladder)'}`,
                           `${(l.share * 100).toFixed(2)}%`,
                         ])}
                       />
@@ -227,46 +231,47 @@ export default function ToroidScanPanel() {
             </Section>
 
             <Section code="S4" title="ENERGY STATE" status={r.energy.status}>
-              {r.energy.status === "ABSENT" ? (
+              {r.energy.status === 'ABSENT' ? (
                 <p className="text-[9px] font-mono text-muted-foreground">{ABSENT_NOTE}</p>
               ) : (
                 <Rows
                   rows={[
-                    ["total field energy", r.energy.total.toExponential(6)],
-                    ["peak convergence", `#${r.energy.peakNode}`],
-                    ["peak share", `${(r.energy.peakShare * 100).toFixed(3)}%`],
-                    ["distribution entropy", r.energy.entropy.toFixed(6)],
-                    ["mean |frequency|", `${r.energy.meanFrequency.toExponential(3)} c/t`],
-                    ["peak node frequency", `${r.energy.peakFrequency.toExponential(3)} c/t`],
-                    ["hot nodes", r.energy.hotNodes.join(", ")],
+                    ['total field energy', r.energy.total.toExponential(6)],
+                    ['peak convergence', `#${r.energy.peakNode}`],
+                    ['peak share', `${(r.energy.peakShare * 100).toFixed(3)}%`],
+                    ['distribution entropy', r.energy.entropy.toFixed(6)],
+                    ['mean |frequency|', `${r.energy.meanFrequency.toExponential(3)} c/t`],
+                    ['peak node frequency', `${r.energy.peakFrequency.toExponential(3)} c/t`],
+                    ['hot nodes', r.energy.hotNodes.join(', ')],
                   ]}
                 />
               )}
             </Section>
 
             <Section code="S5" title="SUPERPOSITIONAL FLUX" status={r.flux.status}>
-              {r.flux.status === "ABSENT" ? (
+              {r.flux.status === 'ABSENT' ? (
                 <p className="text-[9px] font-mono text-muted-foreground">{ABSENT_NOTE}</p>
               ) : (
                 <>
                   <Rows
                     rows={[
-                      ["Σ divergence", r.flux.divergenceSum.toExponential(3)],
-                      ["Σ |divergence|", r.flux.circulation.toExponential(6)],
-                      ["closure defect", r.flux.closureDefect.toExponential(3)],
-                      ["max |divergence|", r.flux.maxDivergence.toExponential(6)],
-                      ["at convergence", `#${r.flux.maxDivergenceNode}`],
+                      ['Σ divergence', r.flux.divergenceSum.toExponential(3)],
+                      ['Σ |divergence|', r.flux.circulation.toExponential(6)],
+                      ['closure defect', r.flux.closureDefect.toExponential(3)],
+                      ['max |divergence|', r.flux.maxDivergence.toExponential(6)],
+                      ['at convergence', `#${r.flux.maxDivergenceNode}`],
                     ]}
                   />
                   <p className="mt-1.5 text-[9px] font-mono text-muted-foreground">
                     Current on each of the four incident lines is antisymmetric, so the divergence
-                    sum is structurally zero — the closure defect is what the grid actually returned.
+                    sum is structurally zero — the closure defect is what the grid actually
+                    returned.
                   </p>
                 </>
               )}
             </Section>
 
-            <Section code="S6" title="VERDICT" status={r.verdict.pass ? "OK" : "DEFECT"}>
+            <Section code="S6" title="VERDICT" status={r.verdict.pass ? 'OK' : 'DEFECT'}>
               {r.verdict.defects.length > 0 && (
                 <ul className="space-y-1">
                   {r.verdict.defects.map((d) => (

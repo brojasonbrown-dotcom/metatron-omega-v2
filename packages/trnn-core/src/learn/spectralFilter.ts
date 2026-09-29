@@ -42,8 +42,10 @@ export class SpectralFilter implements Parametrization {
   private readonly out: Float64Array;
 
   constructor(modes: number, rhoMax = FILTER_RHO_MAX) {
-    if (!Number.isInteger(modes) || modes <= 0) throw new RangeError(`SpectralFilter: modes must be a positive integer, got ${modes}`);
-    if (!(rhoMax > 0) || !(rhoMax < 1)) throw new RangeError(`SpectralFilter: rhoMax must lie in (0,1), got ${rhoMax}`);
+    if (!Number.isInteger(modes) || modes <= 0)
+      throw new RangeError(`SpectralFilter: modes must be a positive integer, got ${modes}`);
+    if (!(rhoMax > 0) || !(rhoMax < 1))
+      throw new RangeError(`SpectralFilter: rhoMax must lie in (0,1), got ${rhoMax}`);
     this.size = modes;
     this.rhoMax = rhoMax;
     this.raw = new Float64Array(2 * modes);
@@ -74,7 +76,9 @@ export class SpectralFilter implements Parametrization {
   /** c ← α ⊙ c, in place on an interleaved coefficient buffer. */
   apply(coeffs: Float64Array): Float64Array {
     if (coeffs.length < 2 * this.size) {
-      throw new RangeError(`SpectralFilter.apply: buffer holds ${coeffs.length / 2} modes, filter needs ${this.size}`);
+      throw new RangeError(
+        `SpectralFilter.apply: buffer holds ${coeffs.length / 2} modes, filter needs ${this.size}`,
+      );
     }
     const a = this.values();
     for (let k = 0; k < this.size; k++) {
@@ -115,7 +119,8 @@ export class SpectralFilter implements Parametrization {
    * ceiling and the residual it returns says so rather than pretending to fit.
    */
   stepMagnitudes(target: ArrayLike<number>, rate: number): number {
-    if (target.length < this.size) throw new RangeError(`stepMagnitudes: need ${this.size} targets, got ${target.length}`);
+    if (target.length < this.size)
+      throw new RangeError(`stepMagnitudes: need ${this.size} targets, got ${target.length}`);
     let sse = 0;
     for (let k = 0; k < this.size; k++) {
       const x = this.raw[k];
@@ -143,7 +148,11 @@ export class SpectralFilter implements Parametrization {
  * Path A should learn when the driving field really is diffusive, and Gate C
  * checks that it does.
  */
-export function diffusionTarget(lambda: ArrayLike<number>, dt: number, out?: Float64Array): Float64Array {
+export function diffusionTarget(
+  lambda: ArrayLike<number>,
+  dt: number,
+  out?: Float64Array,
+): Float64Array {
   const o = out ?? new Float64Array(lambda.length);
   for (let k = 0; k < lambda.length; k++) o[k] = dexp(-lambda[k] * dt);
   return o;

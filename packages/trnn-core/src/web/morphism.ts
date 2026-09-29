@@ -42,7 +42,11 @@ function rotate(src: CField, dst: CField, theta: number): void {
 }
 
 /** Probe the two morphism laws for one source/target pair. */
-export function checkMorphism(z: CField, targetNodes: number, theta = 1.0471975511965976): MorphismReport {
+export function checkMorphism(
+  z: CField,
+  targetNodes: number,
+  theta = 1.0471975511965976,
+): MorphismReport {
   const t1 = createField(targetNodes);
   const t2 = createField(targetNodes);
   const rotSrc = createField(z.n);
@@ -70,5 +74,4 @@ export function checkMorphism(z: CField, targetNodes: number, theta = 1.04719755
     phaseCommutationDefect: d,
     meanDefect: Math.sqrt(mr * mr + mi * mi),
   };
-
 }

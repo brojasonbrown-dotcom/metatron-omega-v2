@@ -116,7 +116,10 @@ export function rank(x: ArrayLike<number>): Float64Array {
 export function spearman(x: ArrayLike<number>, y: ArrayLike<number>): StatResult {
   const n = pairLength(x, y);
   if (n < STAT_FLOOR) return abstain(n, `n=${n} < F9 floor ${STAT_FLOOR}`);
-  return pearson(rank(Float64Array.from(x as ArrayLike<number>).slice(0, n)), rank(Float64Array.from(y as ArrayLike<number>).slice(0, n)));
+  return pearson(
+    rank(Float64Array.from(x as ArrayLike<number>).slice(0, n)),
+    rank(Float64Array.from(y as ArrayLike<number>).slice(0, n)),
+  );
 }
 
 /* ── Kendall τ-b ──────────────────────────────────────────────────────────── */
@@ -279,9 +282,18 @@ export function hsic(x: ArrayLike<number>, y: ArrayLike<number>): StatResult {
 
 /** Acklam inverse normal CDF, ~1.15e-9 relative accuracy. */
 export function invNormalCdf(p: number): number {
-  const a = [-3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2, 1.38357751867269e2, -3.066479806614716e1, 2.506628277459239];
-  const b = [-5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2, 6.680131188771972e1, -1.328068155288572e1];
-  const c = [-7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const a = [
+    -3.969683028665376e1, 2.209460984245205e2, -2.759285104469687e2, 1.38357751867269e2,
+    -3.066479806614716e1, 2.506628277459239,
+  ];
+  const b = [
+    -5.447609879822406e1, 1.615858368580409e2, -1.556989798598866e2, 6.680131188771972e1,
+    -1.328068155288572e1,
+  ];
+  const c = [
+    -7.784894002430293e-3, -3.223964580411365e-1, -2.400758277161838, -2.549732539343734,
+    4.374664141464968, 2.938163982698783,
+  ];
   const d = [7.784695709041462e-3, 3.224671290700398e-1, 2.445134137142996, 3.754408661907416];
   const pl = 0.02425;
   const q = p;
@@ -289,15 +301,24 @@ export function invNormalCdf(p: number): number {
   if (q >= 1) return Infinity;
   if (q < pl) {
     const t = Math.sqrt(-2 * dlog(q));
-    return (((((c[0] * t + c[1]) * t + c[2]) * t + c[3]) * t + c[4]) * t + c[5]) / ((((d[0] * t + d[1]) * t + d[2]) * t + d[3]) * t + 1);
+    return (
+      (((((c[0] * t + c[1]) * t + c[2]) * t + c[3]) * t + c[4]) * t + c[5]) /
+      ((((d[0] * t + d[1]) * t + d[2]) * t + d[3]) * t + 1)
+    );
   }
   if (q > 1 - pl) {
     const t = Math.sqrt(-2 * dlog(1 - q));
-    return -(((((c[0] * t + c[1]) * t + c[2]) * t + c[3]) * t + c[4]) * t + c[5]) / ((((d[0] * t + d[1]) * t + d[2]) * t + d[3]) * t + 1);
+    return (
+      -(((((c[0] * t + c[1]) * t + c[2]) * t + c[3]) * t + c[4]) * t + c[5]) /
+      ((((d[0] * t + d[1]) * t + d[2]) * t + d[3]) * t + 1)
+    );
   }
   const t = q - 0.5;
   const r = t * t;
-  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * t / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+  return (
+    ((((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * t) /
+    (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1)
+  );
 }
 
 /** Rank → normal scores (the empirical Gaussian copula transform). */
@@ -317,7 +338,10 @@ export function normalScores(x: ArrayLike<number>): Float64Array {
 export function gaussianMI(x: ArrayLike<number>, y: ArrayLike<number>): StatResult {
   const n = pairLength(x, y);
   if (n < STAT_FLOOR) return abstain(n, `n=${n} < F9 floor ${STAT_FLOOR}`);
-  const r = pearson(normalScores(Float64Array.from(x as ArrayLike<number>).slice(0, n)), normalScores(Float64Array.from(y as ArrayLike<number>).slice(0, n)));
+  const r = pearson(
+    normalScores(Float64Array.from(x as ArrayLike<number>).slice(0, n)),
+    normalScores(Float64Array.from(y as ArrayLike<number>).slice(0, n)),
+  );
   if (r.value === null) return abstain(n, r.reason ?? 'copula transform degenerate');
   const rho = Math.max(-0.999999999, Math.min(0.999999999, r.value));
   return { value: Math.max(0, -0.5 * dlog(1 - rho * rho)), n, abstained: false };

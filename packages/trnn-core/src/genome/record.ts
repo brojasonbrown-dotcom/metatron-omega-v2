@@ -121,7 +121,9 @@ export class GenomeLedger {
     if (master.length !== 32) throw new RangeError('master key must be 32 bytes');
   }
 
-  get size(): number { return this.order.length; }
+  get size(): number {
+    return this.order.length;
+  }
 
   /** Seal and append a new record. Ids are unique and never reused. */
   append(input: AppendInput): SealedRecord {
@@ -133,35 +135,53 @@ export class GenomeLedger {
    * Correct an existing record: the old body stays sealed and reachable, and a
    * new record supersedes it. Requires a non-empty reason.
    */
-  correct(targetId: string, newBody: unknown, opts: {
-    id: string; recordedAt: number; reason: string; provenance: Provenance;
-    validFrom?: number; validTo?: number | null;
-  }): SealedRecord {
+  correct(
+    targetId: string,
+    newBody: unknown,
+    opts: {
+      id: string;
+      recordedAt: number;
+      reason: string;
+      provenance: Provenance;
+      validFrom?: number;
+      validTo?: number | null;
+    },
+  ): SealedRecord {
     const target = this.records.get(targetId);
     if (!target) throw new Error(`unknown record ${targetId}`);
     if (this.successor.has(targetId)) {
-      throw new Error(`record ${targetId} is already superseded by ${this.successor.get(targetId)}`);
+      throw new Error(
+        `record ${targetId} is already superseded by ${this.successor.get(targetId)}`,
+      );
     }
     const reason = opts.reason.trim();
     if (reason.length === 0) throw new Error('correction requires a reason');
 
-    const rec = this.write({
-      id: opts.id,
-      kind: target.header.kind,
-      body: newBody,
-      recordedAt: opts.recordedAt,
-      validFrom: opts.validFrom ?? target.header.validFrom,
-      validTo: opts.validTo ?? null,
-      provenance: {
-        ...opts.provenance,
-        derivedFrom: [...(opts.provenance.derivedFrom ?? []), targetId],
+    const rec = this.write(
+      {
+        id: opts.id,
+        kind: target.header.kind,
+        body: newBody,
+        recordedAt: opts.recordedAt,
+        validFrom: opts.validFrom ?? target.header.validFrom,
+        validTo: opts.validTo ?? null,
+        provenance: {
+          ...opts.provenance,
+          derivedFrom: [...(opts.provenance.derivedFrom ?? []), targetId],
+        },
       },
-    }, targetId, reason);
+      targetId,
+      reason,
+    );
     this.successor.set(targetId, opts.id);
     return rec;
   }
 
-  private write(input: AppendInput, supersedes: string | null, reason: string | null): SealedRecord {
+  private write(
+    input: AppendInput,
+    supersedes: string | null,
+    reason: string | null,
+  ): SealedRecord {
     const header: RecordHeader = {
       version: GENOME_VERSION,
       id: input.id,
@@ -185,7 +205,9 @@ export class GenomeLedger {
     const bytes = leafBytes(header, sealed);
     const leafIndex = this.log.append(bytes);
     const rec: SealedRecord = {
-      header, sealed, leafIndex,
+      header,
+      sealed,
+      leafIndex,
       leafHex: toHex(this.log.leafHash(leafIndex) as Hash),
     };
     this.records.set(input.id, rec);
@@ -194,7 +216,9 @@ export class GenomeLedger {
     return rec;
   }
 
-  get(id: string): SealedRecord | null { return this.records.get(id) ?? null; }
+  get(id: string): SealedRecord | null {
+    return this.records.get(id) ?? null;
+  }
 
   /** Open a sealed body. Returns null when the record was crypto-shredded. */
   open(id: string): unknown | null {
@@ -224,7 +248,9 @@ export class GenomeLedger {
     return true;
   }
 
-  isShredded(id: string): boolean { return this.shredded.has(id); }
+  isShredded(id: string): boolean {
+    return this.shredded.has(id);
+  }
 
   /** The record that currently stands for `id`, following supersessions. */
   current(id: string): SealedRecord | null {
@@ -268,12 +294,17 @@ export class GenomeLedger {
   validAt(t: number): SealedRecord[] {
     return this.order
       .map((id) => this.records.get(id) as SealedRecord)
-      .filter((r) => !this.successor.has(r.header.id)
-        && r.header.validFrom <= t
-        && (r.header.validTo === null || t < r.header.validTo));
+      .filter(
+        (r) =>
+          !this.successor.has(r.header.id) &&
+          r.header.validFrom <= t &&
+          (r.header.validTo === null || t < r.header.validTo),
+      );
   }
 
-  rootHex(size = this.log.size): string { return toHex(this.log.root(size)); }
+  rootHex(size = this.log.size): string {
+    return toHex(this.log.root(size));
+  }
 
   /** Signed head over the current log. */
   head(timestamp: number): SignedTreeHead {
@@ -324,11 +355,16 @@ export class GenomeLedger {
     for (const id of this.order) {
       const rec = this.records.get(id) as SealedRecord;
       const leaf = this.log.leafHash(rec.leafIndex);
-      if (!leaf || toHex(leaf) !== rec.leafHex) { failures.push(`${id}: leaf hash mismatch`); continue; }
+      if (!leaf || toHex(leaf) !== rec.leafHex) {
+        failures.push(`${id}: leaf hash mismatch`);
+        continue;
+      }
       const proof = this.log.inclusionProof(rec.leafIndex, size);
-      if (!verifyInclusion(leaf, rec.leafIndex, size, proof, root)) failures.push(`${id}: inclusion proof failed`);
+      if (!verifyInclusion(leaf, rec.leafIndex, size, proof, root))
+        failures.push(`${id}: inclusion proof failed`);
     }
-    if (!verifyTreeHead(this.head(timestamp), this.signer.publicKey)) failures.push('signed head failed to verify');
+    if (!verifyTreeHead(this.head(timestamp), this.signer.publicKey))
+      failures.push('signed head failed to verify');
     return { ok: failures.length === 0, checked: this.order.length, failures };
   }
 }

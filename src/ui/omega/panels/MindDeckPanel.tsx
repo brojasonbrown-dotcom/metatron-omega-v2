@@ -12,29 +12,29 @@
  *
  * Nothing on this deck is synthesised; every value is a measurement.
  */
-import { useCallback } from "react";
-import { getOmegaRuntime } from "../omegaRuntime";
-import { useOmegaState } from "../useOmegaRuntime";
-import { useOmegaPull } from "../useOmegaPull";
+import { useCallback } from 'react';
+import { getOmegaRuntime } from '../omegaRuntime';
+import { useOmegaState } from '../useOmegaRuntime';
+import { useOmegaPull } from '../useOmegaPull';
 
 const num = (x: number | undefined, d = 4) =>
-  x === undefined || !Number.isFinite(x) ? "—" : x.toFixed(d);
+  x === undefined || !Number.isFinite(x) ? '—' : x.toFixed(d);
 const exp = (x: number | undefined) =>
-  x === undefined || !Number.isFinite(x) ? "—" : x.toExponential(2);
+  x === undefined || !Number.isFinite(x) ? '—' : x.toExponential(2);
 
 function Row({ k, v, tone }: { k: string; v: string; tone?: string }) {
   return (
     <>
       <span className="text-muted-foreground">{k}</span>
-      <span className={`tabular-nums ${tone ?? ""}`}>{v}</span>
+      <span className={`tabular-nums ${tone ?? ''}`}>{v}</span>
     </>
   );
 }
 
 const ACTION_TONE: Record<string, string> = {
-  seed: "text-primary",
-  store: "text-primary",
-  recognise: "text-muted-foreground",
+  seed: 'text-primary',
+  store: 'text-primary',
+  recognise: 'text-muted-foreground',
 };
 
 export default function MindDeckPanel() {
@@ -71,13 +71,13 @@ export default function MindDeckPanel() {
         <Row k="mean surprise" v={num(m?.meanSurprise)} />
         <Row
           k="self-model"
-          v={self?.enabled ? "λ-SSM in force" : "RLS baseline"}
-          tone={self?.enabled ? "text-primary" : "text-muted-foreground"}
+          v={self?.enabled ? 'λ-SSM in force' : 'RLS baseline'}
+          tone={self?.enabled ? 'text-primary' : 'text-muted-foreground'}
         />
         <Row
           k="margin"
           v={num(self?.margin)}
-          tone={(self?.margin ?? 0) > 0 ? "text-primary" : "text-destructive"}
+          tone={(self?.margin ?? 0) > 0 ? 'text-primary' : 'text-destructive'}
         />
       </div>
 
@@ -96,27 +96,27 @@ export default function MindDeckPanel() {
             <Row
               k="skill vs persistence"
               v={num(self?.skill)}
-              tone={(self?.skill ?? 0) > 0 ? "text-primary" : "text-destructive"}
+              tone={(self?.skill ?? 0) > 0 ? 'text-primary' : 'text-destructive'}
             />
             <Row
               k="|λ| max"
               v={`${num(self?.spectralRadius)} < ${num(self?.lambdaMax)}`}
-              tone={stable ? "text-primary" : "text-destructive"}
+              tone={stable ? 'text-primary' : 'text-destructive'}
             />
             <Row k="dim" v={String(self?.dim ?? 0)} />
             <Row k="quiescent folds" v={String(s.snapshot?.quiescentFolds ?? 0)} />
           </div>
           <div className="text-[9px] font-mono text-muted-foreground leading-relaxed">
-            The λ-SSM is parametrised so |λ| can never reach φ⁻¹ — stability is
-            structural, not monitored. It is only read when its margin over RLS
-            is positive; otherwise the deck reports the baseline.
+            The λ-SSM is parametrised so |λ| can never reach φ⁻¹ — stability is structural, not
+            monitored. It is only read when its margin over RLS is positive; otherwise the deck
+            reports the baseline.
           </div>
           {/* per-fold error tail */}
           <div className="border-t border-border/30 pt-1.5 space-y-0.5 text-[9px] font-mono">
             {(self?.recent ?? []).slice(-8).map((p) => (
               <div key={p.tick} className="grid grid-cols-5 gap-2 tabular-nums">
                 <span className="text-muted-foreground">t{p.tick}</span>
-                <span className={p.source === "ssm" ? "text-primary" : "text-muted-foreground"}>
+                <span className={p.source === 'ssm' ? 'text-primary' : 'text-muted-foreground'}>
                   {p.source}
                 </span>
                 <span>{exp(p.ssmError)}</span>
@@ -139,11 +139,11 @@ export default function MindDeckPanel() {
             <Row k="M / efSearch" v={`${c?.M ?? 0} / ${c?.efSearch ?? 0}`} />
             <Row
               k="pq"
-              v={c?.pqReady ? `${c.sub}×${c.centroids}` : "training"}
-              tone={c?.pqReady ? "text-primary" : "text-muted-foreground"}
+              v={c?.pqReady ? `${c.sub}×${c.centroids}` : 'training'}
+              tone={c?.pqReady ? 'text-primary' : 'text-muted-foreground'}
             />
             <Row k="pq cosine error" v={num(c?.pqError)} />
-            <Row k="compression" v={ratio > 0 ? `${ratio.toFixed(1)}×` : "—"} />
+            <Row k="compression" v={ratio > 0 ? `${ratio.toFixed(1)}×` : '—'} />
             <Row k="evictions" v={String(c?.evictions ?? 0)} />
             <Row k="exact ops · last" v={String(s.reflection?.exactOps ?? 0)} />
           </div>
@@ -186,11 +186,11 @@ export default function MindDeckPanel() {
                 className="grid grid-cols-6 gap-2 text-[9px] font-mono tabular-nums"
               >
                 <span className="text-muted-foreground">{t.tick}</span>
-                <span className={ACTION_TONE[t.action] ?? ""}>{t.action}</span>
+                <span className={ACTION_TONE[t.action] ?? ''}>{t.action}</span>
                 <span>{num(t.novelty, 3)}</span>
                 <span>{num(t.surprise, 3)}</span>
-                <span className="truncate">{t.conceptKey ?? "—"}</span>
-                <span className={t.source === "ssm" ? "text-primary" : "text-muted-foreground"}>
+                <span className="truncate">{t.conceptKey ?? '—'}</span>
+                <span className={t.source === 'ssm' ? 'text-primary' : 'text-muted-foreground'}>
                   {t.source}
                 </span>
               </div>

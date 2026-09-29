@@ -61,20 +61,37 @@ export interface CrossMap {
   edges: MapEdge[];
   gaps: MapGap[];
   opportunities: MapOpportunity[];
-  counts: { wired: number; cold: number; broken: number; unknown: number; gaps: number; opportunities: number };
+  counts: {
+    wired: number;
+    cold: number;
+    broken: number;
+    unknown: number;
+    gaps: number;
+    opportunities: number;
+  };
   /** ids in the atlas but not the registry, and vice versa — always empty in a healthy build */
   orphans: { atlasOnly: string[]; registryOnly: string[] };
 }
 
 const RANK: Record<LiveState | 'unknown', number> = {
-  live: 3, stale: 2, dormant: 1, absent: 0, unknown: 0,
+  live: 3,
+  stale: 2,
+  dormant: 1,
+  absent: 0,
+  unknown: 0,
 };
 
-function classify(a: LiveState | 'unknown', b: LiveState | 'unknown'): { status: EdgeStatus; why: string } {
-  if (a === 'unknown' || b === 'unknown') return { status: 'unknown', why: 'an endpoint has no registry reading' };
-  if (a === 'absent' || b === 'absent') return { status: 'broken', why: 'an endpoint is absent from this runtime' };
+function classify(
+  a: LiveState | 'unknown',
+  b: LiveState | 'unknown',
+): { status: EdgeStatus; why: string } {
+  if (a === 'unknown' || b === 'unknown')
+    return { status: 'unknown', why: 'an endpoint has no registry reading' };
+  if (a === 'absent' || b === 'absent')
+    return { status: 'broken', why: 'an endpoint is absent from this runtime' };
   if (a === 'live' && b === 'live') return { status: 'wired', why: 'both endpoints are live' };
-  if (a === 'stale' || b === 'stale') return { status: 'cold', why: 'an endpoint advanced earlier but is not current' };
+  if (a === 'stale' || b === 'stale')
+    return { status: 'cold', why: 'an endpoint advanced earlier but is not current' };
   return { status: 'cold', why: 'an endpoint is dormant' };
 }
 
@@ -115,11 +132,13 @@ export function crossMap(
       if (to === e.id) continue;
       const target = byId.get(to);
       const kinds = target
-        ? Array.from(new Set(
-            e.outputs
-              .filter((o) => target.inputs.some((i) => i.kind === o.kind))
-              .map((o) => o.kind),
-          )).sort()
+        ? Array.from(
+            new Set(
+              e.outputs
+                .filter((o) => target.inputs.some((i) => i.kind === o.kind))
+                .map((o) => o.kind),
+            ),
+          ).sort()
         : [];
       const a = states[e.id] ?? 'unknown';
       const b = states[to] ?? 'unknown';
@@ -140,12 +159,24 @@ export function crossMap(
   for (const e of atlas) {
     for (const o of e.outputs) {
       if (!consumedKinds.has(o.kind)) {
-        gaps.push({ module: e.id, port: o.name, kind: o.kind, direction: 'output', why: 'no module in the atlas accepts this kind' });
+        gaps.push({
+          module: e.id,
+          port: o.name,
+          kind: o.kind,
+          direction: 'output',
+          why: 'no module in the atlas accepts this kind',
+        });
       }
     }
     for (const i of e.inputs) {
       if (!producedKinds.has(i.kind)) {
-        gaps.push({ module: e.id, port: i.name, kind: i.kind, direction: 'input', why: 'no module in the atlas emits this kind' });
+        gaps.push({
+          module: e.id,
+          port: i.name,
+          kind: i.kind,
+          direction: 'input',
+          why: 'no module in the atlas emits this kind',
+        });
       }
     }
   }
@@ -178,8 +209,9 @@ export function crossMap(
       }
     }
   }
-  opportunities.sort((x, y) =>
-    y.score - x.score || (x.from + x.to + x.kind).localeCompare(y.from + y.to + y.kind));
+  opportunities.sort(
+    (x, y) => y.score - x.score || (x.from + x.to + x.kind).localeCompare(y.from + y.to + y.kind),
+  );
 
   const counts = {
     wired: edges.filter((e) => e.status === 'wired').length,

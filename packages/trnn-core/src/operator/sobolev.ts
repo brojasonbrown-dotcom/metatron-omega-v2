@@ -60,7 +60,9 @@ export function hdiv(a: CField, b: CField, weight = 1): number {
 /** H² error — value, first and second derivative mismatch. */
 export function h2(a: CField, b: CField, w1 = 1, w2 = 1): number {
   const e = difference(a, b);
-  return Math.sqrt(meanSquare(e) + w1 * meanSquare(derivative(e, 1)) + w2 * meanSquare(derivative(e, 2)));
+  return Math.sqrt(
+    meanSquare(e) + w1 * meanSquare(derivative(e, 1)) + w2 * meanSquare(derivative(e, 2)),
+  );
 }
 
 export interface GradedError {

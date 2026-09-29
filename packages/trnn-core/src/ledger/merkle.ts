@@ -82,7 +82,9 @@ function mth(leaves: readonly Hash[], lo: number, hi: number): Hash {
 export class MerkleLog {
   private readonly leaves: Hash[] = [];
 
-  get size(): number { return this.leaves.length; }
+  get size(): number {
+    return this.leaves.length;
+  }
 
   /** Append raw leaf data; returns the leaf index. */
   append(data: Uint8Array): number {
@@ -111,7 +113,9 @@ export class MerkleLog {
     if (size < 0 || size > this.leaves.length) throw new RangeError('size out of range');
     if (m < 0 || m >= size) throw new RangeError('leaf index out of range');
     const path: Hash[] = [];
-    let lo = 0, hi = size, idx = m;
+    let lo = 0,
+      hi = size,
+      idx = m;
     while (hi - lo > 1) {
       const k = splitPoint(hi - lo);
       if (idx < k) {
@@ -154,17 +158,25 @@ export class MerkleLog {
 
 /** Verify an audit path: does `leaf` sit at index m of a size-n tree with `root`? */
 export function verifyInclusion(
-  leaf: Hash, m: number, size: number, proof: readonly Hash[], root: Hash,
+  leaf: Hash,
+  m: number,
+  size: number,
+  proof: readonly Hash[],
+  root: Hash,
 ): boolean {
   if (m < 0 || m >= size) return false;
   let r = leaf;
-  let fn = m, sn = size - 1;
+  let fn = m,
+    sn = size - 1;
   for (let p = 0; p < proof.length; p++) {
     if (sn === 0) return false; // proof longer than the tree is deep
     if ((fn & 1) === 1 || fn === sn) {
       r = hashNode(proof[p], r);
       // Skip the levels where this subtree was carried up unchanged.
-      while ((fn & 1) === 0 && fn !== 0) { fn >>= 1; sn >>= 1; }
+      while ((fn & 1) === 0 && fn !== 0) {
+        fn >>= 1;
+        sn >>= 1;
+      }
     } else {
       r = hashNode(r, proof[p]);
     }
@@ -179,7 +191,11 @@ export function verifyInclusion(
  * the size-m tree? O(log n) — it never reconstructs either tree.
  */
 export function verifyConsistency(
-  m: number, oldRoot: Hash, n: number, newRoot: Hash, proof: readonly Hash[],
+  m: number,
+  oldRoot: Hash,
+  n: number,
+  newRoot: Hash,
+  proof: readonly Hash[],
 ): boolean {
   if (m > n || m < 0) return false;
   if (m === n) return proof.length === 0 && hashEquals(oldRoot, newRoot);
@@ -187,7 +203,10 @@ export function verifyConsistency(
 
   let node = m - 1;
   let size = n - 1;
-  while ((node & 1) === 1) { node >>= 1; size >>= 1; }
+  while ((node & 1) === 1) {
+    node >>= 1;
+    size >>= 1;
+  }
 
   let p = 0;
   let fn: Hash, sn: Hash;

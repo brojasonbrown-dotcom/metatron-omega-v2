@@ -141,10 +141,14 @@ export class MultiTorusEngine {
     const win = opts.window ?? null;
     if (win) {
       if (opts.nodes !== undefined) {
-        throw new Error('MultiTorusEngine: `nodes` conflicts with `window` — the window owns node counts');
+        throw new Error(
+          'MultiTorusEngine: `nodes` conflicts with `window` — the window owns node counts',
+        );
       }
       if (opts.coherenceDelay !== undefined) {
-        throw new Error('MultiTorusEngine: `coherenceDelay` conflicts with `window` — the window owns τ');
+        throw new Error(
+          'MultiTorusEngine: `coherenceDelay` conflicts with `window` — the window owns τ',
+        );
       }
       if (opts.rungs && opts.rungs.length !== win.rungs.length) {
         throw new Error(
@@ -154,7 +158,10 @@ export class MultiTorusEngine {
     }
     this.window = win;
     this.rungs = opts.rungs ?? (win ? win.rungs.map((w) => w.rung) : DENSE_CORE);
-    const nodesOf = typeof opts.nodes === 'function' ? opts.nodes : () => (typeof opts.nodes === 'number' ? opts.nodes : 144);
+    const nodesOf =
+      typeof opts.nodes === 'function'
+        ? opts.nodes
+        : () => (typeof opts.nodes === 'number' ? opts.nodes : 144);
     const seed = opts.seed ?? 'metatron-omega-web';
 
     this.engines = this.rungs.map((r, rank) => {
@@ -249,7 +256,8 @@ export class MultiTorusEngine {
           carrier = this.scratch.get(dst.n);
           const rep = octaveTransport(src, carrier);
           const ratio = rep.energyRatio;
-          if (Number.isFinite(ratio) && Math.abs(ratio - 1) > Math.abs(worstRatio - 1)) worstRatio = ratio;
+          if (Number.isFinite(ratio) && Math.abs(ratio - 1) > Math.abs(worstRatio - 1))
+            worstRatio = ratio;
         }
         let mass = 0;
         for (let k = 0; k < dst.n; k++) {
@@ -341,7 +349,6 @@ export class MultiTorusEngine {
   clockStrides(): number[] {
     return Array.from(this.strides);
   }
-
 
   /** Latest tape step, or null when there is no tape / it has not run. */
   tapeStep(): TapeStep | null {

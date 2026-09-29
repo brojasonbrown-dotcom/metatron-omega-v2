@@ -5,7 +5,7 @@
  * switching tabs unmounted the panel and reset them. They now live here:
  * a tiny external store, guarded localStorage persistence, clamped on load.
  */
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useSyncExternalStore } from 'react';
 
 export type FieldView = {
   rank: number;
@@ -18,7 +18,7 @@ export type FieldView = {
   glow: boolean;
 };
 
-const KEY = "omega.field.view";
+const KEY = 'omega.field.view';
 
 /**
  * Fibonacci resolution steps offered in the stage RES selector. The ladder is
@@ -46,12 +46,12 @@ const DEFAULTS: FieldView = {
 };
 
 const clampInt = (x: unknown, lo: number, hi: number, fb: number): number => {
-  const n = typeof x === "number" ? Math.round(x) : NaN;
+  const n = typeof x === 'number' ? Math.round(x) : NaN;
   return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : fb;
 };
 
 function read(): FieldView {
-  if (typeof localStorage === "undefined") return DEFAULTS;
+  if (typeof localStorage === 'undefined') return DEFAULTS;
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULTS;
@@ -60,9 +60,9 @@ function read(): FieldView {
       rank: clampInt(p.rank, 0, 63, DEFAULTS.rank),
       hz: clampInt(p.hz, 1, HZ_MAX, DEFAULTS.hz),
       samples: clampInt(p.samples, SAMPLES_MIN, SAMPLES_MAX, DEFAULTS.samples),
-      stageOpen: typeof p.stageOpen === "boolean" ? p.stageOpen : DEFAULTS.stageOpen,
-      showStrip: typeof p.showStrip === "boolean" ? p.showStrip : DEFAULTS.showStrip,
-      glow: typeof p.glow === "boolean" ? p.glow : DEFAULTS.glow,
+      stageOpen: typeof p.stageOpen === 'boolean' ? p.stageOpen : DEFAULTS.stageOpen,
+      showStrip: typeof p.showStrip === 'boolean' ? p.showStrip : DEFAULTS.showStrip,
+      glow: typeof p.glow === 'boolean' ? p.glow : DEFAULTS.glow,
     };
   } catch {
     return DEFAULTS;
@@ -74,7 +74,7 @@ let hydrated = false;
 const listeners = new Set<() => void>();
 
 function ensureHydrated(): void {
-  if (hydrated || typeof window === "undefined") return;
+  if (hydrated || typeof window === 'undefined') return;
   hydrated = true;
   state = read();
 }
@@ -109,7 +109,7 @@ export function setFieldView(patch: Partial<FieldView>): void {
     return;
   }
   state = next;
-  if (typeof localStorage !== "undefined") {
+  if (typeof localStorage !== 'undefined') {
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
     } catch {

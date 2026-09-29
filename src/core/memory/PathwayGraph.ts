@@ -25,13 +25,17 @@ export class PathwayGraph {
     if (this.edges.size > this.cap) this.evict();
   }
 
-  capacity(): number { return this.cap; }
+  capacity(): number {
+    return this.cap;
+  }
 
   observe(from: string, to: string, tick: number): void {
     const k = `${from}→${to}`;
     const e = this.edges.get(k);
-    if (e) { e.count += 1; e.lastTick = tick; }
-    else this.edges.set(k, { from, to, count: 1, lastTick: tick });
+    if (e) {
+      e.count += 1;
+      e.lastTick = tick;
+    } else this.edges.set(k, { from, to, count: 1, lastTick: tick });
     if (this.edges.size > this.cap) this.evict();
   }
 
@@ -43,20 +47,25 @@ export class PathwayGraph {
     return out.slice(0, n);
   }
 
-  size(): number { return this.edges.size; }
-  all(): readonly PathwayEdge[] { return Array.from(this.edges.values()); }
+  size(): number {
+    return this.edges.size;
+  }
+  all(): readonly PathwayEdge[] {
+    return Array.from(this.edges.values());
+  }
 
   private evict(): void {
     // Drop least-used (lowest count, oldest tick).
-    const arr = Array.from(this.edges.entries()).sort((a, b) =>
-      a[1].count - b[1].count || a[1].lastTick - b[1].lastTick
+    const arr = Array.from(this.edges.entries()).sort(
+      (a, b) => a[1].count - b[1].count || a[1].lastTick - b[1].lastTick,
     );
     const drop = this.edges.size - this.cap;
     for (let i = 0; i < drop; i++) this.edges.delete(arr[i][0]);
   }
 
   snapshot(): PathwayEdge[] {
-    return Array.from(this.edges.values()).map((e) => ({ ...e }))
+    return Array.from(this.edges.values())
+      .map((e) => ({ ...e }))
       .sort((a, b) => a.from.localeCompare(b.from) || a.to.localeCompare(b.to));
   }
   restore(snap: PathwayEdge[]): void {

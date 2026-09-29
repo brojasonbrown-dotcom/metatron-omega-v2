@@ -138,7 +138,10 @@ describe('P9.3 finding ledger', () => {
   it('is byte-deterministic: identical passes seal to identical leaves', () => {
     const a = new FindingLedger(SEED);
     const b = new FindingLedger(SEED);
-    const r = report([finding(), finding({ b: 'sense.arousal', verdict: 'abstain', association: null })]);
+    const r = report([
+      finding(),
+      finding({ b: 'sense.arousal', verdict: 'abstain', association: null }),
+    ]);
     const ea = a.seal(r, 12345);
     const eb = b.seal(r, 12345);
     expect(ea.pass.canonical).toBe(eb.pass.canonical);
@@ -151,9 +154,11 @@ describe('P9.3 finding ledger', () => {
     const r1 = report([finding({ association: 0.1 })]);
     const r2 = report([finding({ association: 0.2 })]);
     const a = new FindingLedger(SEED);
-    a.seal(r1, 1); a.seal(r2, 2);
+    a.seal(r1, 1);
+    a.seal(r2, 2);
     const b = new FindingLedger(SEED);
-    b.seal(r2, 2); b.seal(r1, 1);
+    b.seal(r2, 2);
+    b.seal(r1, 1);
     expect(a.rootHex).not.toBe(b.rootHex);
   });
 

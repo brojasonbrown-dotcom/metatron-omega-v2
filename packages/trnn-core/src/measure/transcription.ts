@@ -19,7 +19,10 @@ export class TranscriptionTape {
   private cursor = 0;
   private count = 0;
 
-  constructor(capacity = 2584, readonly width = SIGNATURE_MODES) {
+  constructor(
+    capacity = 2584,
+    readonly width = SIGNATURE_MODES,
+  ) {
     this.cap = capacity;
     this.buf = new Float64Array(capacity * width);
     this.ticks = new Int32Array(capacity);

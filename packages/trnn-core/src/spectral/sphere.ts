@@ -50,7 +50,8 @@ const TWO_PI = 2 * Math.PI;
 
 /** Golden-spiral shell of `n` points with uniform solid-angle weights. */
 export function fibonacciShell(n: number): Shell {
-  if (n <= 0 || !Number.isInteger(n)) throw new RangeError(`fibonacciShell: n must be a positive integer, got ${n}`);
+  if (n <= 0 || !Number.isInteger(n))
+    throw new RangeError(`fibonacciShell: n must be a positive integer, got ${n}`);
   const theta = new Float64Array(n);
   const phi = new Float64Array(n);
   const x = new Float64Array(n);
@@ -172,13 +173,22 @@ export function buildSphericalBasis(shell: Shell, lmax = 3): SphericalBasis {
 }
 
 /** c_k = <b_k | f> under the shell quadrature. */
-export function shtAnalyze(basis: SphericalBasis, f: Float64Array, out: Float64Array): Float64Array {
-  for (let k = 0; k < basis.vectors.length; k++) out[k] = quadInner(basis.shell.w, basis.vectors[k], f);
+export function shtAnalyze(
+  basis: SphericalBasis,
+  f: Float64Array,
+  out: Float64Array,
+): Float64Array {
+  for (let k = 0; k < basis.vectors.length; k++)
+    out[k] = quadInner(basis.shell.w, basis.vectors[k], f);
   return out;
 }
 
 /** f = sum_k c_k b_k. */
-export function shtSynthesize(basis: SphericalBasis, coeffs: Float64Array, out: Float64Array): Float64Array {
+export function shtSynthesize(
+  basis: SphericalBasis,
+  coeffs: Float64Array,
+  out: Float64Array,
+): Float64Array {
   out.fill(0);
   for (let k = 0; k < basis.vectors.length; k++) {
     const c = coeffs[k];
@@ -190,7 +200,11 @@ export function shtSynthesize(basis: SphericalBasis, coeffs: Float64Array, out: 
 }
 
 /** Per-degree angular power sum_m c_{lm}^2 (rotation-invariant). */
-export function angularPower(basis: SphericalBasis, coeffs: Float64Array, lmax: number): Float64Array {
+export function angularPower(
+  basis: SphericalBasis,
+  coeffs: Float64Array,
+  lmax: number,
+): Float64Array {
   const out = new Float64Array(lmax + 1);
   for (let k = 0; k < basis.specs.length; k++) {
     const l = basis.specs[k].l;

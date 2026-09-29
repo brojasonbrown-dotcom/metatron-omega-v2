@@ -16,17 +16,36 @@
  */
 
 import {
-  encodeCbor, hashHex, deterministicId, hlcEncode, hlcTick,
-  INTEROP_VERSION, type CborValue, type Hlc,
+  encodeCbor,
+  hashHex,
+  deterministicId,
+  hlcEncode,
+  hlcTick,
+  INTEROP_VERSION,
+  type CborValue,
+  type Hlc,
 } from './contract';
 
 /** Host subject vocabulary (`src/brain/ontology.ts`). */
 export type SubjectType =
-  | 'org' | 'person' | 'account' | 'counterparty'
-  | 'contract' | 'transaction' | 'policy' | 'kpi';
+  | 'org'
+  | 'person'
+  | 'account'
+  | 'counterparty'
+  | 'contract'
+  | 'transaction'
+  | 'policy'
+  | 'kpi';
 
 export const SUBJECT_TYPES: readonly SubjectType[] = [
-  'org', 'person', 'account', 'counterparty', 'contract', 'transaction', 'policy', 'kpi',
+  'org',
+  'person',
+  'account',
+  'counterparty',
+  'contract',
+  'transaction',
+  'policy',
+  'kpi',
 ] as const;
 
 export type FactSource = 'user' | 'chat' | 'import' | 'system';
@@ -125,21 +144,25 @@ export function seal(d: FactDraft, hlc: Hlc, prevHash: string | null): EvidenceE
 /** The hash the envelope should carry, recomputed from its own fields. */
 export function recomputeContentHash(e: EvidenceEnvelope): string {
   const hlc: Hlc = { wall: e.hlc_wall_ms, counter: e.hlc_logical, node: e.hlc_node };
-  return hashHex(encodeCbor(core(
-    {
-      subject_type: e.subject_type,
-      subject_id: e.subject_id,
-      predicate: e.predicate,
-      object_json: e.object_json,
-      confidence: e.confidence,
-      source: e.source,
-      source_ref: e.source_ref,
-      tags: e.tags,
-      supersedes_id: e.supersedes_id,
-    },
-    hlc,
-    e.prev_hash,
-  )));
+  return hashHex(
+    encodeCbor(
+      core(
+        {
+          subject_type: e.subject_type,
+          subject_id: e.subject_id,
+          predicate: e.predicate,
+          object_json: e.object_json,
+          confidence: e.confidence,
+          source: e.source,
+          source_ref: e.source_ref,
+          tags: e.tags,
+          supersedes_id: e.supersedes_id,
+        },
+        hlc,
+        e.prev_hash,
+      ),
+    ),
+  );
 }
 
 /** An append-only chain of envelopes with a live HLC and a tip hash. */
@@ -164,9 +187,15 @@ export class EvidenceChain {
     return this.items.length === 0 ? null : this.items[this.items.length - 1].content_hash;
   }
 
-  length(): number { return this.items.length; }
-  all(): readonly EvidenceEnvelope[] { return this.items; }
-  hlc(): Hlc { return this.clock; }
+  length(): number {
+    return this.items.length;
+  }
+  all(): readonly EvidenceEnvelope[] {
+    return this.items;
+  }
+  hlc(): Hlc {
+    return this.clock;
+  }
 
   /** Latest non-superseded fact per (subject_type, subject_id, predicate). */
   current(): readonly EvidenceEnvelope[] {
@@ -198,21 +227,35 @@ export function verifyChain(items: readonly EvidenceEnvelope[]): ChainVerdict {
   for (let i = 0; i < items.length; i++) {
     const e = items[i];
     if (e.prev_hash !== prev) {
-      return { ok: false, brokenAt: i, reason: 'prev_hash does not match the previous content_hash' };
+      return {
+        ok: false,
+        brokenAt: i,
+        reason: 'prev_hash does not match the previous content_hash',
+      };
     }
     if (recomputeContentHash(e) !== e.content_hash) {
       return { ok: false, brokenAt: i, reason: 'content_hash does not match the record body' };
     }
     const hlc: Hlc = { wall: e.hlc_wall_ms, counter: e.hlc_logical, node: e.hlc_node };
-    const expectedId = deterministicId('fact', hlc, core(
-      {
-        subject_type: e.subject_type, subject_id: e.subject_id, predicate: e.predicate,
-        object_json: e.object_json, confidence: e.confidence, source: e.source,
-        source_ref: e.source_ref, tags: e.tags, supersedes_id: e.supersedes_id,
-      },
+    const expectedId = deterministicId(
+      'fact',
       hlc,
-      e.prev_hash,
-    ));
+      core(
+        {
+          subject_type: e.subject_type,
+          subject_id: e.subject_id,
+          predicate: e.predicate,
+          object_json: e.object_json,
+          confidence: e.confidence,
+          source: e.source,
+          source_ref: e.source_ref,
+          tags: e.tags,
+          supersedes_id: e.supersedes_id,
+        },
+        hlc,
+        e.prev_hash,
+      ),
+    );
     if (expectedId !== e.id) {
       return { ok: false, brokenAt: i, reason: 'id is not derived from the record content' };
     }

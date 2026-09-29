@@ -241,10 +241,7 @@ export class StreamWindow {
     const pb = cb.periodMs();
     let tol = toleranceMs ?? NaN;
     if (!Number.isFinite(tol)) {
-      const slow = Math.max(
-        Number.isFinite(pa) ? pa : 0,
-        Number.isFinite(pb) ? pb : 0,
-      );
+      const slow = Math.max(Number.isFinite(pa) ? pa : 0, Number.isFinite(pb) ? pb : 0);
       tol = slow > 0 ? slow * ALIGN_TOLERANCE_FRACTION : NaN;
     }
     if (!Number.isFinite(tol) || tol <= 0) {

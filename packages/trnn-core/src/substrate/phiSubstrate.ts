@@ -64,7 +64,10 @@ export function heartbeatGaps(): number[] {
 export type HeartbeatKind = 'long' | 'short';
 
 /** Firing schedule of stable rungs: long gap (12) = batch work, short (2) = incremental. */
-export function heartbeatSchedule(cycles: number, start = 0): { tick: number; kind: HeartbeatKind }[] {
+export function heartbeatSchedule(
+  cycles: number,
+  start = 0,
+): { tick: number; kind: HeartbeatKind }[] {
   const out: { tick: number; kind: HeartbeatKind }[] = [];
   let prev: number | null = null;
   for (let n = start; n < start + cycles * LUCAS_MOD13_PERIOD; n++) {
@@ -126,7 +129,9 @@ export const MIN_PAIRED = 34;
  */
 export const RESONANCE_FLOOR = 0.05625982094858675;
 export const STRESS_THRESHOLD = 0.432;
-export const EMPIRICAL_CONSTANTS: Readonly<Record<string, { value: number; class: EpistemicClass; note: string }>> = {
+export const EMPIRICAL_CONSTANTS: Readonly<
+  Record<string, { value: number; class: EpistemicClass; note: string }>
+> = {
   RESONANCE_FLOOR: {
     value: RESONANCE_FLOOR,
     class: 'C',
@@ -210,15 +215,35 @@ export function substrateParity(): ParityCheck[] {
   const add = (name: string, cls: EpistemicClass, ok: boolean, detail: string) =>
     checks.push({ name, class: cls, ok, detail });
 
-  add('phi^-1 + phi^-2 = 1', 'A', Math.abs(PHI_INV + phiPow(-2) - 1) < 1e-15, `${PHI_INV + phiPow(-2)}`);
+  add(
+    'phi^-1 + phi^-2 = 1',
+    'A',
+    Math.abs(PHI_INV + phiPow(-2) - 1) < 1e-15,
+    `${PHI_INV + phiPow(-2)}`,
+  );
   add('psi = -phi^-1', 'A', Math.abs(PSI + PHI_INV) < 1e-15, `${PSI}`);
   add('kappa*phi*pi = 1', 'A', Math.abs(KAPPA * PHI * Math.PI - 1) < 1e-15, `${KAPPA}`);
   const cycle = lucasMod13Cycle();
   add('L_n mod 13 has no zero residue', 'A', !cycle.includes(0), cycle.join(','));
   const rungs = stableRungsMod28();
-  add('four stable rungs {1,13,15,27} (F1)', 'A', rungs.join(',') === '1,13,15,27', rungs.join(','));
-  add('heartbeat gaps {12,2,12,2}', 'A', heartbeatGaps().join(',') === '12,2,12,2', heartbeatGaps().join(','));
-  add('flux window first entered at n=13 (F2)', 'A', fluxFirstInWindow() === 13, `${fluxFirstInWindow()}`);
+  add(
+    'four stable rungs {1,13,15,27} (F1)',
+    'A',
+    rungs.join(',') === '1,13,15,27',
+    rungs.join(','),
+  );
+  add(
+    'heartbeat gaps {12,2,12,2}',
+    'A',
+    heartbeatGaps().join(',') === '12,2,12,2',
+    heartbeatGaps().join(','),
+  );
+  add(
+    'flux window first entered at n=13 (F2)',
+    'A',
+    fluxFirstInWindow() === 13,
+    `${fluxFirstInWindow()}`,
+  );
   add(
     'Metatron spectrum round(phi^k)',
     'A',
@@ -226,7 +251,12 @@ export function substrateParity(): ParityCheck[] {
     metatronSpectrum().join(','),
   );
   add('carrier dim = 2*(13+1) = 28', 'A', CARRIER_DIM === 28, `${CARRIER_DIM}`);
-  add('promotion threshold = ceil(phi^4) = 7', 'A', PROMOTION_THRESHOLD === 7, `${PROMOTION_THRESHOLD}`);
+  add(
+    'promotion threshold = ceil(phi^4) = 7',
+    'A',
+    PROMOTION_THRESHOLD === 7,
+    `${PROMOTION_THRESHOLD}`,
+  );
   add(
     'consolidation cosine = 1 - phi^-3',
     'A',
@@ -234,8 +264,18 @@ export function substrateParity(): ParityCheck[] {
     `${CONSOLIDATION_COS}`,
   );
   add('SNS(4) = 4*phi', 'A', Math.abs(sns(4) - 4 * PHI) < 1e-15, `${sns(4)}`);
-  add('resonance floor is Class C (empirical)', 'C', EMPIRICAL_CONSTANTS.RESONANCE_FLOOR.class === 'C', `${RESONANCE_FLOOR}`);
-  add('stress threshold is Class C (empirical)', 'C', EMPIRICAL_CONSTANTS.STRESS_THRESHOLD.class === 'C', `${STRESS_THRESHOLD}`);
+  add(
+    'resonance floor is Class C (empirical)',
+    'C',
+    EMPIRICAL_CONSTANTS.RESONANCE_FLOOR.class === 'C',
+    `${RESONANCE_FLOOR}`,
+  );
+  add(
+    'stress threshold is Class C (empirical)',
+    'C',
+    EMPIRICAL_CONSTANTS.STRESS_THRESHOLD.class === 'C',
+    `${STRESS_THRESHOLD}`,
+  );
   return checks;
 }
 

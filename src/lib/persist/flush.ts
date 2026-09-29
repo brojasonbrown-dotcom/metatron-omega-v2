@@ -17,7 +17,11 @@ let installed = false;
 
 function runAll(): void {
   for (const fn of flushers) {
-    try { fn(); } catch { /* a failing flusher must not block the others */ }
+    try {
+      fn();
+    } catch {
+      /* a failing flusher must not block the others */
+    }
   }
 }
 
@@ -35,11 +39,15 @@ function install(): void {
 export function registerFlush(fn: FlushFn): () => void {
   install();
   flushers.add(fn);
-  return () => { flushers.delete(fn); };
+  return () => {
+    flushers.delete(fn);
+  };
 }
 
 /** Force every registered flush now (used by tests and explicit saves). */
-export function flushAll(): void { runAll(); }
+export function flushAll(): void {
+  runAll();
+}
 
 /**
  * A tiny debounced-writer helper: coalesces bursts of writes into one, and
@@ -50,16 +58,26 @@ export function makeDebouncedWriter(write: () => void, delayMs = 600) {
   let pending = false;
 
   const flush = () => {
-    if (timer != null) { clearTimeout(timer); timer = null; }
+    if (timer != null) {
+      clearTimeout(timer);
+      timer = null;
+    }
     if (!pending) return;
     pending = false;
-    try { write(); } catch { /* never throw from a save path */ }
+    try {
+      write();
+    } catch {
+      /* never throw from a save path */
+    }
   };
 
   const schedule = () => {
     pending = true;
     if (timer != null) return;
-    timer = setTimeout(() => { timer = null; flush(); }, delayMs);
+    timer = setTimeout(() => {
+      timer = null;
+      flush();
+    }, delayMs);
   };
 
   registerFlush(flush);
@@ -72,11 +90,17 @@ export function readJSON<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
     return raw == null ? fallback : (JSON.parse(raw) as T);
-  } catch { return fallback; }
+  } catch {
+    return fallback;
+  }
 }
 
 /** Write a JSON value to localStorage, never throwing (quota-safe). */
 export function writeJSON(key: string, value: unknown): void {
   if (typeof localStorage === 'undefined') return;
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* quota */ }
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* quota */
+  }
 }

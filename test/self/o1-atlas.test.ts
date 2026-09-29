@@ -24,7 +24,9 @@ function registryIds(): string[] {
   return [...ids].sort();
 }
 
-function fakeRegistry(states: Record<string, SelfRegistry['modules'][number]['state']>): SelfRegistry {
+function fakeRegistry(
+  states: Record<string, SelfRegistry['modules'][number]['state']>,
+): SelfRegistry {
   const modules = CAPABILITY_ATLAS.map((e) => ({
     id: e.id,
     title: e.id,
@@ -105,11 +107,19 @@ describe('Ω-MAP · capability atlas integrity', () => {
 });
 
 describe('Ω-MAP · cross-map', () => {
-  const reg = fakeRegistry({ 'engine.host': 'live', 'engine.field': 'live', 'engine.mind': 'absent' });
+  const reg = fakeRegistry({
+    'engine.host': 'live',
+    'engine.field': 'live',
+    'engine.mind': 'absent',
+  });
 
   it('is deterministic for the same inputs', () => {
     const a = JSON.stringify(crossMap(reg));
-    const b = JSON.stringify(crossMap(fakeRegistry({ 'engine.host': 'live', 'engine.field': 'live', 'engine.mind': 'absent' })));
+    const b = JSON.stringify(
+      crossMap(
+        fakeRegistry({ 'engine.host': 'live', 'engine.field': 'live', 'engine.mind': 'absent' }),
+      ),
+    );
     expect(a).toBe(b);
   });
 
@@ -130,7 +140,11 @@ describe('Ω-MAP · cross-map', () => {
   });
 
   it('marks a missing registry entry unknown rather than inventing a state', () => {
-    const m = crossMap({ builtAt: 0, modules: [], counts: { live: 0, dormant: 0, absent: 0, stale: 0 } });
+    const m = crossMap({
+      builtAt: 0,
+      modules: [],
+      counts: { live: 0, dormant: 0, absent: 0, stale: 0 },
+    });
     expect(new Set(Object.values(m.states))).toEqual(new Set(['unknown']));
     expect(m.edges.every((e) => e.status === 'unknown')).toBe(true);
   });
@@ -155,7 +169,9 @@ describe('Ω-MAP · cross-map', () => {
 
   it('counts agree with the arrays they summarise', () => {
     const m = crossMap(reg);
-    expect(m.counts.wired + m.counts.cold + m.counts.broken + m.counts.unknown).toBe(m.edges.length);
+    expect(m.counts.wired + m.counts.cold + m.counts.broken + m.counts.unknown).toBe(
+      m.edges.length,
+    );
     expect(m.counts.gaps).toBe(m.gaps.length);
     expect(m.counts.opportunities).toBe(m.opportunities.length);
   });

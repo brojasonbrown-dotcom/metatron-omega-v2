@@ -7,23 +7,22 @@
  * That collapses the prior dual "Conversation/Technical mode" UX into a
  * single send() — see ToolsPanel.tsx.
  */
-import { useServerFn } from "@tanstack/react-start";
-import { dispatchTool } from "./tools/dispatch.functions";
-import { parseToolMarkers } from "./toolMarkers";
-import type { ChatMessage, ChatModel, EngineSnapshot, ToolResult } from "./types";
-import type { MemoryPack } from "./memoryPack";
-import type { SelfPack } from "./selfPack";
+import { useServerFn } from '@tanstack/react-start';
+import { dispatchTool } from './tools/dispatch.functions';
+import { parseToolMarkers } from './toolMarkers';
+import type { ChatMessage, ChatModel, EngineSnapshot, ToolResult } from './types';
+import type { MemoryPack } from './memoryPack';
+import type { SelfPack } from './selfPack';
 
 export function isAgenticModel(model: ChatModel): boolean {
   // Both Moonshot/Kimi and OpenAI GPT-5 series route through /api/kimi so
   // tool loops execute natively against the correct provider API key.
   return (
-    model.startsWith("moonshot/") ||
+    model.startsWith('moonshot/') ||
     /^openai\/gpt-5/.test(model) ||
     /^google\/gemini-3\.(1|6)/.test(model)
   );
 }
-
 
 export interface StreamArgs {
   messages: ChatMessage[];
@@ -38,11 +37,16 @@ export interface StreamArgs {
 }
 
 export async function streamChat(args: StreamArgs): Promise<{ full: string }> {
-  const resp = await fetch("/api/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  const resp = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      messages: args.messages.map((m) => ({ id: m.id, role: m.role, content: m.content, createdAt: m.createdAt })),
+      messages: args.messages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        createdAt: m.createdAt,
+      })),
       model: args.model,
       snapshot: args.snapshot,
       memory: args.memory ?? null,
@@ -51,34 +55,44 @@ export async function streamChat(args: StreamArgs): Promise<{ full: string }> {
     signal: args.signal,
   });
   if (!resp.ok || !resp.body) {
-    let err = "chat error";
-    try { err = (await resp.json()).error ?? err; } catch { /* ignore */ }
+    let err = 'chat error';
+    try {
+      err = (await resp.json()).error ?? err;
+    } catch {
+      /* ignore */
+    }
     throw new Error(err);
   }
   const reader = resp.body.getReader();
   const dec = new TextDecoder();
-  let buf = "";
-  let full = "";
+  let buf = '';
+  let full = '';
   let done = false;
   while (!done) {
     const { done: d, value } = await reader.read();
     if (d) break;
     buf += dec.decode(value, { stream: true });
     let nl: number;
-    while ((nl = buf.indexOf("\n")) !== -1) {
+    while ((nl = buf.indexOf('\n')) !== -1) {
       let line = buf.slice(0, nl);
       buf = buf.slice(nl + 1);
-      if (line.endsWith("\r")) line = line.slice(0, -1);
-      if (!line.startsWith("data: ")) continue;
+      if (line.endsWith('\r')) line = line.slice(0, -1);
+      if (!line.startsWith('data: ')) continue;
       const json = line.slice(6).trim();
-      if (json === "[DONE]") { done = true; break; }
+      if (json === '[DONE]') {
+        done = true;
+        break;
+      }
       try {
         const parsed = JSON.parse(json);
         const c = parsed.choices?.[0]?.delta?.content as string | undefined;
-        if (c) { full += c; args.onDelta(c); }
+        if (c) {
+          full += c;
+          args.onDelta(c);
+        }
       } catch {
         // partial JSON spans chunks; put back and wait
-        buf = line + "\n" + buf;
+        buf = line + '\n' + buf;
         break;
       }
     }
@@ -107,7 +121,7 @@ export interface KimiOptions {
   maxIterations?: number;
   disabledTools?: string[];
   temperature?: number;
-  toolChoice?: "auto" | "required" | "none";
+  toolChoice?: 'auto' | 'required' | 'none';
   /** on-device memory working set recalled before the turn */
   memory?: MemoryPack | null;
   /** on-device self registry measured before the turn */
@@ -117,12 +131,12 @@ export interface KimiOptions {
 export async function runKimi(
   goal: string,
   snapshot: EngineSnapshot,
-  model: ChatModel = "google/gemini-3.6-flash",
+  model: ChatModel = 'google/gemini-3.6-flash',
   options: KimiOptions = {},
 ): Promise<KimiRunResult> {
-  const resp = await fetch("/api/kimi", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  const resp = await fetch('/api/kimi', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       goal,
       snapshot,
@@ -136,7 +150,7 @@ export async function runKimi(
     }),
   });
   if (!resp.ok) {
-    const txt = await resp.text().catch(() => "");
+    const txt = await resp.text().catch(() => '');
     let msg = `Kimi request failed (${resp.status})`;
     try {
       const j = JSON.parse(txt) as { error?: string; detail?: string };
@@ -152,7 +166,7 @@ export async function runKimi(
       error: msg,
     };
   }
-  const result = await resp.json() as KimiRunResult;
+  const result = (await resp.json()) as KimiRunResult;
   // Upstream returned 200 but the loop itself failed (e.g. Kimi 400/429 inside a trace step).
   if (!result.finalAnswer && !result.error) {
     const lastErr = [...(result.trace ?? [])].reverse().find((s) => s.error)?.error;
@@ -160,7 +174,6 @@ export async function runKimi(
   }
   return result;
 }
-
 
 export { parseToolMarkers };
 

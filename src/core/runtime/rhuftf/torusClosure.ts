@@ -16,23 +16,36 @@
  * delayed buffer and decides what, if anything, to do with the residual.
  */
 
-interface NAcc { s: number; c: number; }
-function nAcc(): NAcc { return { s: 0, c: 0 }; }
+interface NAcc {
+  s: number;
+  c: number;
+}
+function nAcc(): NAcc {
+  return { s: 0, c: 0 };
+}
 function nAdd(a: NAcc, x: number): void {
   if (!Number.isFinite(x)) return;
   const s = a.s;
   const t = s + x;
-  a.c += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+  a.c += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
   a.s = t;
 }
-function nVal(a: NAcc): number { return a.s + a.c; }
+function nVal(a: NAcc): number {
+  return a.s + a.c;
+}
 
 /** Deterministic linear resample of `src` onto `dst.length` nodes. */
 export function projectOnto(src: Float64Array, dst: Float64Array): void {
   const n = dst.length;
   const m = src.length;
-  if (m === 0) { dst.fill(0); return; }
-  if (m === 1) { dst.fill(src[0]); return; }
+  if (m === 0) {
+    dst.fill(0);
+    return;
+  }
+  if (m === 1) {
+    dst.fill(src[0]);
+    return;
+  }
   for (let i = 0; i < n; i++) {
     const x = (i * (m - 1)) / Math.max(1, n - 1);
     const i0 = Math.floor(x);
@@ -71,7 +84,7 @@ export interface RingReport {
 }
 
 /** |ψ| = φ⁻¹, the Pisot conjugate magnitude. */
-const PSI_ABS = 0.6180339887498948482045868343656381;
+const PSI_ABS = 0.6180339887498949; // exact: 0.6180339887498948482045868343656381
 const LN_PHI = Math.log(1 / PSI_ABS);
 
 /** Irreducible closure defect at rung n, floored at machine epsilon. */
@@ -109,11 +122,15 @@ export class TorusLoop {
     if (!prev) {
       this.residualVec.fill(0);
       return {
-        residual: NaN, gain: NaN, vector: this.residualVec, primed: false,
-        floor, floorLimited: false, margin: NaN,
+        residual: NaN,
+        gain: NaN,
+        vector: this.residualVec,
+        primed: false,
+        floor,
+        floorLimited: false,
+        margin: NaN,
       };
     }
-
 
     projectOnto(prev, this.projected);
 
@@ -123,7 +140,8 @@ export class TorusLoop {
     const g = Number.isFinite(gain) ? gain : 0;
 
     const n = Math.min(base.length, this.projected.length, this.residualVec.length);
-    const acc = nAcc(); const den = nAcc();
+    const acc = nAcc();
+    const den = nAcc();
     for (let i = 0; i < n; i++) {
       const d = base[i] - g * this.projected[i];
       this.residualVec[i] = d;
@@ -141,7 +159,6 @@ export class TorusLoop {
       floorLimited: Number.isFinite(residual) && residual <= floor,
       margin: Number.isFinite(residual) && residual > 0 ? Math.log(residual / floor) / LN_PHI : NaN,
     };
-
   }
 
   reset(): void {
@@ -225,11 +242,12 @@ export class RingWindow {
     const last = n > 0 ? this.buf[n - 1] : NaN;
     let violation = -1;
     for (let i = 1; i < n; i++) {
-      if (this.buf[i] > this.buf[i - 1] && this.buf[i] > this.floor) { violation = i; break; }
+      if (this.buf[i] > this.buf[i - 1] && this.buf[i] > this.floor) {
+        violation = i;
+        break;
+      }
     }
-    const decay = n > 1 && first > 0 && last > 0
-      ? Math.log(last / first) / LN_PHI / (n - 1)
-      : NaN;
+    const decay = n > 1 && first > 0 && last > 0 ? Math.log(last / first) / LN_PHI / (n - 1) : NaN;
     return {
       stable: n === this.window && violation === -1,
       count: n,
@@ -242,5 +260,7 @@ export class RingWindow {
     };
   }
 
-  reset(): void { this.buf.length = 0; }
+  reset(): void {
+    this.buf.length = 0;
+  }
 }

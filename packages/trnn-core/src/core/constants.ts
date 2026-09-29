@@ -32,7 +32,7 @@ export function phiPow(n: number): number {
  * (Math.pow gives ...633018, repeated multiply ...633011); the true value is
  * 0.0344418537486330266596288467532955303640193374749172077608320951683860166...
  */
-export const PHI_INV_7 = 0.03444185374863302665962884675329553;
+export const PHI_INV_7 = 0.034441853748633025; // exact: 0.03444185374863302665962884675329553
 
 /** [MATH] closure coupling kappa = 1/(phi*pi); kappa*phi*pi = 1 exactly (Wolfram cert C6). */
 export const KAPPA = 1 / (PHI * Math.PI);
@@ -188,4 +188,3 @@ export function magneticPhase(bias: number): number {
 export function qrfAttenuation(n: number): number {
   return n === 0 ? 1 : phiPow(-n / ENV.qrfDivisor);
 }
-

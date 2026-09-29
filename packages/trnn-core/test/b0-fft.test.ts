@@ -16,7 +16,10 @@ function probe(n: number): { re: Float64Array; im: Float64Array } {
   return { re, im };
 }
 
-function relErr(a: { re: Float64Array; im: Float64Array }, b: { re: Float64Array; im: Float64Array }): number {
+function relErr(
+  a: { re: Float64Array; im: Float64Array },
+  b: { re: Float64Array; im: Float64Array },
+): number {
   let num = 0;
   let den = 0;
   for (let i = 0; i < a.re.length; i++) {

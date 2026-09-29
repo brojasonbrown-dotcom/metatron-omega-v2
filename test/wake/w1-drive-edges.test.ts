@@ -77,7 +77,11 @@ describe('W2 — memory drive edge', () => {
     expect(store.stats().tapeFrames).toBe(0);
     for (let t = 1; t <= 64; t++) {
       const out = outputFromSnapshot(
-        snap({ tick: t, coherence: 0.5 + 0.1 * Math.sin(t / 5), energy: 0.3 + 0.05 * Math.cos(t / 3) }),
+        snap({
+          tick: t,
+          coherence: 0.5 + 0.1 * Math.sin(t / 5),
+          energy: 0.3 + 0.05 * Math.cos(t / 3),
+        }),
       );
       tickMemory(out, store, t);
     }

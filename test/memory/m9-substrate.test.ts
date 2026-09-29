@@ -8,8 +8,14 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  measureResonance, crossScaleAffinity, recencyScore, ageBand,
-  resonanceDecayFactor, RESONANCE_FLOOR, cosineDense, PHI_INV,
+  measureResonance,
+  crossScaleAffinity,
+  recencyScore,
+  ageBand,
+  resonanceDecayFactor,
+  RESONANCE_FLOOR,
+  cosineDense,
+  PHI_INV,
 } from '@/core/memory/Resonance';
 import { fibonacciBandedSelect, bandQuota } from '@/core/memory/Banding';
 import { consolidate, prunableKeys, PROTOTYPE_COS } from '@/core/memory/Consolidator';
@@ -43,7 +49,10 @@ describe('resonance — abstention semantics', () => {
   });
 
   it('one measured-dead channel vetoes the whole score', () => {
-    const r = measureResonance({ capturedAt: NOW }, { coherence: 0, closure: 1, rung: -1, now: NOW });
+    const r = measureResonance(
+      { capturedAt: NOW },
+      { coherence: 0, closure: 1, rung: -1, now: NOW },
+    );
     expect(r.value).toBe(0);
     expect(r.vetoId).toBe('coherence');
   });
@@ -61,8 +70,14 @@ describe('resonance — abstention semantics', () => {
   });
 
   it('weakening one channel strictly weakens the fused score', () => {
-    const strong = measureResonance({ capturedAt: NOW, rung: 2 }, { coherence: 0.9, closure: 0.9, rung: 2, now: NOW });
-    const weak = measureResonance({ capturedAt: NOW, rung: 2 }, { coherence: 0.9, closure: 0.2, rung: 2, now: NOW });
+    const strong = measureResonance(
+      { capturedAt: NOW, rung: 2 },
+      { coherence: 0.9, closure: 0.9, rung: 2, now: NOW },
+    );
+    const weak = measureResonance(
+      { capturedAt: NOW, rung: 2 },
+      { coherence: 0.9, closure: 0.2, rung: 2, now: NOW },
+    );
     expect(weak.value).toBeLessThan(strong.value);
   });
 });
@@ -114,7 +129,7 @@ describe('Fibonacci banding — age fairness', () => {
   it('gives every non-empty band at least one slot', () => {
     const items = [
       ...Array.from({ length: 50 }, (_, i) => mk(0, 0.9 - i * 0.001, `f${i}`)),
-      mk(6, 0.10, 'ancient'),
+      mk(6, 0.1, 'ancient'),
       mk(4, 0.12, 'old'),
     ];
     const picked = fibonacciBandedSelect(items, 12);
@@ -191,13 +206,19 @@ describe('consolidation — annotate, never destroy', () => {
   });
 
   it('never prunes a weight above the emergent floor', () => {
-    const w = new Map([['keep', RESONANCE_FLOOR * 2], ['drop', RESONANCE_FLOOR / 2], ['nan', NaN]]);
+    const w = new Map([
+      ['keep', RESONANCE_FLOOR * 2],
+      ['drop', RESONANCE_FLOOR / 2],
+      ['nan', NaN],
+    ]);
     expect(prunableKeys(w)).toEqual(['drop', 'nan']);
   });
 
   it('is deterministic', () => {
     const items = [
-      { id: 'a', vec: dup() }, { id: 'b', vec: near() }, { id: 'c', vec: vec(0, 0, 1, 0) },
+      { id: 'a', vec: dup() },
+      { id: 'b', vec: near() },
+      { id: 'c', vec: vec(0, 0, 1, 0) },
     ];
     const x = JSON.stringify(consolidate(items));
     const y = JSON.stringify(consolidate([...items].reverse()));
@@ -210,9 +231,12 @@ describe('KnowledgeBase — no regression from resonance/banding', () => {
     const kb = new KnowledgeBase();
     for (let i = 0; i < 6; i++) {
       kb.ingest({
-        field: 'law', url: `https://example.test/${i}`, title: `doc ${i}`,
+        field: 'law',
+        url: `https://example.test/${i}`,
+        title: `doc ${i}`,
         text: `corporate governance duty of care number ${i}. `.repeat(60),
-        now: NOW - i * 60_000, rung: i % 3,
+        now: NOW - i * 60_000,
+        rung: i % 3,
       });
     }
     return kb;
@@ -233,7 +257,11 @@ describe('KnowledgeBase — no regression from resonance/banding', () => {
 
   it('measures resonance when a field context is supplied', () => {
     const hits = build().recall('governance duty', 5, undefined, {
-      coherence: 0.8, closure: 0.9, rung: 1, vector: null, now: NOW,
+      coherence: 0.8,
+      closure: 0.9,
+      rung: 1,
+      vector: null,
+      now: NOW,
     });
     expect(hits.every((h) => Number.isFinite(h.resonance))).toBe(true);
     expect(hits.every((h) => h.resonance > 0 && h.resonance <= 1)).toBe(true);

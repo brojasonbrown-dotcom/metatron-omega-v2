@@ -335,68 +335,88 @@ describe('R3.6 DML partially linear model', () => {
     return made;
   }
 
-  it('recovers θ under strong non-linear confounding', () => {
-    const { X, d, y } = confounded(1.25);
-    const r = dmlPartialLinear(y, d, X, p, { folds: 5, trees: 24, minLeaf: 5, maxDepth: 8 });
-    expect(r.abstained).toBe(false);
-    expect(r.theta as number).toBeCloseTo(1.25, 1);
-    expect(r.se as number).toBeGreaterThan(0);
-    expect((r.ci as [number, number])[0]).toBeLessThan(1.25);
-    expect((r.ci as [number, number])[1]).toBeGreaterThan(1.25);
-    expect(r.p as number).toBeLessThan(1e-6);
-  }, SLOW);
+  it(
+    'recovers θ under strong non-linear confounding',
+    () => {
+      const { X, d, y } = confounded(1.25);
+      const r = dmlPartialLinear(y, d, X, p, { folds: 5, trees: 24, minLeaf: 5, maxDepth: 8 });
+      expect(r.abstained).toBe(false);
+      expect(r.theta as number).toBeCloseTo(1.25, 1);
+      expect(r.se as number).toBeGreaterThan(0);
+      expect((r.ci as [number, number])[0]).toBeLessThan(1.25);
+      expect((r.ci as [number, number])[1]).toBeGreaterThan(1.25);
+      expect(r.p as number).toBeLessThan(1e-6);
+    },
+    SLOW,
+  );
 
-  it('beats the naive confounded OLS estimate', () => {
-    const { X, d, y } = confounded(1.25);
-    const Xl = new Float64Array(n * 2);
-    for (let i = 0; i < n; i++) {
-      Xl[i * 2] = 1;
-      Xl[i * 2 + 1] = d[i];
-    }
-    const naive = olsFit(Xl, y, n, 2).beta[1];
-    const dml = dmlPartialLinear(y, d, X, p, { folds: 5, trees: 24 }).theta as number;
-    expect(Math.abs(dml - 1.25)).toBeLessThan(Math.abs(naive - 1.25));
-  }, SLOW);
+  it(
+    'beats the naive confounded OLS estimate',
+    () => {
+      const { X, d, y } = confounded(1.25);
+      const Xl = new Float64Array(n * 2);
+      for (let i = 0; i < n; i++) {
+        Xl[i * 2] = 1;
+        Xl[i * 2 + 1] = d[i];
+      }
+      const naive = olsFit(Xl, y, n, 2).beta[1];
+      const dml = dmlPartialLinear(y, d, X, p, { folds: 5, trees: 24 }).theta as number;
+      expect(Math.abs(dml - 1.25)).toBeLessThan(Math.abs(naive - 1.25));
+    },
+    SLOW,
+  );
 
-  it('reports a null effect honestly when θ = 0', () => {
-    const { X, d, y } = confounded(0);
-    const r = dmlPartialLinear(y, d, X, p, { folds: 5, trees: 24 });
-    expect(Math.abs(r.theta as number)).toBeLessThan(0.15);
-    expect((r.ci as [number, number])[0]).toBeLessThan(0);
-    expect((r.ci as [number, number])[1]).toBeGreaterThan(0);
-  }, SLOW);
+  it(
+    'reports a null effect honestly when θ = 0',
+    () => {
+      const { X, d, y } = confounded(0);
+      const r = dmlPartialLinear(y, d, X, p, { folds: 5, trees: 24 });
+      expect(Math.abs(r.theta as number)).toBeLessThan(0.15);
+      expect((r.ci as [number, number])[0]).toBeLessThan(0);
+      expect((r.ci as [number, number])[1]).toBeGreaterThan(0);
+    },
+    SLOW,
+  );
 
-  it('abstains below the floor and when the treatment has no residual variation', () => {
-    const short = dmlPartialLinear(
-      new Float64Array(10),
-      new Float64Array(10),
-      new Float64Array(10 * p),
-      p,
-      {},
-    );
-    expect(short.abstained).toBe(true);
-    expect(short.theta).toBeNull();
-    expect(short.reason).toContain('floor');
+  it(
+    'abstains below the floor and when the treatment has no residual variation',
+    () => {
+      const short = dmlPartialLinear(
+        new Float64Array(10),
+        new Float64Array(10),
+        new Float64Array(10 * p),
+        p,
+        {},
+      );
+      expect(short.abstained).toBe(true);
+      expect(short.theta).toBeNull();
+      expect(short.reason).toContain('floor');
 
-    const m = 200;
-    const X = new Float64Array(m * 1);
-    const d = new Float64Array(m);
-    const y = new Float64Array(m);
-    for (let i = 0; i < m; i++) {
-      X[i] = i / m;
-      d[i] = 0; // constant treatment: no variation to exploit
-      y[i] = X[i];
-    }
-    const flat = dmlPartialLinear(y, d, X, 1, { folds: 5, trees: 8 });
-    expect(flat.abstained).toBe(true);
-    expect(flat.theta).toBeNull();
-  }, SLOW);
+      const m = 200;
+      const X = new Float64Array(m * 1);
+      const d = new Float64Array(m);
+      const y = new Float64Array(m);
+      for (let i = 0; i < m; i++) {
+        X[i] = i / m;
+        d[i] = 0; // constant treatment: no variation to exploit
+        y[i] = X[i];
+      }
+      const flat = dmlPartialLinear(y, d, X, 1, { folds: 5, trees: 8 });
+      expect(flat.abstained).toBe(true);
+      expect(flat.theta).toBeNull();
+    },
+    SLOW,
+  );
 
-  it('is deterministic across repeated fits', () => {
-    const { X, d, y } = confounded(0.8);
-    const a = dmlPartialLinear(y, d, X, p, { folds: 4, trees: 16, seed: 'r3/dml/fixed' });
-    const b = dmlPartialLinear(y, d, X, p, { folds: 4, trees: 16, seed: 'r3/dml/fixed' });
-    expect(a.theta).toBe(b.theta);
-    expect(a.se).toBe(b.se);
-  }, SLOW);
+  it(
+    'is deterministic across repeated fits',
+    () => {
+      const { X, d, y } = confounded(0.8);
+      const a = dmlPartialLinear(y, d, X, p, { folds: 4, trees: 16, seed: 'r3/dml/fixed' });
+      const b = dmlPartialLinear(y, d, X, p, { folds: 4, trees: 16, seed: 'r3/dml/fixed' });
+      expect(a.theta).toBe(b.theta);
+      expect(a.se).toBe(b.se);
+    },
+    SLOW,
+  );
 });

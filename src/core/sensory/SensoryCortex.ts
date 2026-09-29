@@ -17,7 +17,12 @@
  *     so cross-modal comparisons are allocation-free.
  */
 
-import { PhiLattice, governorLatticeN, LATTICE_CONSTANTS, type PhiLatticeReading } from './PhiLattice';
+import {
+  PhiLattice,
+  governorLatticeN,
+  LATTICE_CONSTANTS,
+  type PhiLatticeReading,
+} from './PhiLattice';
 import type { SensoryModality } from './SensoryAtom';
 
 // Vision-embed included so ViT semantic vectors participate in the shared
@@ -30,7 +35,7 @@ const HABIT_DECAY = 0.999;
 const HABIT_GROWTH = 0.02;
 const BIND_WINDOW_TICKS = 3;
 const BIND_THRESHOLD = 0.45;
-const BIND_DIM = 89;                  // F₁₁ — shared cross-modal embedding size
+const BIND_DIM = 89; // F₁₁ — shared cross-modal embedding size
 const SURPRISE_BINS = 32;
 const HABIT_TIMELINE = 89;
 
@@ -54,8 +59,8 @@ export interface CortexModalityStats {
   closureBaseline: number;
   stableFraction: number;
   habit: number;
-  surpriseHistogram: number[];      // length SURPRISE_BINS, normalised
-  habitTimeline: number[];           // length HABIT_TIMELINE, ring
+  surpriseHistogram: number[]; // length SURPRISE_BINS, normalised
+  habitTimeline: number[]; // length HABIT_TIMELINE, ring
 }
 
 export interface CortexStats {
@@ -76,12 +81,12 @@ interface ModalityState {
   closureEMA: number;
   stableEMA: number;
   habit: number;
-  ping: Float32Array | null;        // double-buffered amp snapshots
+  ping: Float32Array | null; // double-buffered amp snapshots
   pong: Float32Array | null;
-  bindPing: Float32Array | null;     // double-buffered bind-space snapshots
+  bindPing: Float32Array | null; // double-buffered bind-space snapshots
   bindPong: Float32Array | null;
   useping: boolean;
-  bindProj: Float32Array | null;     // BIND_DIM × N projection matrix (row-major)
+  bindProj: Float32Array | null; // BIND_DIM × N projection matrix (row-major)
   lastTick: number;
   featureDim: number;
   surpriseHist: Float32Array;
@@ -97,15 +102,34 @@ export class SensoryCortex {
   readonly bindScore = new Map<string, number>();
 
   constructor() {
-    this.state = { audio: this.make(), video: this.make(), imu: this.make(), synthetic: this.make(), 'vision-embed': this.make() };
+    this.state = {
+      audio: this.make(),
+      video: this.make(),
+      imu: this.make(),
+      synthetic: this.make(),
+      'vision-embed': this.make(),
+    };
   }
 
   private make(): ModalityState {
     return {
-      lattice: null, predicted: null, alpha: PHI_INV, samples: 0,
-      coherenceEMA: 0, surpriseEMA: 0, closureEMA: 0, stableEMA: 0,
-      habit: 0, ping: null, pong: null, bindPing: null, bindPong: null,
-      useping: true, bindProj: null, lastTick: 0, featureDim: 0,
+      lattice: null,
+      predicted: null,
+      alpha: PHI_INV,
+      samples: 0,
+      coherenceEMA: 0,
+      surpriseEMA: 0,
+      closureEMA: 0,
+      stableEMA: 0,
+      habit: 0,
+      ping: null,
+      pong: null,
+      bindPing: null,
+      bindPong: null,
+      useping: true,
+      bindProj: null,
+      lastTick: 0,
+      featureDim: 0,
       surpriseHist: new Float32Array(SURPRISE_BINS),
       habitRing: new Float32Array(HABIT_TIMELINE),
       habitIdx: 0,
@@ -148,11 +172,11 @@ export class SensoryCortex {
     }
     const surprise = Math.min(1, Math.sqrt(err2 / N));
 
-
     // habituation
-    st.habit = surprise > 0.1
-      ? Math.max(0, st.habit - HABIT_GROWTH * 0.5)
-      : Math.min(1, st.habit * HABIT_DECAY + HABIT_GROWTH * (1 - surprise));
+    st.habit =
+      surprise > 0.1
+        ? Math.max(0, st.habit - HABIT_GROWTH * 0.5)
+        : Math.min(1, st.habit * HABIT_DECAY + HABIT_GROWTH * (1 - surprise));
     const novelty = Math.max(0.05, 1 - st.habit * 0.85);
 
     st.coherenceEMA = 0.9 * st.coherenceEMA + 0.1 * reading.coherenceMean;
@@ -180,11 +204,12 @@ export class SensoryCortex {
     const bindSnap = st.useping ? st.bindPing! : st.bindPong!;
     projectInto(amps, st.bindProj!, BIND_DIM, bindSnap);
 
-    const arousal = Math.min(1,
+    const arousal = Math.min(
+      1,
       reading.coherenceMean * 0.4 +
-      surprise * 0.3 +
-      novelty * 0.15 +
-      Math.min(1, reading.anomaly / Math.max(1e-9, reading.closureBaseline)) * 0.15,
+        surprise * 0.3 +
+        novelty * 0.15 +
+        Math.min(1, reading.anomaly / Math.max(1e-9, reading.closureBaseline)) * 0.15,
     );
 
     // cross-modal binding via shared bind space
@@ -220,7 +245,8 @@ export class SensoryCortex {
       for (let i = 0; i < SURPRISE_BINS; i++) hist[i] = sum > 0 ? s.surpriseHist[i] / sum : 0;
       // habit timeline in chronological order
       const tl: number[] = new Array(HABIT_TIMELINE);
-      for (let i = 0; i < HABIT_TIMELINE; i++) tl[i] = s.habitRing[(s.habitIdx + i) % HABIT_TIMELINE];
+      for (let i = 0; i < HABIT_TIMELINE; i++)
+        tl[i] = s.habitRing[(s.habitIdx + i) % HABIT_TIMELINE];
       perModality[m] = {
         samples: s.samples,
         latticeN: N,
@@ -289,8 +315,14 @@ function projectInto(amps: Float32Array, proj: Float32Array, K: number, out: Flo
 
 function cosineSim(a: Float32Array, b: Float32Array): number {
   const n = Math.min(a.length, b.length);
-  let dot = 0, na = 0, nb = 0;
-  for (let i = 0; i < n; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  let dot = 0,
+    na = 0,
+    nb = 0;
+  for (let i = 0; i < n; i++) {
+    dot += a[i] * b[i];
+    na += a[i] * a[i];
+    nb += b[i] * b[i];
+  }
   const d = Math.sqrt(na) * Math.sqrt(nb);
   return d > 1e-9 ? dot / d : 0;
 }

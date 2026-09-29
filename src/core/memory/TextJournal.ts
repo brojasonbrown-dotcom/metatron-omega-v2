@@ -25,17 +25,29 @@ export class TextJournal {
     if (this.buffer.length > this.cap) this.buffer.splice(0, this.buffer.length - this.cap);
   }
 
-  capacity(): number { return this.cap; }
+  capacity(): number {
+    return this.cap;
+  }
 
   append(rec: JournalRecord): void {
     this.buffer.push(rec);
     if (this.buffer.length > this.cap) this.buffer.splice(0, this.buffer.length - this.cap);
   }
 
-  tail(n = 10): JournalRecord[] { return this.buffer.slice(-n); }
-  size(): number { return this.buffer.length; }
-  all(): readonly JournalRecord[] { return this.buffer; }
+  tail(n = 10): JournalRecord[] {
+    return this.buffer.slice(-n);
+  }
+  size(): number {
+    return this.buffer.length;
+  }
+  all(): readonly JournalRecord[] {
+    return this.buffer;
+  }
 
-  snapshot(): JournalRecord[] { return this.buffer.map((r) => ({ ...r })); }
-  restore(snap: JournalRecord[]): void { this.buffer = snap.map((r) => ({ ...r })); }
+  snapshot(): JournalRecord[] {
+    return this.buffer.map((r) => ({ ...r }));
+  }
+  restore(snap: JournalRecord[]): void {
+    this.buffer = snap.map((r) => ({ ...r }));
+  }
 }

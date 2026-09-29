@@ -28,7 +28,10 @@ export function digits(n: number, base = 10): number[] {
   let m = Math.abs(Math.trunc(n));
   if (m === 0) return [0];
   const out: number[] = [];
-  while (m > 0) { out.push(m % base); m = Math.floor(m / base); }
+  while (m > 0) {
+    out.push(m % base);
+    m = Math.floor(m / base);
+  }
   return out.reverse();
 }
 
@@ -36,7 +39,6 @@ export function digits(n: number, base = 10): number[] {
 export function digitSum(n: number, base = 10): number {
   return digits(n, base).reduce((a, d) => a + d, 0);
 }
-
 
 export interface Fingerprint {
   readonly n: number;
@@ -51,7 +53,9 @@ export function fingerprint(n: number, bases: readonly number[] = FINGERPRINT_BA
   return { n, roots, key: roots.join('-') };
 }
 
-function gcd(a: number, b: number): number { return b === 0 ? a : gcd(b, a % b); }
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b);
+}
 
 /** lcm of (b−1) over the fingerprint bases — the CRT uniqueness modulus. */
 export function crtModulus(bases: readonly number[] = FINGERPRINT_BASES): number {
@@ -70,6 +74,9 @@ export function collisionPValue(observed: number, pairs: number, modulus = crtMo
   // P(X ≥ observed) = 1 − Σ_{k<observed} e^{−λ} λᵏ / k!
   let term = Math.exp(-lambda);
   let cum = term;
-  for (let k = 1; k < observed; k++) { term = (term * lambda) / k; cum += term; }
+  for (let k = 1; k < observed; k++) {
+    term = (term * lambda) / k;
+    cum += term;
+  }
   return Math.max(0, Math.min(1, 1 - cum));
 }

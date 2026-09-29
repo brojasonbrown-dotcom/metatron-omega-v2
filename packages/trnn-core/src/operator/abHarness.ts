@@ -96,8 +96,12 @@ function ratio(a: number, b: number): number {
 
 function verdict(name: string, legacy: number, op: number, higherIsBetter = false): ABVerdict {
   const improvement = higherIsBetter
-    ? (legacy > 0 ? op / legacy : Infinity)
-    : (op > 0 ? legacy / op : Infinity);
+    ? legacy > 0
+      ? op / legacy
+      : Infinity
+    : op > 0
+      ? legacy / op
+      : Infinity;
   return { name, legacy, operator: op, improvement, wins: improvement > 1 };
 }
 
@@ -106,7 +110,13 @@ export interface ABReport {
   readonly allWin: boolean;
 }
 
-export function runABSuite(f: CField, truth: CField, narrow: number, smooth: CField, rough: CField): ABReport {
+export function runABSuite(
+  f: CField,
+  truth: CField,
+  narrow: number,
+  smooth: CField,
+  rough: CField,
+): ABReport {
   const verdicts = [abDerivative(f, truth), abTransfer(f, narrow), abMetric(f, smooth, rough)];
   return { verdicts, allWin: verdicts.every((v) => v.wins) };
 }

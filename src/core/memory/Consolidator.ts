@@ -93,10 +93,10 @@ export function mergeAdmissible(
 }
 
 /** Cosine at or above this counts as the same thing said twice. */
-export const PROTOTYPE_COS = 1 - PHI_INV * PHI_INV * PHI_INV;   // ≈ 0.7639
+export const PROTOTYPE_COS = 1 - PHI_INV * PHI_INV * PHI_INV; // ≈ 0.7639
 
 /** Lexically overlapping but vectorially opposed ⇒ a contradiction candidate. */
-export const CONTRADICTION_COS = -PHI_INV * PHI_INV;            // ≈ -0.382
+export const CONTRADICTION_COS = -PHI_INV * PHI_INV; // ≈ -0.382
 
 export interface ConsolidationItem {
   readonly id: string;
@@ -134,7 +134,10 @@ export interface ConsolidationReport {
    * raises retrieval energy would make both memories harder to reach.
    */
   readonly energyRejected: ReadonlyArray<{
-    prototypeId: string; memberId: string; deltaE: number; margin: number;
+    prototypeId: string;
+    memberId: string;
+    deltaE: number;
+    margin: number;
   }>;
 }
 
@@ -158,7 +161,10 @@ export function consolidate(
   const contradictions: Contradiction[] = [];
   const redundantIds: string[] = [];
   const energyRejected: Array<{
-    prototypeId: string; memberId: string; deltaE: number; margin: number;
+    prototypeId: string;
+    memberId: string;
+    deltaE: number;
+    margin: number;
   }> = [];
   const assigned = new Set<string>();
   let compared = 0;
@@ -175,7 +181,10 @@ export function consolidate(
 
     for (const other of ordered) {
       if (other.id === seed.id || assigned.has(other.id)) continue;
-      if (compared >= budget) { exhausted = true; break; }
+      if (compared >= budget) {
+        exhausted = true;
+        break;
+      }
       compared++;
       const cos = cosineDense(seed.vec, other.vec);
       if (!Number.isFinite(cos)) continue;
@@ -193,8 +202,10 @@ export function consolidate(
         const verdict = mergeAdmissible(seed.vec, other.vec, competitors);
         if (!verdict.admitted) {
           energyRejected.push({
-            prototypeId: seed.id, memberId: other.id,
-            deltaE: verdict.deltaE, margin: verdict.margin,
+            prototypeId: seed.id,
+            memberId: other.id,
+            deltaE: verdict.deltaE,
+            margin: verdict.margin,
           });
           continue;
         }
@@ -222,14 +233,24 @@ export function consolidate(
     if (exhausted) break;
   }
 
-  return { clusters, contradictions, compared, budgetExhausted: exhausted, redundantIds, energyRejected };
+  return {
+    clusters,
+    contradictions,
+    compared,
+    budgetExhausted: exhausted,
+    redundantIds,
+    energyRejected,
+  };
 }
 
 /**
  * Weights at or below the emergent floor carry no structure and are pruned.
  * Returns the keys to drop — the caller owns the mutation.
  */
-export function prunableKeys(weights: ReadonlyMap<string, number>, floor = EMERGENT_FLOOR): string[] {
+export function prunableKeys(
+  weights: ReadonlyMap<string, number>,
+  floor = EMERGENT_FLOOR,
+): string[] {
   const out: string[] = [];
   for (const [k, w] of weights) if (!Number.isFinite(w) || Math.abs(w) <= floor) out.push(k);
   return out.sort();

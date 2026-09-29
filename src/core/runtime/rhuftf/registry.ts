@@ -25,10 +25,16 @@
 
 import type { ScaleShape } from '../ShadowStateTape';
 import type {
-  ScaleMeasurement, ScaleBand, SensorPassband, ScaleBinding, ScaleDimension,
+  ScaleMeasurement,
+  ScaleBand,
+  SensorPassband,
+  ScaleBinding,
+  ScaleDimension,
 } from './ScaleMeasurement';
 import {
-  scaleMeasurementRegistry, bindScaleSensors, measureScaleDimensions,
+  scaleMeasurementRegistry,
+  bindScaleSensors,
+  measureScaleDimensions,
 } from './ScaleMeasurement';
 
 import {
@@ -98,17 +104,17 @@ export function rhuftfScaleShapes(): readonly ScaleShape[] {
  * unless a declared sensor covers the band and satisfies Nyquist.
  */
 export const RHUFTF_SCALE_BANDS: readonly (ScaleBand | null)[] = Object.freeze([
-  null,                        // n=0 Septenary      — partition index, not a frequency
-  null,                        // n=1 Quantum        — no sampled carrier in this build
-  null,                        // n=2 Atomic         — shell index, not a frequency
-  null,                        // n=3 Geometric      — dihedral angles, dimensionless
+  null, // n=0 Septenary      — partition index, not a frequency
+  null, // n=1 Quantum        — no sampled carrier in this build
+  null, // n=2 Atomic         — shell index, not a frequency
+  null, // n=3 Geometric      — dihedral angles, dimensionless
   // n=4 Colour/Music — audible band. Width verified on the research App ID:
   //   N[Log2[20000/20], 40] = 9.965784284662087043610958288468170527594 octaves
   { fLo: 20, fHi: 20000 },
-  null,                        // n=5 Hebrew         — symbol channel, not a frequency
-  null,                        // n=6 Galactic       — inferred
-  null,                        // n=7 Sub-Planckian  — inferred
-  null,                        // n=8 Hyper-Galactic — inferred
+  null, // n=5 Hebrew         — symbol channel, not a frequency
+  null, // n=6 Galactic       — inferred
+  null, // n=7 Sub-Planckian  — inferred
+  null, // n=8 Hyper-Galactic — inferred
 ]);
 
 /**

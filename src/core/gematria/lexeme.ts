@@ -77,8 +77,8 @@ export interface Lexeme {
 /** Letter → digit. Non-letters yield 0 and are dropped by the tokeniser. */
 function digit(ch: string): number {
   const c = ch.charCodeAt(0);
-  if (c >= 97 && c <= 122) return c - 96;       // a..z → 1..26
-  if (c >= 65 && c <= 90) return c - 64;        // A..Z → 1..26
+  if (c >= 97 && c <= 122) return c - 96; // a..z → 1..26
+  if (c >= 65 && c <= 90) return c - 64; // A..Z → 1..26
   return 0;
 }
 
@@ -119,7 +119,10 @@ export function lexeme(token: string): Lexeme {
 
 /** Deterministic tokeniser: lowercase letter runs, order preserved. */
 export function lexemeTokens(text: string): string[] {
-  return text.toLowerCase().split(/[^a-z]+/).filter((t) => t.length > 0);
+  return text
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .filter((t) => t.length > 0);
 }
 
 /** Zeckendorf address of a whole utterance (order-sensitive, reversible per token). */
@@ -195,7 +198,7 @@ export function injectTextPsi(psi: Float64Array, text: string): TextInjection {
     delta[base + 2] += Math.sin(minor) * amp;
     // Slot 3 is the rung's master metric — a text token contributes its
     // residue channel as a mean-centred value in [-1,1], nothing more.
-    delta[base + 3] += ((lx.residue / (LEXEME_RESIDUE_SYMBOLS - 1)) - 0.5) * 2 * amp;
+    delta[base + 3] += (lx.residue / (LEXEME_RESIDUE_SYMBOLS - 1) - 0.5) * 2 * amp;
   }
 
   const scale = LEXEME_GAIN / Math.sqrt(tokens.length);

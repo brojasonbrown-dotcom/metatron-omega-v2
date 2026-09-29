@@ -7,30 +7,27 @@
  * the model to say "I don't have that" rather than fabricate).
  */
 
-import type { EngineCtx } from "@/components/v11/EngineContext";
-import type { EngineSnapshot } from "./types";
-import {
-  PHI, PHI_INV, PHI_SQ, PSI, PI, E,
-} from "@/core/constants/WolframVerified";
-import { LYAPUNOV_BANK } from "@/core/v12/audit/LyapunovBank";
-import { computeQualiaCorrelate } from "@/core/field/QualiaCorrelate";
-import { computeStability } from "@/core/residuals/Stability";
-import { listToolNames } from "./tools/registry";
-
+import type { EngineCtx } from '@/components/v11/EngineContext';
+import type { EngineSnapshot } from './types';
+import { PHI, PHI_INV, PHI_SQ, PSI, PI, E } from '@/core/constants/WolframVerified';
+import { LYAPUNOV_BANK } from '@/core/v12/audit/LyapunovBank';
+import { computeQualiaCorrelate } from '@/core/field/QualiaCorrelate';
+import { computeStability } from '@/core/residuals/Stability';
+import { listToolNames } from './tools/registry';
 
 const LYAPUNOV_BANK_FOR_SNAPSHOT = Object.fromEntries(
-  Object.entries(LYAPUNOV_BANK).map(([k, v]) => [k, { lambda: v.lambda, symbolic: v.symbolic, source: v.source }]),
+  Object.entries(LYAPUNOV_BANK).map(([k, v]) => [
+    k,
+    { lambda: v.lambda, symbolic: v.symbolic, source: v.source },
+  ]),
 );
-
-
 
 export function buildEngineSnapshot(
   ctx: EngineCtx,
-  toolProtocol: "markers" | "native" | "none" = "markers",
+  toolProtocol: 'markers' | 'native' | 'none' = 'markers',
 ): EngineSnapshot {
-
   const res = ctx.residuals;
-  let residualsSummary: EngineSnapshot["residuals"] = null;
+  let residualsSummary: EngineSnapshot['residuals'] = null;
   if (res) {
     const additive = {
       f4Packing: res.f4Packing,
@@ -50,8 +47,12 @@ export function buildEngineSnapshot(
       .filter(([k, v]) => k !== 'f2MassLadderSlope' && Number.isFinite(v))
       .map(([, v]) => Math.abs(v as number));
     const saturation = res.saturation.map((s) => ({ ...s }));
-    const maxResidual = Math.max(0, ...additiveValues, ...saturation.map((s) => s.measured).filter(Number.isFinite));
-    const okCount = saturation.filter((s) => s.label === "saturated-OK").length;
+    const maxResidual = Math.max(
+      0,
+      ...additiveValues,
+      ...saturation.map((s) => s.measured).filter(Number.isFinite),
+    );
+    const okCount = saturation.filter((s) => s.label === 'saturated-OK').length;
     residualsSummary = {
       additive,
       saturation,
@@ -83,7 +84,7 @@ export function buildEngineSnapshot(
     },
     field: {
       state: ctx.fieldState,
-      implementation: caps?.kind ?? "unavailable",
+      implementation: caps?.kind ?? 'unavailable',
       version: caps?.version ?? null,
       protocol: caps?.protocol ?? null,
       actualNodesEvaluated: snap?.runtime?.nodesEvaluated ?? null,
@@ -120,15 +121,17 @@ export function buildEngineSnapshot(
       pi: PI,
       e: E,
     },
-    frameworks: Object.fromEntries(ctx.out.chain.map((c) => [
-      c.framework,
-      {
-        scale: c.scale,
-        chainUpCoupling: c.chainUpCoupling,
-        closureResidual: c.closureResidual,
-        masterMetric: c.masterMetric,
-      },
-    ])),
+    frameworks: Object.fromEntries(
+      ctx.out.chain.map((c) => [
+        c.framework,
+        {
+          scale: c.scale,
+          chainUpCoupling: c.chainUpCoupling,
+          closureResidual: c.closureResidual,
+          masterMetric: c.masterMetric,
+        },
+      ]),
+    ),
     stability: (() => {
       const s = computeStability(ctx.out);
       return { value: s.value, floor: s.floor, target: s.target, band: s.band };
@@ -139,9 +142,7 @@ export function buildEngineSnapshot(
       // by MetatronCore across all 9 rungs (out.metatronCoherence) — NOT the
       // driver-coherence input slider. Reporting ctx.coherence here caused the
       // chat to claim "full coherence" while the field measured ≈0.47.
-      const omega = Number.isFinite(ctx.out.metatronCoherence)
-        ? ctx.out.metatronCoherence
-        : 0;
+      const omega = Number.isFinite(ctx.out.metatronCoherence) ? ctx.out.metatronCoherence : 0;
       const f8 = ctx.out.F8;
       return {
         coherenceOmega: omega,
@@ -177,4 +178,3 @@ export function buildEngineSnapshot(
     builtAt: new Date().toISOString(),
   };
 }
-

@@ -102,24 +102,38 @@ export function bnClampUnit(v: BigNum128): BigNum128 {
 /** Host trust multipliers (T5 = 4×, T4 = 2×, T1–T3 = 1×, T0 = ½×). */
 export type TrustLevel = 'T0' | 'T1' | 'T2' | 'T3' | 'T4' | 'T5';
 
-export function trustTier(t: TrustLevel): number { return Number(t.slice(1)); }
+export function trustTier(t: TrustLevel): number {
+  return Number(t.slice(1));
+}
 
 export function trustScoreMultiplier(t: TrustLevel): BigNum128 {
   switch (t) {
-    case 'T0': return BN_ONE / 2n;
-    case 'T1': case 'T2': case 'T3': return BN_ONE;
-    case 'T4': return BN_ONE * 2n;
-    case 'T5': return BN_ONE * 4n;
+    case 'T0':
+      return BN_ONE / 2n;
+    case 'T1':
+    case 'T2':
+    case 'T3':
+      return BN_ONE;
+    case 'T4':
+      return BN_ONE * 2n;
+    case 'T5':
+      return BN_ONE * 4n;
   }
 }
 
 /** Host invalidation quorum per trust tier (T4 = 2-of-4, T5 = 3-of-4). */
 export function trustInvalidationQuorum(t: TrustLevel): number {
   switch (t) {
-    case 'T0': return 0;
-    case 'T1': case 'T2': return 1;
-    case 'T3': case 'T4': return 2;
-    case 'T5': return 3;
+    case 'T0':
+      return 0;
+    case 'T1':
+    case 'T2':
+      return 1;
+    case 'T3':
+    case 'T4':
+      return 2;
+    case 'T5':
+      return 3;
   }
 }
 
@@ -129,7 +143,10 @@ export function trustInvalidationQuorum(t: TrustLevel): number {
 function floorLog2(x: bigint): bigint {
   let n = 0n;
   let v = x;
-  while (v > 1n) { v >>= 1n; n++; }
+  while (v > 1n) {
+    v >>= 1n;
+    n++;
+  }
   return n;
 }
 
@@ -157,7 +174,10 @@ export function isqrt(n: bigint): bigint {
   if (n === 0n) return 0n;
   let x = n;
   let y = (x + 1n) >> 1n;
-  while (y < x) { x = y; y = (x + n / x) >> 1n; }
+  while (y < x) {
+    x = y;
+    y = (x + n / x) >> 1n;
+  }
   return x;
 }
 

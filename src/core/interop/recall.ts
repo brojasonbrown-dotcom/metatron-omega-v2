@@ -18,12 +18,12 @@
 export const RECENCY_FLOOR = 0.05;
 
 export const SCORE_WEIGHTS = {
-  keyword: 0.40,        // β
-  validity: 0.30,       // γ
-  recency: 0.15,        // δ
-  importance: 0.15,     // α
-  resonance: 0.50,      // ε — additive bonus, only when provided
-  cluster_prior: 0.25,  // ζ
+  keyword: 0.4, // β
+  validity: 0.3, // γ
+  recency: 0.15, // δ
+  importance: 0.15, // α
+  resonance: 0.5, // ε — additive bonus, only when provided
+  cluster_prior: 0.25, // ζ
 } as const;
 
 export const PINNED_MULTIPLIER = 4;
@@ -85,5 +85,5 @@ export function rank<T extends { readonly key: string; readonly terms: RecallTer
 ): readonly (T & { score: number })[] {
   return candidates
     .map((c) => ({ ...c, score: recallScore(c.terms) }))
-    .sort((a, b) => (b.score - a.score) || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+    .sort((a, b) => b.score - a.score || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
 }

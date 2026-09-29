@@ -189,8 +189,7 @@ export class DiagonalSSM implements Predictor {
       // the features it multiplies, so one learning rate works across
       // observation scales instead of being a per-stream tuning knob.
       const dhNextAbs = dhNext * this.cOut[i];
-      const energy =
-        1e-9 + x[i] * x[i] + hNext * hNext + dhNextAbs * dhNextAbs + 1;
+      const energy = 1e-9 + x[i] * x[i] + hNext * hNext + dhNextAbs * dhNextAbs + 1;
       const g = (this.lr * e) / energy;
       this.theta[i] -= g * this.cOut[i] * dhNext;
       this.bIn[i] -= g * this.cOut[i] * x[i];

@@ -58,9 +58,7 @@ import type { ImageFeatureExtractionPipeline, RawImage } from '@huggingface/tran
 //   VITE_VISION_MODEL=Xenova/mobileclip-s0
 // Keeps default sane and predictable for the deployed build.
 const DEFAULT_MODEL =
-  (import.meta.env.VITE_VISION_MODEL as string | undefined) ??
-  'Xenova/vit-base-patch16-224';
-
+  (import.meta.env.VITE_VISION_MODEL as string | undefined) ?? 'Xenova/vit-base-patch16-224';
 
 export type VisionDevice = 'webgpu' | 'wasm' | 'unavailable';
 
@@ -140,7 +138,10 @@ class VisionEncoder {
       } catch (e) {
         // Any WebGPU init failure (adapter absent, driver crash, model
         // op unsupported) → WASM fallback. Log but keep going.
-        console.warn('[VisionEncoder] WebGPU init failed, falling back to WASM:', (e as Error).message);
+        console.warn(
+          '[VisionEncoder] WebGPU init failed, falling back to WASM:',
+          (e as Error).message,
+        );
         try {
           this.pipe = await tf.pipeline('image-feature-extraction', this.modelId, {
             device: 'wasm',
@@ -161,11 +162,13 @@ class VisionEncoder {
         const dummy = _makeDummyRawImage(224, 224);
         const warm = await this.pipe!(dummy, { pool: true });
         // Determine flat embedding length after any residual pooling.
-        this._embeddingDim = _flattenEmbedding(warm.data as Float32Array, warm.dims as number[]).length;
+        this._embeddingDim = _flattenEmbedding(
+          warm.data as Float32Array,
+          warm.dims as number[],
+        ).length;
       } catch (e) {
         console.warn('[VisionEncoder] warmup failed:', (e as Error).message);
       }
-
 
       this._warmupMs = performance.now() - t0;
     })();
@@ -284,4 +287,3 @@ function _l2NormalizeInPlace(x: Float32Array): void {
   const inv = 1 / Math.sqrt(sq);
   for (let i = 0; i < x.length; i++) x[i] *= inv;
 }
-

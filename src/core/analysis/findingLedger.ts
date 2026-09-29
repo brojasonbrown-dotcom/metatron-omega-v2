@@ -15,12 +15,19 @@
  */
 
 import {
-  MerkleLog, toHex, fromHex, verifyInclusion, verifyConsistency,
+  MerkleLog,
+  toHex,
+  fromHex,
+  verifyInclusion,
+  verifyConsistency,
 } from '@metatron/trnn-core/ledger/merkle';
 import { canonicalJson, utf8 } from '@metatron/trnn-core/ledger/canonical';
 import {
-  keyPairFromSeed, signTreeHead, verifyTreeHead,
-  type LogKeyPair, type SignedTreeHead,
+  keyPairFromSeed,
+  signTreeHead,
+  verifyTreeHead,
+  type LogKeyPair,
+  type SignedTreeHead,
 } from '@metatron/trnn-core/ledger/sth';
 import type { PairFinding, SpineReport } from './analysisSpine';
 
@@ -102,9 +109,15 @@ export class FindingLedger {
     this.capacity = Math.max(1, capacity);
   }
 
-  get size(): number { return this.log.size; }
-  get publicKey(): string { return this.heads[0]?.publicKey ?? ''; }
-  get rootHex(): string { return toHex(this.log.root()); }
+  get size(): number {
+    return this.log.size;
+  }
+  get publicKey(): string {
+    return this.heads[0]?.publicKey ?? '';
+  }
+  get rootHex(): string {
+    return toHex(this.log.root());
+  }
   /** Newest first — that is the order a reader wants. */
   recent(limit = 21): readonly LedgerEntry[] {
     return this.entries.slice(-limit).reverse();
@@ -152,7 +165,8 @@ export class FindingLedger {
 
     const entry: LedgerEntry = { pass, sth };
     this.entries.push(entry);
-    if (this.entries.length > this.capacity) this.entries.splice(0, this.entries.length - this.capacity);
+    if (this.entries.length > this.capacity)
+      this.entries.splice(0, this.entries.length - this.capacity);
     return entry;
   }
 
@@ -183,8 +197,11 @@ export class FindingLedger {
     if (!verifyTreeHead(oldSth)) return false;
     const proof = this.log.consistencyProof(oldSth.size, this.log.size);
     return verifyConsistency(
-      oldSth.size, fromHex(oldSth.rootHex),
-      this.log.size, this.log.root(), proof,
+      oldSth.size,
+      fromHex(oldSth.rootHex),
+      this.log.size,
+      this.log.root(),
+      proof,
     );
   }
 }

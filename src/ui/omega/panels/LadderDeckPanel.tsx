@@ -3,10 +3,10 @@
  * Every column is read from the engine description or the live snapshot; no
  * value is modelled here.
  */
-import { useMemo } from "react";
-import { useOmegaState } from "../useOmegaRuntime";
-import { useOmegaDescribe } from "../useOmegaPull";
-import { dimensionProfile, torusGrid } from "@/core/runtime/rhuftf/ScaleMeasurement";
+import { useMemo } from 'react';
+import { useOmegaState } from '../useOmegaRuntime';
+import { useOmegaDescribe } from '../useOmegaPull';
+import { dimensionProfile, torusGrid } from '@/core/runtime/rhuftf/ScaleMeasurement';
 
 /**
  * Effective (spectral) dimension a rung of `nodes` nodes can carry, measured
@@ -24,14 +24,14 @@ function rungDimension(nodes: number): number {
   return d;
 }
 
-const num = (x: number, d = 4) => (Number.isFinite(x) ? x.toFixed(d) : "—");
+const num = (x: number, d = 4) => (Number.isFinite(x) ? x.toFixed(d) : '—');
 
 // The engine's corridor gate emits exactly these regimes (measure/state.ts).
 const REGIME_TONE: Record<string, string> = {
-  STABLE: "text-emerald-400",
-  STRESS: "text-amber-400",
-  CRITICAL: "text-rose-400",
-  IDLE: "text-muted-foreground",
+  STABLE: 'text-emerald-400',
+  STRESS: 'text-amber-400',
+  CRITICAL: 'text-rose-400',
+  IDLE: 'text-muted-foreground',
 };
 
 export default function LadderDeckPanel() {
@@ -39,10 +39,7 @@ export default function LadderDeckPanel() {
   useOmegaDescribe(Boolean(s.snapshot));
 
   const rungs = s.description?.rungs ?? [];
-  const maxTau = useMemo(
-    () => Math.max(1e-12, ...rungs.map((r) => Math.abs(r.logTau))),
-    [rungs],
-  );
+  const maxTau = Math.max(1e-12, ...rungs.map((r) => Math.abs(r.logTau)));
 
   if (!s.snapshot) {
     return (
@@ -62,12 +59,13 @@ export default function LadderDeckPanel() {
           rungs <span className="text-foreground tabular-nums">{rungs.length}</span>
         </span>
         <span className="text-muted-foreground">
-          band <span className="text-foreground tabular-nums">±{s.description?.web.band ?? "—"}</span>
+          band{' '}
+          <span className="text-foreground tabular-nums">±{s.description?.web.band ?? '—'}</span>
         </span>
         <span className="text-muted-foreground">
-          row-sum defect{" "}
+          row-sum defect{' '}
           <span className="text-foreground tabular-nums">
-            {num(s.snapshot.rowSumDefect, 3).replace(/0\.0000/, "0")}
+            {num(s.snapshot.rowSumDefect, 3).replace(/0\.0000/, '0')}
           </span>
         </span>
         <span className="text-muted-foreground">
@@ -104,7 +102,7 @@ export default function LadderDeckPanel() {
               return (
                 <tr
                   key={r.rank}
-                  className={`border-t border-border/25 ${stepped ? "bg-primary/5" : ""}`}
+                  className={`border-t border-border/25 ${stepped ? 'bg-primary/5' : ''}`}
                 >
                   <td className="px-2 py-1 text-primary/90">
                     {r.n}
@@ -128,10 +126,10 @@ export default function LadderDeckPanel() {
                   <td
                     className={`px-2 text-right tabular-nums ${
                       rungDimension(r.nodes) >= 1.9
-                        ? "text-emerald-400"
+                        ? 'text-emerald-400'
                         : rungDimension(r.nodes) >= 1.5
-                          ? "text-amber-400"
-                          : "text-rose-400"
+                          ? 'text-amber-400'
+                          : 'text-rose-400'
                     }`}
                   >
                     {num(rungDimension(r.nodes), 3)}
@@ -148,12 +146,14 @@ export default function LadderDeckPanel() {
                     {(live?.energy ?? 0).toExponential(2)}
                   </td>
                   <td className="px-2 text-right tabular-nums">{live?.clamped ?? 0}</td>
-                  <td className="px-2 text-right tabular-nums">{num(live?.closureQuality ?? 0, 4)}</td>
+                  <td className="px-2 text-right tabular-nums">
+                    {num(live?.closureQuality ?? 0, 4)}
+                  </td>
                   <td className="px-2 text-right tabular-nums">{num(live?.skill ?? 0, 4)}</td>
                   <td
-                    className={`px-2 pr-3 text-right ${REGIME_TONE[live?.regime ?? "IDLE"] ?? ""}`}
+                    className={`px-2 pr-3 text-right ${REGIME_TONE[live?.regime ?? 'IDLE'] ?? ''}`}
                   >
-                    {live?.regime ?? "IDLE"}
+                    {live?.regime ?? 'IDLE'}
                   </td>
                 </tr>
               );
@@ -165,19 +165,17 @@ export default function LadderDeckPanel() {
       <p className="text-[9px] font-mono text-muted-foreground px-1">
         Rows tinted on the last tick are the rungs whose multi-rate clock fired; a rung with ÷k
         advances once every k web ticks, so its τ and its update cadence stay bound to the same
-        ladder index. A rung reads <span className="text-muted-foreground/70">warming</span> until its
-        coherence ring has filled τ samples — that is &ldquo;not measured yet&rdquo;, not zero
+        ladder index. A rung reads <span className="text-muted-foreground/70">warming</span> until
+        its coherence ring has filled τ samples — that is &ldquo;not measured yet&rdquo;, not zero
         coherence. CLOSURE γ is the rung&apos;s shift autocorrelation |⟨Sz,z⟩|/‖z‖² — 1 means the
         field is an exact eigenvector of its own toroidal shift. SKILL = 1/(1+√(2−2γ)) is the
-        corridor reading: it is amplitude- and node-count-free, so a large rung is not penalised
-        for carrying more field than a small one. d_s is the rung&apos;s measured spectral
-        dimension: the plateau of −2 d ln Z(t)/d ln t over the closed-form heat trace
-        Z(t) = Σ e<sup>−tλ</sup> of its φ-aspect torus grid, λ(a,b) = (4/h_u²)sin²(πa/p) +
-        (4/h_v²)sin²(πb/q). It is a property of the rung&apos;s own geometry, not a target:
-        green means the rung resolves both toroidal cycles and genuinely carries a
-        two-dimensional scale of spacetime, red means it is a ring with too few nodes to
-        carry one, and no amount of field amplitude changes that.
-
+        corridor reading: it is amplitude- and node-count-free, so a large rung is not penalised for
+        carrying more field than a small one. d_s is the rung&apos;s measured spectral dimension:
+        the plateau of −2 d ln Z(t)/d ln t over the closed-form heat trace Z(t) = Σ e<sup>−tλ</sup>{' '}
+        of its φ-aspect torus grid, λ(a,b) = (4/h_u²)sin²(πa/p) + (4/h_v²)sin²(πb/q). It is a
+        property of the rung&apos;s own geometry, not a target: green means the rung resolves both
+        toroidal cycles and genuinely carries a two-dimensional scale of spacetime, red means it is
+        a ring with too few nodes to carry one, and no amount of field amplitude changes that.
       </p>
     </div>
   );

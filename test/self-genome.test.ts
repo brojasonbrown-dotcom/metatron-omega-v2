@@ -8,7 +8,10 @@
 import { describe, it, expect } from 'vitest';
 import { KnowledgeBase } from '@/core/knowledge/KnowledgeBase';
 import {
-  measureGenomeHealth, measureSelfRetrieval, encoderIsDeterministic, GENOME_CONTRACT,
+  measureGenomeHealth,
+  measureSelfRetrieval,
+  encoderIsDeterministic,
+  GENOME_CONTRACT,
 } from '@/core/knowledge/genome';
 
 function seeded(): KnowledgeBase {

@@ -56,17 +56,35 @@ export class HotCache {
     this.width = opts.width;
     this.capacity = opts.capacity ?? hotCapacityFor(opts.width);
     const policy: TierPolicy[] = [
-      { tier: 'hot', capacity: this.capacity, floor: Number.isFinite(opts.floor) ? (opts.floor as number) : 1 / PHI, width: opts.width },
+      {
+        tier: 'hot',
+        capacity: this.capacity,
+        floor: Number.isFinite(opts.floor) ? (opts.floor as number) : 1 / PHI,
+        width: opts.width,
+      },
     ];
     this.corpus = new TieredCorpus<CorpusFrame>(policy);
   }
 
-  get count(): number { return this.corpus.totalCount; }
-  get numbers(): number { return this.corpus.footprint(); }
-  get counters() { return { ...this.corpus.counters, demoted: this.demotedTotal }; }
-  stats() { return this.corpus.stats()[0]; }
-  entries() { return this.corpus.entries('hot'); }
-  clear() { this.corpus.clear(); this.demotedTotal = 0; }
+  get count(): number {
+    return this.corpus.totalCount;
+  }
+  get numbers(): number {
+    return this.corpus.footprint();
+  }
+  get counters() {
+    return { ...this.corpus.counters, demoted: this.demotedTotal };
+  }
+  stats() {
+    return this.corpus.stats()[0];
+  }
+  entries() {
+    return this.corpus.entries('hot');
+  }
+  clear() {
+    this.corpus.clear();
+    this.demotedTotal = 0;
+  }
 
   /**
    * Offer one observation. `predicted` / `halfWidth` come from the conformal
@@ -89,7 +107,9 @@ export class HotCache {
 
   /** Flush every held frame downward, oldest first. Used on seal and shutdown. */
   drain(): CorpusFrame[] {
-    const out = this.entries().map((e) => e.payload).sort((a, b) => a.tick - b.tick);
+    const out = this.entries()
+      .map((e) => e.payload)
+      .sort((a, b) => a.tick - b.tick);
     this.corpus.clear();
     this.demotedTotal += out.length;
     return out;

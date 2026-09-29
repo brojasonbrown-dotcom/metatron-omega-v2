@@ -3,8 +3,8 @@
  * reports) are requested by the deck that displays them, at the rate that deck
  * can actually draw — never pushed at tick rate.
  */
-import { useEffect } from "react";
-import { getOmegaRuntime } from "./omegaRuntime";
+import { useEffect } from 'react';
+import { getOmegaRuntime } from './omegaRuntime';
 
 export function useOmegaPull(request: () => void, hz: number, enabled: boolean): void {
   useEffect(() => {

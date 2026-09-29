@@ -25,4 +25,6 @@ export interface SensoryAtom {
 }
 
 const BYTES_PER_ATOM_HEADER = 56; // hash (16 utf-16 chars = 32B) + scalars
-export function atomBytes(topK: number): number { return BYTES_PER_ATOM_HEADER + 8 * topK; }
+export function atomBytes(topK: number): number {
+  return BYTES_PER_ATOM_HEADER + 8 * topK;
+}

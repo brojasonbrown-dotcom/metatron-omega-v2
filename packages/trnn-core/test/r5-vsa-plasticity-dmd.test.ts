@@ -10,11 +10,33 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-  randomHv, identityHv, bind, unbind, permute, bundle, similarity, chanceSigma,
-  conjugateHv, phiWeights, CleanupMemory, CLEANUP_FAN_IN, encodeRecord, decodeRole,
-  encodeSequence, decodePosition, wrapPhase, angularDistance,
-  ojaStep, sangerStep, memristiveStep, joglekarWindow, memristiveVector, BcmThreshold,
-  fitDmd, MIN_SNAPSHOTS, generalEigenvalues,
+  randomHv,
+  identityHv,
+  bind,
+  unbind,
+  permute,
+  bundle,
+  similarity,
+  chanceSigma,
+  conjugateHv,
+  phiWeights,
+  CleanupMemory,
+  CLEANUP_FAN_IN,
+  encodeRecord,
+  decodeRole,
+  encodeSequence,
+  decodePosition,
+  wrapPhase,
+  angularDistance,
+  ojaStep,
+  sangerStep,
+  memristiveStep,
+  joglekarWindow,
+  memristiveVector,
+  BcmThreshold,
+  fitDmd,
+  MIN_SNAPSHOTS,
+  generalEigenvalues,
 } from '../src/index';
 
 const D = 1024;
@@ -27,14 +49,17 @@ describe('R5.1 FHRR algebra', () => {
   });
 
   it('bind is exactly invertible', () => {
-    const a = hv('a'), b = hv('b');
+    const a = hv('a'),
+      b = hv('b');
     const rec = unbind(bind(a, b), a);
     for (let i = 0; i < D; i++) expect(Math.abs(wrapPhase(rec[i] - b[i]))).toBeLessThan(1e-12);
     expect(similarity(rec, b)).toBeCloseTo(1, 12);
   });
 
   it('bind is commutative and associative', () => {
-    const a = hv('a'), b = hv('b'), c = hv('c');
+    const a = hv('a'),
+      b = hv('b'),
+      c = hv('c');
     expect(similarity(bind(a, b), bind(b, a))).toBeCloseTo(1, 12);
     expect(similarity(bind(bind(a, b), c), bind(a, bind(b, c)))).toBeCloseTo(1, 12);
   });
@@ -46,7 +71,8 @@ describe('R5.1 FHRR algebra', () => {
   });
 
   it('bind randomises: the product resembles neither factor', () => {
-    const a = hv('a'), b = hv('b');
+    const a = hv('a'),
+      b = hv('b');
     const p = bind(a, b);
     expect(Math.abs(similarity(p, a))).toBeLessThan(6 * chanceSigma(D));
     expect(Math.abs(similarity(p, b))).toBeLessThan(6 * chanceSigma(D));
@@ -59,7 +85,9 @@ describe('R5.1 FHRR algebra', () => {
   });
 
   it('bind distributes over bundle', () => {
-    const a = hv('a'), b = hv('b'), k = hv('k');
+    const a = hv('a'),
+      b = hv('b'),
+      k = hv('k');
     const lhs = bind(bundle([a, b]).hv, k);
     const rhs = bundle([bind(a, k), bind(b, k)]).hv;
     expect(similarity(lhs, rhs)).toBeGreaterThan(0.999);
@@ -137,7 +165,7 @@ describe('R5.3 cleanup memory', () => {
     const a = hv('twin');
     cm.add('one', a);
     cm.add('two', a);
-    expect(cm.query(a)).toBeNull();     // margin is zero → no confident answer
+    expect(cm.query(a)).toBeNull(); // margin is zero → no confident answer
   });
 
   it('an empty memory abstains', () => {
@@ -153,12 +181,15 @@ describe('R5.3 cleanup memory', () => {
       for (let i = 0; i < D; i++) s[i] = wrapPhase(truth[i] + 0.5 * n[i]);
       cm.add('truth', s);
     }
-    const oneShot = similarity(truth, (() => {
-      const n = randomHv(D, 'noise:0');
-      const s = new Float64Array(D);
-      for (let i = 0; i < D; i++) s[i] = wrapPhase(truth[i] + 0.5 * n[i]);
-      return s;
-    })());
+    const oneShot = similarity(
+      truth,
+      (() => {
+        const n = randomHv(D, 'noise:0');
+        const s = new Float64Array(D);
+        for (let i = 0; i < D; i++) s[i] = wrapPhase(truth[i] + 0.5 * n[i]);
+        return s;
+      })(),
+    );
     expect(similarity(truth, cm.prototype('truth')!)).toBeGreaterThan(oneShot);
   });
 
@@ -172,7 +203,9 @@ describe('R5.3 cleanup memory', () => {
     for (let k = 0; k < 300; k++) cm.add('p', second);
     expect(cm.stats('p')!.fanIn).toBeLessThanOrEqual(CLEANUP_FAN_IN);
     // the prototype migrated to the new evidence rather than staying pinned
-    expect(similarity(cm.prototype('p')!, second)).toBeGreaterThan(similarity(cm.prototype('p')!, first));
+    expect(similarity(cm.prototype('p')!, second)).toBeGreaterThan(
+      similarity(cm.prototype('p')!, first),
+    );
   });
 
   it('reports unknown labels as null, not as an empty prototype', () => {
@@ -187,7 +220,10 @@ describe('R5.4 structured records and sequences', () => {
     const fillers = { red: hv('f:red'), blue: hv('f:blue'), disc: hv('f:disc') };
     const cm = new CleanupMemory(D);
     for (const [k, v] of Object.entries(fillers)) cm.add(k, v);
-    const rec = encodeRecord([[roles.colour, fillers.red], [roles.shape, fillers.disc]]).hv;
+    const rec = encodeRecord([
+      [roles.colour, fillers.red],
+      [roles.shape, fillers.disc],
+    ]).hv;
     expect(cm.query(decodeRole(rec, roles.colour))?.label).toBe('red');
     expect(cm.query(decodeRole(rec, roles.shape))?.label).toBe('disc');
   });
@@ -232,14 +268,17 @@ describe('R5.5 Oja / Sanger plasticity', () => {
     let last = { y: 0, norm: 0, drift: 1 };
     for (let k = 0; k < 20000; k++) last = ojaStep(w, sample(k), 0.002);
     expect(last.norm).toBeCloseTo(1, 2);
-    const align = Math.abs(w[0] * 0.8944 + w[1] * 0.4472);   // (1,0.5) normalised
+    const align = Math.abs(w[0] * 0.8944 + w[1] * 0.4472); // (1,0.5) normalised
     expect(align).toBeGreaterThan(0.95);
   });
 
   it('is self-normalising: an over-long start shrinks, a short one grows', () => {
     const big = Float64Array.from([5, 5]);
     const small = Float64Array.from([0.01, 0.01]);
-    for (let k = 0; k < 5000; k++) { ojaStep(big, sample(k), 0.001); ojaStep(small, sample(k), 0.001); }
+    for (let k = 0; k < 5000; k++) {
+      ojaStep(big, sample(k), 0.001);
+      ojaStep(small, sample(k), 0.001);
+    }
     const n = (v: Float64Array) => Math.hypot(v[0], v[1]);
     expect(n(big)).toBeLessThan(5);
     expect(n(small)).toBeGreaterThan(0.02);
@@ -247,14 +286,16 @@ describe('R5.5 Oja / Sanger plasticity', () => {
 
   it('drift decays as the rule converges (it is learning, not oscillating)', () => {
     const w = Float64Array.from([0.3, -0.9]);
-    let early = 0, late = 0;
+    let early = 0,
+      late = 0;
     for (let k = 0; k < 3000; k++) early += ojaStep(w, sample(k), 0.001).drift;
     for (let k = 3000; k < 6000; k++) late += ojaStep(w, sample(k), 0.001).drift;
     expect(late).toBeLessThan(early);
   });
 
   it('Sanger extracts orthogonal components ordered by variance', () => {
-    const k = 2, d = 2;
+    const k = 2,
+      d = 2;
     const W = Float64Array.from([0.6, 0.1, -0.2, 0.7]);
     for (let s = 0; s < 20000; s++) sangerStep(W, k, d, sample(s), 0.0015);
     const dot = W[0] * W[2] + W[1] * W[3];
@@ -300,7 +341,8 @@ describe('R5.6 memristive plasticity', () => {
   it('is hysteretic: the same net drive in a different order lands elsewhere', () => {
     const seqA = [1, 1, -1, -1, 1, -1];
     const seqB = [1, -1, 1, -1, 1, -1];
-    let a = 0.5, b = 0.5;
+    let a = 0.5,
+      b = 0.5;
     for (const s of seqA) a = memristiveStep(a, s, P);
     for (const s of seqB) b = memristiveStep(b, s, P);
     expect(Math.abs(a - b)).toBeGreaterThan(1e-6);
@@ -324,8 +366,8 @@ describe('R5.6 memristive plasticity', () => {
     const bcm = new BcmThreshold(20);
     for (let i = 0; i < 200; i++) bcm.observe(1);
     expect(bcm.value).toBeCloseTo(1, 1);
-    expect(bcm.observe(0.2)).toBeLessThan(0);   // below threshold → depression
-    expect(bcm.observe(5)).toBeGreaterThan(0);  // above threshold → potentiation
+    expect(bcm.observe(0.2)).toBeLessThan(0); // below threshold → depression
+    expect(bcm.observe(5)).toBeGreaterThan(0); // above threshold → potentiation
   });
 });
 
@@ -337,12 +379,14 @@ describe('R5.7 DMD', () => {
     for (let k = 0; k < n; k++) {
       const t = k * dt;
       const s = Math.exp(-0.4 * t);
-      out.push(Float64Array.from([
-        Math.cos(2 * Math.PI * 0.5 * t),
-        Math.sin(2 * Math.PI * 0.5 * t),
-        s * Math.cos(2 * Math.PI * 1.5 * t),
-        s * Math.sin(2 * Math.PI * 1.5 * t),
-      ]));
+      out.push(
+        Float64Array.from([
+          Math.cos(2 * Math.PI * 0.5 * t),
+          Math.sin(2 * Math.PI * 0.5 * t),
+          s * Math.cos(2 * Math.PI * 1.5 * t),
+          s * Math.sin(2 * Math.PI * 1.5 * t),
+        ]),
+      );
     }
     return out;
   };
@@ -382,8 +426,13 @@ describe('R5.7 DMD', () => {
     const fit = fitDmd(t.slice(0, 60), { dt })!;
     expect(fit.relError).toBeLessThan(1e-6);
     const pred = fit.predict(t[60]);
-    let num = 0, den = 0;
-    for (let i = 0; i < pred.length; i++) { const e = t[61][i] - pred[i]; num += e * e; den += t[61][i] * t[61][i]; }
+    let num = 0,
+      den = 0;
+    for (let i = 0; i < pred.length; i++) {
+      const e = t[61][i] - pred[i];
+      num += e * e;
+      den += t[61][i] * t[61][i];
+    }
     expect(Math.sqrt(num / den)).toBeLessThan(1e-3);
   });
 

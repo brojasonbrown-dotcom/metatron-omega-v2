@@ -35,16 +35,23 @@ export const DEFAULT_LYAPUNOV_WEIGHTS: LyapunovWeights = Object.freeze({
   d: PHI_INV,
 });
 
-interface NAcc { s: number; c: number; }
-function nAcc(): NAcc { return { s: 0, c: 0 }; }
+interface NAcc {
+  s: number;
+  c: number;
+}
+function nAcc(): NAcc {
+  return { s: 0, c: 0 };
+}
 function nAdd(a: NAcc, x: number): void {
   if (!Number.isFinite(x)) return;
   const s = a.s;
   const t = s + x;
-  a.c += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+  a.c += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
   a.s = t;
 }
-function nVal(a: NAcc): number { return a.s + a.c; }
+function nVal(a: NAcc): number {
+  return a.s + a.c;
+}
 
 /** ‖ψ‖² */
 function psiNorm2(s: FieldStateN): number {
@@ -57,7 +64,8 @@ function psiNorm2(s: FieldStateN): number {
 /** ‖ψ − ψ̂‖² (mirrors measureDrift; duplicated to avoid cross-module coupling). */
 function driftNorm2(s: FieldStateN): number {
   const acc = nAcc();
-  const p = s.psi, h = s.psiHat;
+  const p = s.psi,
+    h = s.psiHat;
   const n = Math.min(p.length, h.length);
   for (let i = 0; i < n; i++) {
     const d = p[i] - h[i];
@@ -89,7 +97,8 @@ function phiGraph(state: FieldStateN, graph: GraphSnapshot | null): number {
   const acc = nAcc();
   const m = Math.min(edgeI.length, edgeJ.length, edgeW.length);
   for (let k = 0; k < m; k++) {
-    const i = edgeI[k], j = edgeJ[k];
+    const i = edgeI[k],
+      j = edgeJ[k];
     if (i < 0 || j < 0 || i >= n || j >= n) continue;
     const d = psi[i] - psi[j];
     nAdd(acc, edgeW[k] * d * d);
@@ -100,7 +109,8 @@ function phiGraph(state: FieldStateN, graph: GraphSnapshot | null): number {
 /** Σ_i (ψ_n[i] − ψ_{n+1}[i])² over min-length shared modes. */
 function phiScale(a: FieldStateN, b: FieldStateN | undefined): number {
   if (!b) return 0;
-  const pa = a.psi, pb = b.psi;
+  const pa = a.psi,
+    pb = b.psi;
   const n = Math.min(pa.length, pb.length);
   const acc = nAcc();
   for (let i = 0; i < n; i++) {
@@ -127,7 +137,7 @@ export function lyapunovEnergy(
     const s = states[n];
     const w: LyapunovWeights = Array.isArray(weights)
       ? (weights[n] ?? DEFAULT_LYAPUNOV_WEIGHTS)
-      : (weights as LyapunovWeights | undefined) ?? DEFAULT_LYAPUNOV_WEIGHTS;
+      : ((weights as LyapunovWeights | undefined) ?? DEFAULT_LYAPUNOV_WEIGHTS);
     const g = graphs ? (graphs[n] ?? null) : null;
     const next = states[n + 1];
     nAdd(acc, w.a * psiNorm2(s));

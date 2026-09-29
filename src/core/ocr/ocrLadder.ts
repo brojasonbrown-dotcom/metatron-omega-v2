@@ -35,11 +35,19 @@ const SIDECAR_KEY = 'metatron.omega.ocr.sidecar';
 const ORDER_KEY = 'metatron.omega.ocr.order';
 
 function ls(): Storage | null {
-  try { return typeof localStorage === 'undefined' ? null : localStorage; } catch { return null; }
+  try {
+    return typeof localStorage === 'undefined' ? null : localStorage;
+  } catch {
+    return null;
+  }
 }
 
-export function getSidecarUrl(): string { return ls()?.getItem(SIDECAR_KEY) ?? ''; }
-export function setSidecarUrl(url: string): void { ls()?.setItem(SIDECAR_KEY, url.trim()); }
+export function getSidecarUrl(): string {
+  return ls()?.getItem(SIDECAR_KEY) ?? '';
+}
+export function setSidecarUrl(url: string): void {
+  ls()?.setItem(SIDECAR_KEY, url.trim());
+}
 
 export function getPreferredOrder(): OcrTierId[] {
   const raw = ls()?.getItem(ORDER_KEY);
@@ -47,7 +55,9 @@ export function getPreferredOrder(): OcrTierId[] {
   try {
     const parsed = JSON.parse(raw) as OcrTierId[];
     if (Array.isArray(parsed) && parsed.length) return parsed;
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
   return ['sidecar', 'browser', 'gateway'];
 }
 export function setPreferredOrder(order: OcrTierId[]): void {
@@ -55,14 +65,20 @@ export function setPreferredOrder(order: OcrTierId[]): void {
 }
 
 // ── browser tier (Tesseract WASM, dynamically imported) ───────────────────
-let tesseractMod: unknown = null;
+interface TesseractModule {
+  recognize?: (
+    image: string,
+    lang: string,
+  ) => Promise<{ data: { text: string; confidence: number } }>;
+}
+let tesseractMod: TesseractModule | null = null;
 let tesseractTried = false;
 
-async function loadTesseract(): Promise<any | null> {
+async function loadTesseract(): Promise<TesseractModule | null> {
   if (tesseractTried) return tesseractMod;
   tesseractTried = true;
   try {
-    tesseractMod = await import(/* @vite-ignore */ 'tesseract.js');
+    tesseractMod = (await import(/* @vite-ignore */ 'tesseract.js')) as TesseractModule;
   } catch {
     tesseractMod = null;
   }
@@ -71,20 +87,47 @@ async function loadTesseract(): Promise<any | null> {
 
 async function browserOcr(image: string): Promise<OcrResult> {
   const t0 = Date.now();
-  const mod: any = await loadTesseract();
-  if (!mod?.recognize) return { ok: false, tier: 'browser', text: '', chars: 0, ms: Date.now() - t0, reason: 'tesseract.js unavailable in this build' };
+  const mod = await loadTesseract();
+  if (!mod?.recognize)
+    return {
+      ok: false,
+      tier: 'browser',
+      text: '',
+      chars: 0,
+      ms: Date.now() - t0,
+      reason: 'tesseract.js unavailable in this build',
+    };
   try {
     const out = await mod.recognize(image, 'eng');
     const text = String(out?.data?.text ?? '').trim();
-    if (!text) return { ok: false, tier: 'browser', text: '', chars: 0, ms: Date.now() - t0, reason: 'no legible text' };
+    if (!text)
+      return {
+        ok: false,
+        tier: 'browser',
+        text: '',
+        chars: 0,
+        ms: Date.now() - t0,
+        reason: 'no legible text',
+      };
     return { ok: true, tier: 'browser', text, chars: text.length, ms: Date.now() - t0 };
   } catch (e) {
-    return { ok: false, tier: 'browser', text: '', chars: 0, ms: Date.now() - t0, reason: String((e as Error)?.message ?? e).slice(0, 200) };
+    return {
+      ok: false,
+      tier: 'browser',
+      text: '',
+      chars: 0,
+      ms: Date.now() - t0,
+      reason: String((e as Error)?.message ?? e).slice(0, 200),
+    };
   }
 }
 
 // ── gateway tier ──────────────────────────────────────────────────────────
-export async function gatewayVision(image: string, mode: 'ocr' | 'caption', hint = ''): Promise<OcrResult> {
+export async function gatewayVision(
+  image: string,
+  mode: 'ocr' | 'caption',
+  hint = '',
+): Promise<OcrResult> {
   const t0 = Date.now();
   try {
     const r = await fetch('/api/ocr', {
@@ -95,16 +138,27 @@ export async function gatewayVision(image: string, mode: 'ocr' | 'caption', hint
     const body = await r.json().catch(() => ({}));
     const ms = Date.now() - t0;
     if (!r.ok) {
-      const reason = r.status === 402 ? 'AI credits exhausted — top up to use the gateway tier'
-        : r.status === 429 ? 'gateway rate limited — retry shortly'
-        : String(body?.error ?? `HTTP ${r.status}`).slice(0, 240);
+      const reason =
+        r.status === 402
+          ? 'AI credits exhausted — top up to use the gateway tier'
+          : r.status === 429
+            ? 'gateway rate limited — retry shortly'
+            : String(body?.error ?? `HTTP ${r.status}`).slice(0, 240);
       return { ok: false, tier: 'gateway', text: '', chars: 0, ms, reason };
     }
     const text = String(body?.text ?? '').trim();
-    if (!text) return { ok: false, tier: 'gateway', text: '', chars: 0, ms, reason: 'nothing legible' };
+    if (!text)
+      return { ok: false, tier: 'gateway', text: '', chars: 0, ms, reason: 'nothing legible' };
     return { ok: true, tier: 'gateway', text, chars: text.length, ms };
   } catch (e) {
-    return { ok: false, tier: 'gateway', text: '', chars: 0, ms: Date.now() - t0, reason: String((e as Error)?.message ?? e).slice(0, 200) };
+    return {
+      ok: false,
+      tier: 'gateway',
+      text: '',
+      chars: 0,
+      ms: Date.now() - t0,
+      reason: String((e as Error)?.message ?? e).slice(0, 200),
+    };
   }
 }
 
@@ -112,7 +166,15 @@ export async function gatewayVision(image: string, mode: 'ocr' | 'caption', hint
 async function sidecarOcr(image: string): Promise<OcrResult> {
   const t0 = Date.now();
   const url = getSidecarUrl();
-  if (!url) return { ok: false, tier: 'sidecar', text: '', chars: 0, ms: 0, reason: 'no sidecar URL configured' };
+  if (!url)
+    return {
+      ok: false,
+      tier: 'sidecar',
+      text: '',
+      chars: 0,
+      ms: 0,
+      reason: 'no sidecar URL configured',
+    };
   try {
     const r = await fetch(url.replace(/\/+$/, '') + '/ocr', {
       method: 'POST',
@@ -120,13 +182,29 @@ async function sidecarOcr(image: string): Promise<OcrResult> {
       body: JSON.stringify({ image }),
     });
     const ms = Date.now() - t0;
-    if (!r.ok) return { ok: false, tier: 'sidecar', text: '', chars: 0, ms, reason: `HTTP ${r.status}` };
+    if (!r.ok)
+      return { ok: false, tier: 'sidecar', text: '', chars: 0, ms, reason: `HTTP ${r.status}` };
     const body = await r.json().catch(() => ({}));
     const text = String(body?.text ?? body?.result ?? '').trim();
-    if (!text) return { ok: false, tier: 'sidecar', text: '', chars: 0, ms, reason: 'sidecar returned no text' };
+    if (!text)
+      return {
+        ok: false,
+        tier: 'sidecar',
+        text: '',
+        chars: 0,
+        ms,
+        reason: 'sidecar returned no text',
+      };
     return { ok: true, tier: 'sidecar', text, chars: text.length, ms };
   } catch (e) {
-    return { ok: false, tier: 'sidecar', text: '', chars: 0, ms: Date.now() - t0, reason: String((e as Error)?.message ?? e).slice(0, 200) };
+    return {
+      ok: false,
+      tier: 'sidecar',
+      text: '',
+      chars: 0,
+      ms: Date.now() - t0,
+      reason: String((e as Error)?.message ?? e).slice(0, 200),
+    };
   }
 }
 
@@ -141,32 +219,50 @@ export async function probeTiers(): Promise<OcrTierState[]> {
   const t0 = Date.now();
   const mod = await loadTesseract();
   out.push({
-    id: 'browser', label: 'Browser · Tesseract WASM',
-    available: Boolean((mod as any)?.recognize), probed: true,
-    detail: (mod as any)?.recognize ? 'on-device, nothing uploaded' : 'tesseract.js not resolvable in this build',
+    id: 'browser',
+    label: 'Browser · Tesseract WASM',
+    available: Boolean(mod?.recognize),
+    probed: true,
+    detail: mod?.recognize
+      ? 'on-device, nothing uploaded'
+      : 'tesseract.js not resolvable in this build',
     ms: Date.now() - t0,
   });
 
   const g0 = Date.now();
-  let gatewayOk = false; let gatewayDetail = '';
+  let gatewayOk = false;
+  let gatewayDetail = '';
   try {
     const r = await fetch('/api/ocr', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: PROBE_PNG, mode: 'ocr' }),
     });
     const body = await r.json().catch(() => ({}));
     gatewayOk = r.ok;
     gatewayDetail = r.ok
       ? `reachable (${body?.model ?? 'vision model'})`
-      : r.status === 402 ? 'AI credits exhausted' : r.status === 429 ? 'rate limited' : `HTTP ${r.status}`;
+      : r.status === 402
+        ? 'AI credits exhausted'
+        : r.status === 429
+          ? 'rate limited'
+          : `HTTP ${r.status}`;
   } catch (e) {
     gatewayDetail = String((e as Error)?.message ?? e).slice(0, 160);
   }
-  out.push({ id: 'gateway', label: 'Gateway · vision model', available: gatewayOk, probed: true, detail: gatewayDetail, ms: Date.now() - g0 });
+  out.push({
+    id: 'gateway',
+    label: 'Gateway · vision model',
+    available: gatewayOk,
+    probed: true,
+    detail: gatewayDetail,
+    ms: Date.now() - g0,
+  });
 
   const s0 = Date.now();
   const url = getSidecarUrl();
-  let sideOk = false; let sideDetail = 'no sidecar URL configured';
+  let sideOk = false;
+  let sideDetail = 'no sidecar URL configured';
   if (url) {
     try {
       const r = await fetch(url.replace(/\/+$/, '') + '/health', { method: 'GET' });
@@ -176,7 +272,14 @@ export async function probeTiers(): Promise<OcrTierState[]> {
       sideDetail = String((e as Error)?.message ?? e).slice(0, 160);
     }
   }
-  out.push({ id: 'sidecar', label: 'Sidecar · self-hosted OCR (GPU)', available: sideOk, probed: true, detail: sideDetail, ms: Date.now() - s0 });
+  out.push({
+    id: 'sidecar',
+    label: 'Sidecar · self-hosted OCR (GPU)',
+    available: sideOk,
+    probed: true,
+    detail: sideDetail,
+    ms: Date.now() - s0,
+  });
 
   return out;
 }
@@ -189,9 +292,12 @@ export async function probeTiers(): Promise<OcrTierState[]> {
 export async function runOcr(image: string, order = getPreferredOrder()): Promise<OcrResult> {
   const failures: string[] = [];
   for (const tier of order) {
-    const r = tier === 'browser' ? await browserOcr(image)
-      : tier === 'gateway' ? await gatewayVision(image, 'ocr')
-      : await sidecarOcr(image);
+    const r =
+      tier === 'browser'
+        ? await browserOcr(image)
+        : tier === 'gateway'
+          ? await gatewayVision(image, 'ocr')
+          : await sidecarOcr(image);
     if (r.ok) return r;
     failures.push(`${tier}: ${r.reason ?? 'failed'}`);
   }

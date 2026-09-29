@@ -43,10 +43,18 @@ export interface ShadowStateTape {
 
 class NullTape implements ShadowStateTape {
   readonly enabled = false;
-  ingest(): void { /* no-op */ }
-  snapshot(): readonly FieldStateN[] { return []; }
-  previousSnapshot(): readonly FieldStateN[] { return []; }
-  advanceTick(): void { /* no-op */ }
+  ingest(): void {
+    /* no-op */
+  }
+  snapshot(): readonly FieldStateN[] {
+    return [];
+  }
+  previousSnapshot(): readonly FieldStateN[] {
+    return [];
+  }
+  advanceTick(): void {
+    /* no-op */
+  }
 }
 
 class LiveTape implements ShadowStateTape {

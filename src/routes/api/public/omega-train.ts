@@ -11,21 +11,20 @@
  * measured report. There is nothing here an attacker can pivot on beyond CPU,
  * which the caps bound.
  */
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router';
 
-const VERSION = "omega-p8.1";
+const VERSION = 'omega-p8.1';
 
 const clampInt = (v: unknown, lo: number, hi: number, dflt: number): number => {
-  const n = typeof v === "number" ? v : Number(v);
+  const n = typeof v === 'number' ? v : Number(v);
   if (!Number.isFinite(n)) return dflt;
   return Math.max(lo, Math.min(hi, Math.round(n)));
 };
 
-export const Route = createFileRoute("/api/public/omega-train")({
+export const Route = createFileRoute('/api/public/omega-train')({
   server: {
     handlers: {
-      GET: async () =>
-        Response.json({ version: VERSION, engine: "trnn-core", tier: "T3" }),
+      GET: async () => Response.json({ version: VERSION, engine: 'trnn-core', tier: 'T3' }),
 
       POST: async ({ request }) => {
         let body: Record<string, unknown> = {};
@@ -35,17 +34,16 @@ export const Route = createFileRoute("/api/public/omega-train")({
           body = {};
         }
 
-        const { runBattery, sampleTrajectory } = await import(
-          "@metatron/trnn-core"
-        );
+        const { runBattery, sampleTrajectory } = await import('@metatron/trnn-core');
 
-        const nodes = [34, 55, 89, 144].includes(clampInt(body["nodes"], 34, 144, 55))
-          ? clampInt(body["nodes"], 34, 144, 55)
+        const nodes = [34, 55, 89, 144].includes(clampInt(body['nodes'], 34, 144, 55))
+          ? clampInt(body['nodes'], 34, 144, 55)
           : 55;
-        const iterations = clampInt(body["iterations"], 20, 800, 240);
-        const trainTicks = clampInt(body["trainTicks"], 55, 377, 233);
-        const holdTicks = clampInt(body["holdTicks"], 34, 233, 89);
-        const seed = typeof body["seed"] === "string" ? body["seed"].slice(0, 64) : "metatron-omega";
+        const iterations = clampInt(body['iterations'], 20, 800, 240);
+        const trainTicks = clampInt(body['trainTicks'], 55, 377, 233);
+        const holdTicks = clampInt(body['holdTicks'], 34, 233, 89);
+        const seed =
+          typeof body['seed'] === 'string' ? body['seed'].slice(0, 64) : 'metatron-omega';
 
         const t0 = Date.now();
         const traj = sampleTrajectory({

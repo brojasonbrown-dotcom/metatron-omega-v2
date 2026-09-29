@@ -37,11 +37,12 @@ export type ApplyOp = (x: Float64Array, out: Float64Array) => void;
 
 /** Kahan-compensated dot product. */
 function dot(a: Float64Array, b: Float64Array): number {
-  let s = 0, c = 0;
+  let s = 0,
+    c = 0;
   for (let i = 0; i < a.length; i++) {
     const x = a[i] * b[i];
     const t = s + x;
-    c += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+    c += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
     s = t;
   }
   return s + c;
@@ -99,7 +100,7 @@ export function powerIteration(
   opts: { maxIters: number; tol: number; seed?: number },
 ): EigenResult {
   const t0 = nowMs();
-  let v = seedVector(n, opts.seed ?? 0x5eed_1);
+  const v = seedVector(n, opts.seed ?? 0x5eed_1);
   const w = new Float64Array(n);
   const r = new Float64Array(n);
   let lambda = 0;
@@ -114,12 +115,21 @@ export function powerIteration(
     residual = norm2(r);
     const inv = 1 / nw;
     for (let i = 0; i < n; i++) v[i] = w[i] * inv;
-    if (residual <= opts.tol) { it++; break; }
+    if (residual <= opts.tol) {
+      it++;
+      break;
+    }
   }
   canonicalSign(v);
   return {
-    vector: v, eigenvalue: lambda, residual, iterations: it, krylov: 0,
-    converged: residual <= opts.tol, method: 'power-iteration', ms: nowMs() - t0,
+    vector: v,
+    eigenvalue: lambda,
+    residual,
+    iterations: it,
+    krylov: 0,
+    converged: residual <= opts.tol,
+    method: 'power-iteration',
+    ms: nowMs() - t0,
   };
 }
 
@@ -140,14 +150,21 @@ function tql2(d: Float64Array, e: Float64Array, z: Float64Array[], n: number): v
         let g = (d[l + 1] - d[l]) / (2 * e[l]);
         let rr = Math.hypot(g, 1);
         g = d[m] - d[l] + e[l] / (g + (g >= 0 ? Math.abs(rr) : -Math.abs(rr)));
-        let s = 1, c = 1, p = 0;
+        let s = 1,
+          c = 1,
+          p = 0;
         for (let i = m - 1; i >= l; i--) {
           let f = s * e[i];
           const b = c * e[i];
           rr = Math.hypot(f, g);
           e[i + 1] = rr;
-          if (rr === 0) { d[i + 1] -= p; e[m] = 0; break; }
-          s = f / rr; c = g / rr;
+          if (rr === 0) {
+            d[i + 1] -= p;
+            e[m] = 0;
+            break;
+          }
+          s = f / rr;
+          c = g / rr;
           g = d[i + 1] - p;
           rr = (d[i] - g) * s + 2 * c * b;
           p = s * rr;
@@ -159,7 +176,9 @@ function tql2(d: Float64Array, e: Float64Array, z: Float64Array[], n: number): v
             z[k][i] = c * z[k][i] - s * f;
           }
         }
-        d[l] -= p; e[l] = g; e[m] = 0;
+        d[l] -= p;
+        e[l] = g;
+        e[m] = 0;
       }
     } while (m !== l);
   }
@@ -173,7 +192,13 @@ function tql2(d: Float64Array, e: Float64Array, z: Float64Array[], n: number): v
 export function lanczos(
   apply: ApplyOp,
   n: number,
-  opts: { krylov: number; restarts: number; tol: number; seed?: number; pick: 'smallest' | 'largest' },
+  opts: {
+    krylov: number;
+    restarts: number;
+    tol: number;
+    seed?: number;
+    pick: 'smallest' | 'largest';
+  },
 ): EigenResult {
   const t0 = nowMs();
   const m = Math.max(2, Math.min(opts.krylov, n));
@@ -208,7 +233,10 @@ export function lanczos(
       b = norm2(w);
       beta[j] = b;
       totalIters++;
-      if (b <= 1e-14) { used = j + 1; break; }
+      if (b <= 1e-14) {
+        used = j + 1;
+        break;
+      }
       vPrev = v;
       v = new Float64Array(n);
       for (let i = 0; i < n; i++) v[i] = w[i] / b;
@@ -241,7 +269,10 @@ export function lanczos(
     apply(ritz, w);
     const lam = dot(ritz, w);
     let resSq = 0;
-    for (let i = 0; i < n; i++) { const r = w[i] - lam * ritz[i]; resSq += r * r; }
+    for (let i = 0; i < n; i++) {
+      const r = w[i] - lam * ritz[i];
+      resSq += r * r;
+    }
     const res = Math.sqrt(resSq);
     if (!best || res < best.res) best = { vec: ritz, lam, res };
     if (res <= opts.tol) break;
@@ -251,8 +282,14 @@ export function lanczos(
   const out = best!.vec;
   canonicalSign(out);
   return {
-    vector: out, eigenvalue: best!.lam, residual: best!.res, iterations: totalIters,
-    krylov: m, converged: best!.res <= opts.tol, method: 'lanczos', ms: nowMs() - t0,
+    vector: out,
+    eigenvalue: best!.lam,
+    residual: best!.res,
+    iterations: totalIters,
+    krylov: m,
+    converged: best!.res <= opts.tol,
+    method: 'lanczos',
+    ms: nowMs() - t0,
   };
 }
 
@@ -284,13 +321,16 @@ export function buildFlowerOfLifeAdjacency(n = NODES): Float64Array {
       pts.push({ q, r, x, y, d: Math.hypot(x, y), a: Math.atan2(y, x) });
     }
   }
-  pts.sort((p1, p2) => (p1.d - p2.d) || (p1.a - p2.a) || (p1.q - p2.q));
+  pts.sort((p1, p2) => p1.d - p2.d || p1.a - p2.a || p1.q - p2.q);
   const sel = pts.slice(0, n);
   const A = new Float64Array(n * n);
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
       const dd = Math.hypot(sel[i].x - sel[j].x, sel[i].y - sel[j].y);
-      if (Math.abs(dd - 1) < 1e-9) { A[i * n + j] = 1; A[j * n + i] = 1; }
+      if (Math.abs(dd - 1) < 1e-9) {
+        A[i * n + j] = 1;
+        A[j * n + i] = 1;
+      }
     }
   }
   return A;
@@ -350,12 +390,13 @@ export function buildSpiralLaplacian(n = NODES): Float64Array {
 export function denseApply(M: Float64Array, n: number): ApplyOp {
   return (v, out) => {
     for (let i = 0; i < n; i++) {
-      let s = 0, c = 0;
+      let s = 0,
+        c = 0;
       const base = i * n;
       for (let j = 0; j < n; j++) {
         const t = M[base + j] * v[j];
         const y = s + t;
-        c += Math.abs(s) >= Math.abs(t) ? (s - y) + t : (t - y) + s;
+        c += Math.abs(s) >= Math.abs(t) ? s - y + t : t - y + s;
         s = y;
       }
       out[i] = s + c;
@@ -419,7 +460,10 @@ export function deriveEigenBudget(n: number, budgetMs = 60): EigenBudget {
   for (let i = 0; i < 200; i++) ap(v, out);
   const t0 = nowMs();
   let reps = 0;
-  while (nowMs() - t0 < 3.0 && reps < 200_000) { ap(v, out); reps++; }
+  while (nowMs() - t0 < 3.0 && reps < 200_000) {
+    ap(v, out);
+    reps++;
+  }
   const applyMs = Math.max(1e-6, (nowMs() - t0) / Math.max(1, reps));
 
   // Wall-clock budget scaled by parallel/memory headroom (relative area).
@@ -432,7 +476,10 @@ export function deriveEigenBudget(n: number, budgetMs = 60): EigenBudget {
   const restarts = Math.max(2, Math.min(64, Math.floor(applies / Math.max(1, krylov * 4))));
   const tol = 1e-13;
   return {
-    maxIters, krylov, restarts, tol,
+    maxIters,
+    krylov,
+    restarts,
+    tol,
     note: `apply=${applyMs.toFixed(5)}ms · area=${n}² · cores=${cores} · mem=${memGB}GB · budget=${budgetMs}ms×${headroom.toFixed(2)}`,
   };
 }
@@ -456,15 +503,21 @@ function tagFor(op: string, r: EigenResult, b: EigenBudget): string {
 export function computeQuantumEigenmode(budget = deriveEigenBudget(NODES)): ComputedMode {
   const A = buildFlowerOfLifeAdjacency(NODES);
   const res = powerIteration(denseApply(A, NODES), NODES, {
-    maxIters: budget.maxIters, tol: budget.tol, seed: 0x51,
+    maxIters: budget.maxIters,
+    tol: budget.tol,
+    seed: 0x51,
   });
   // Perron vector is strictly positive; enforce the sign convention.
   let neg = 0;
   for (let i = 0; i < NODES; i++) if (res.vector[i] < 0) neg++;
   if (neg > NODES / 2) scaleInPlace(res.vector, -1);
   return {
-    scale: 1, operator: 'fol-adjacency-perron', vector: res.vector, eigen: res,
-    tag: tagFor('fol-adjacency-perron', res, budget), budget,
+    scale: 1,
+    operator: 'fol-adjacency-perron',
+    vector: res.vector,
+    eigen: res,
+    tag: tagFor('fol-adjacency-perron', res, budget),
+    budget,
   };
 }
 
@@ -473,10 +526,18 @@ export function computeHyperGalacticEigenmode(budget = deriveEigenBudget(NODES))
   const L = buildSpiralLaplacian(NODES);
   const op = deflateConstant(denseApply(L, NODES), NODES);
   const res = lanczos(op, NODES, {
-    krylov: budget.krylov, restarts: budget.restarts, tol: budget.tol, seed: 0x88, pick: 'smallest',
+    krylov: budget.krylov,
+    restarts: budget.restarts,
+    tol: budget.tol,
+    seed: 0x88,
+    pick: 'smallest',
   });
   return {
-    scale: 8, operator: 'spiral-laplacian-outermost', vector: res.vector, eigen: res,
-    tag: tagFor('spiral-laplacian-outermost', res, budget), budget,
+    scale: 8,
+    operator: 'spiral-laplacian-outermost',
+    vector: res.vector,
+    eigen: res,
+    tag: tagFor('spiral-laplacian-outermost', res, budget),
+    budget,
   };
 }

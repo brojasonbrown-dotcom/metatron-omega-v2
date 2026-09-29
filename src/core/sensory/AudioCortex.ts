@@ -50,12 +50,12 @@ export interface AudioFeatures {
 const MEL_BANDS = 64;
 const MFCC_COEFS = 13;
 const CHROMA_BINS = 12;
-const YIN_TAU_MIN = 32;       // f0 ≤ sr/32  ≈ 1500 Hz @ 48 kHz
-const YIN_TAU_MAX = 600;      // f0 ≥ sr/600 ≈ 80 Hz   @ 48 kHz
+const YIN_TAU_MIN = 32; // f0 ≤ sr/32  ≈ 1500 Hz @ 48 kHz
+const YIN_TAU_MAX = 600; // f0 ≥ sr/600 ≈ 80 Hz   @ 48 kHz
 const YIN_THRESHOLD = 0.15;
-const ONSET_WIN = 43;          // ~185 ms @ 233 Hz — adaptive flux baseline window
-const TEMPO_WIN = 233;          // 1 s of onset envelope for tempo autocorr
-const LUFS_WIN_FRAMES = 96;    // ~400 ms @ 233 Hz K-weighted RMS
+const ONSET_WIN = 43; // ~185 ms @ 233 Hz — adaptive flux baseline window
+const TEMPO_WIN = 233; // 1 s of onset envelope for tempo autocorr
+const LUFS_WIN_FRAMES = 96; // ~400 ms @ 233 Hz K-weighted RMS
 
 export class AudioCortex {
   private sampleRate: number;
@@ -65,8 +65,8 @@ export class AudioCortex {
   private mfcc = new Float32Array(MFCC_COEFS);
   private chroma = new Float32Array(CHROMA_BINS);
   private prevMag: Float32Array;
-  private cmnd: Float32Array;          // YIN cumulative mean normalised difference
-  private feature: Float32Array;        // packed feature vector
+  private cmnd: Float32Array; // YIN cumulative mean normalised difference
+  private feature: Float32Array; // packed feature vector
   private onsetRing: Float32Array = new Float32Array(ONSET_WIN);
   private onsetIdx = 0;
   private tempoRing: Float32Array = new Float32Array(TEMPO_WIN);
@@ -75,7 +75,7 @@ export class AudioCortex {
   private bpmEMA = 0;
   private lufsRing: Float32Array = new Float32Array(LUFS_WIN_FRAMES);
   private lufsIdx = 0;
-  private kHpZ1 = 0;                    // pre-filter state for K-weighting
+  private kHpZ1 = 0; // pre-filter state for K-weighting
   private kShelfZ1 = 0;
 
   constructor(sampleRate = 48000, fftSize = 1024) {
@@ -98,24 +98,26 @@ export class AudioCortex {
     const halfFft = mag.length;
 
     // --- RMS + ZCR (time domain) + LUFS-lite K-weighting ---
-    let sq = 0, zc = 0, kSq = 0;
+    let sq = 0,
+      zc = 0,
+      kSq = 0;
     let prev = time[0];
     // K-weighting approximation: a 2nd-order high-pass + high-shelf cascade.
     // We use single-pole IIRs as a cheap stand-in (TPDF stable across runs).
-    const hpA = Math.exp(-2 * Math.PI * 38 / this.sampleRate);          // HP @ 38 Hz
-    const shelfA = Math.exp(-2 * Math.PI * 1500 / this.sampleRate);     // shelf @ 1.5 kHz
-    const shelfGain = 1.585;                                             // ~+4 dB @ HF
+    const hpA = Math.exp((-2 * Math.PI * 38) / this.sampleRate); // HP @ 38 Hz
+    const shelfA = Math.exp((-2 * Math.PI * 1500) / this.sampleRate); // shelf @ 1.5 kHz
+    const shelfGain = 1.585; // ~+4 dB @ HF
     for (let i = 0; i < N; i++) {
       const x = time[i];
       sq += x * x;
-      if ((prev >= 0) !== (x >= 0)) zc++;
+      if (prev >= 0 !== x >= 0) zc++;
       prev = x;
       // K filter
       const hp = x - this.kHpZ1 * hpA;
       this.kHpZ1 = x;
       const sh = hp * shelfA + this.kShelfZ1 * (1 - shelfA);
       this.kShelfZ1 = sh;
-      const kY = hp + (sh * (shelfGain - 1));
+      const kY = hp + sh * (shelfGain - 1);
       kSq += kY * kY;
     }
     const rms = Math.sqrt(sq / Math.max(1, N));
@@ -129,7 +131,10 @@ export class AudioCortex {
     const lufs = lufsMean > 1e-12 ? -0.691 + 10 * Math.log10(lufsMean) : -120;
 
     // --- Spectral descriptors ---
-    let magSum = 0, weighted = 0, logSum = 0, energy = 0;
+    let magSum = 0,
+      weighted = 0,
+      logSum = 0,
+      energy = 0;
     for (let k = 0; k < halfFft; k++) {
       const m = mag[k];
       magSum += m;
@@ -144,10 +149,14 @@ export class AudioCortex {
     const flatness = arithMean > 1e-9 ? geomMean / arithMean : 0;
     // rolloff85
     const target = 0.85 * magSum;
-    let cum = 0, rolloffBin = halfFft - 1;
+    let cum = 0,
+      rolloffBin = halfFft - 1;
     for (let k = 0; k < halfFft; k++) {
       cum += mag[k];
-      if (cum >= target) { rolloffBin = k; break; }
+      if (cum >= target) {
+        rolloffBin = k;
+        break;
+      }
     }
     const rolloff = (rolloffBin / halfFft) * (this.sampleRate / 2);
 
@@ -163,8 +172,12 @@ export class AudioCortex {
     // --- Onset peak-pick (adaptive threshold over rolling baseline) ---
     this.onsetRing[this.onsetIdx] = flux;
     this.onsetIdx = (this.onsetIdx + 1) % ONSET_WIN;
-    let baseSum = 0, baseSqSum = 0;
-    for (let i = 0; i < ONSET_WIN; i++) { baseSum += this.onsetRing[i]; baseSqSum += this.onsetRing[i] * this.onsetRing[i]; }
+    let baseSum = 0,
+      baseSqSum = 0;
+    for (let i = 0; i < ONSET_WIN; i++) {
+      baseSum += this.onsetRing[i];
+      baseSqSum += this.onsetRing[i] * this.onsetRing[i];
+    }
     const baseMean = baseSum / ONSET_WIN;
     const baseStd = Math.sqrt(Math.max(0, baseSqSum / ONSET_WIN - baseMean * baseMean));
     const onset = flux > baseMean + 1.6 * baseStd && flux > 1.2 * baseMean ? 1 : 0;
@@ -176,16 +189,20 @@ export class AudioCortex {
     let bpm = this.bpmEMA;
     // only recompute every ~233 frames to stay cheap
     if (this.tempoFilled === TEMPO_WIN && this.tempoIdx === 0) {
-      const minLag = Math.floor(60 / 180 * 233);  // 180 BPM
-      const maxLag = Math.floor(60 / 60 * 233);    // 60 BPM
-      let bestLag = 0, bestCorr = 0;
+      const minLag = Math.floor((60 / 180) * 233); // 180 BPM
+      const maxLag = Math.floor((60 / 60) * 233); // 60 BPM
+      let bestLag = 0,
+        bestCorr = 0;
       for (let lag = minLag; lag <= maxLag; lag++) {
         let c = 0;
         for (let i = 0; i < TEMPO_WIN - lag; i++) c += this.tempoRing[i] * this.tempoRing[i + lag];
-        if (c > bestCorr) { bestCorr = c; bestLag = lag; }
+        if (c > bestCorr) {
+          bestCorr = c;
+          bestLag = lag;
+        }
       }
       if (bestLag > 0) {
-        const inst = 60 * 233 / bestLag;
+        const inst = (60 * 233) / bestLag;
         bpm = this.bpmEMA === 0 ? inst : 0.7 * this.bpmEMA + 0.3 * inst;
         this.bpmEMA = bpm;
       }
@@ -197,7 +214,9 @@ export class AudioCortex {
     computeChroma(mag, this.sampleRate, this.fftSize, this.chroma);
 
     // --- YIN F0 (only when RMS is real AND spectrum is harmonic-ish) ---
-    let f0 = 0, voicing = 0, harmonicity = 0;
+    let f0 = 0,
+      voicing = 0,
+      harmonicity = 0;
     if (rms > 0.01 && flatness < 0.6) {
       const tauMax = Math.min(YIN_TAU_MAX, Math.floor(N / 2) - 1);
       // step 1: difference function
@@ -221,7 +240,8 @@ export class AudioCortex {
         if (this.cmnd[tau] < YIN_THRESHOLD) {
           // local minimum scan within the dip — read-only
           let localTau = tau;
-          while (localTau + 1 <= tauMax && this.cmnd[localTau + 1] < this.cmnd[localTau]) localTau++;
+          while (localTau + 1 <= tauMax && this.cmnd[localTau + 1] < this.cmnd[localTau])
+            localTau++;
           tauEst = localTau;
           break;
         }
@@ -244,9 +264,9 @@ export class AudioCortex {
     // --- Pack feature vector ---
     const f = this.feature;
     let p = 0;
-    for (let i = 0; i < MEL_BANDS; i++) f[p++] = this.mel[i] * 0.25;       // 0..64
-    for (let i = 0; i < MFCC_COEFS; i++) f[p++] = this.mfcc[i] * 0.1;      // 64..77
-    for (let i = 0; i < CHROMA_BINS; i++) f[p++] = this.chroma[i];          // 77..89
+    for (let i = 0; i < MEL_BANDS; i++) f[p++] = this.mel[i] * 0.25; // 0..64
+    for (let i = 0; i < MFCC_COEFS; i++) f[p++] = this.mfcc[i] * 0.1; // 64..77
+    for (let i = 0; i < CHROMA_BINS; i++) f[p++] = this.chroma[i]; // 77..89
     f[p++] = Math.min(1, rms * 4);
     f[p++] = zcr;
     f[p++] = Math.min(1, centroid / (this.sampleRate / 2));
@@ -256,12 +276,25 @@ export class AudioCortex {
     f[p++] = onset;
     f[p++] = voicing;
     f[p++] = harmonicity;
-    f[p++] = Math.max(-1, Math.min(1, (lufs + 60) / 60));   // map −120..0 LUFS → −1..1
+    f[p++] = Math.max(-1, Math.min(1, (lufs + 60) / 60)); // map −120..0 LUFS → −1..1
 
     return {
-      feature: f, mel: this.mel, mfcc: this.mfcc, chroma: this.chroma,
-      rms, lufs, zcr, centroid, flatness, rolloff, flux, onset,
-      bpm, f0, voicing, harmonicity,
+      feature: f,
+      mel: this.mel,
+      mfcc: this.mfcc,
+      chroma: this.chroma,
+      rms,
+      lufs,
+      zcr,
+      centroid,
+      flatness,
+      rolloff,
+      flux,
+      onset,
+      bpm,
+      f0,
+      voicing,
+      harmonicity,
     };
   }
 
@@ -279,15 +312,15 @@ export class AudioCortex {
   // bit-identical.
 
   private static readonly SOLFEGGIO_HZ = [174, 285, 396, 417, 528, 639, 741, 852, 963] as const;
-  private static readonly SEMI_UP = 1.0594630943592953;      // 2^(1/12)
+  private static readonly SEMI_UP = 1.0594630943592953; // 2^(1/12)
   private static readonly SEMI_DOWN = 1 / 1.0594630943592953;
   private static readonly PHI = 1.6180339887498949;
   private static readonly EMA_ALPHA = 1 / (1.6180339887498949 * 1.6180339887498949); // 1/φ²
 
   private solfeggioBands = new Float32Array(9);
   private flowerBands = new Float32Array(55);
-  private solfeggioBins: Int32Array | null = null;   // [b0_lo, b0_hi, b1_lo, b1_hi, ...] length 18
-  private flowerBins: Int32Array | null = null;      // length 110
+  private solfeggioBins: Int32Array | null = null; // [b0_lo, b0_hi, b1_lo, b1_hi, ...] length 18
+  private flowerBins: Int32Array | null = null; // length 110
 
   /** Ensure the ±1-semitone bin windows for each solfeggio band are cached. */
   private ensureSolfeggioBins(): Int32Array {
@@ -403,7 +436,6 @@ export class AudioCortex {
 const _scratchRaw9 = new Float32Array(9);
 const _scratchRaw55 = new Float32Array(55);
 
-
 /**
  * 12-bin chroma vector — sum the squared magnitudes of every bin into
  * its pitch class via log2(freq/A4)·12 mod 12. Equal-temperament.
@@ -424,14 +456,22 @@ function getChromaPcTable(sampleRate: number, fftSize: number, numBins: number):
   tbl[0] = -1;
   for (let k = 1; k < numBins; k++) {
     const f = k * binHz;
-    if (f < 50 || f > 5000) { tbl[k] = -1; continue; }
+    if (f < 50 || f > 5000) {
+      tbl[k] = -1;
+      continue;
+    }
     tbl[k] = Math.floor((((Math.log2(f / A4) * 12) % 12) + 12) % 12);
   }
   chromaPcCache.set(key, tbl);
   return tbl;
 }
 
-function computeChroma(mag: Float32Array, sampleRate: number, fftSize: number, out: Float32Array): void {
+function computeChroma(
+  mag: Float32Array,
+  sampleRate: number,
+  fftSize: number,
+  out: Float32Array,
+): void {
   for (let i = 0; i < CHROMA_BINS; i++) out[i] = 0;
   const N = mag.length;
   const pc = getChromaPcTable(sampleRate, fftSize, N);

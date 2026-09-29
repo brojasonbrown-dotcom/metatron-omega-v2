@@ -21,7 +21,14 @@ import {
   rotorFromPlane,
 } from '../src/algebra/clifford';
 
-const S = 0, E1 = 1, E2 = 2, E3 = 3, E12 = 4, E23 = 5, E31 = 6, E123 = 7;
+const S = 0,
+  E1 = 1,
+  E2 = 2,
+  E3 = 3,
+  E12 = 4,
+  E23 = 5,
+  E31 = 6,
+  E123 = 7;
 
 function blade(i: number, v = 1): Float64Array {
   const a = new Float64Array(BLADES);
@@ -92,7 +99,11 @@ describe('F1 — Clifford channels', () => {
     const half = rotorFromPlane(Math.PI / 4, 1, 0, 0);
     const once = applyRotor(half, blade(E1), new Float64Array(BLADES));
     const twice = applyRotor(half, once, new Float64Array(BLADES));
-    const full = applyRotor(rotorFromPlane(Math.PI / 2, 1, 0, 0), blade(E1), new Float64Array(BLADES));
+    const full = applyRotor(
+      rotorFromPlane(Math.PI / 2, 1, 0, 0),
+      blade(E1),
+      new Float64Array(BLADES),
+    );
     for (let i = 0; i < BLADES; i++) expect(twice[i]).toBeCloseTo(full[i], 14);
   });
 
@@ -104,6 +115,10 @@ describe('F1 — Clifford channels', () => {
     applyBladeGain(b, 0);
     const out = geometricProduct(a, b, new Float64Array(BLADES));
     expect(out[S]).toBe(1.25 * 2.5); // pure scalar multiplication
-    expect(Array.from(out).slice(1).every((v) => v === 0)).toBe(true);
+    expect(
+      Array.from(out)
+        .slice(1)
+        .every((v) => v === 0),
+    ).toBe(true);
   });
 });

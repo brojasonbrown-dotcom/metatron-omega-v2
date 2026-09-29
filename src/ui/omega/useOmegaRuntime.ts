@@ -3,8 +3,8 @@
  * component tree off the tick path — the worker owns the loop, React only
  * re-renders when a new immutable state object lands.
  */
-import { useCallback, useSyncExternalStore } from "react";
-import { getOmegaRuntime, type OmegaState } from "./omegaRuntime";
+import { useCallback, useSyncExternalStore } from 'react';
+import { getOmegaRuntime, type OmegaState } from './omegaRuntime';
 
 export function useOmegaState(): OmegaState {
   const rt = getOmegaRuntime();

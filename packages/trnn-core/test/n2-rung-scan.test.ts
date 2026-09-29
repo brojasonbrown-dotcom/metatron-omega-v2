@@ -43,7 +43,6 @@ import type { RungScanReport } from '../src/sense/scan';
 // samples — hence 3200.
 const TICKS = 3200;
 
-
 let engine: MultiTorusEngine;
 let nodes: number[];
 
@@ -194,7 +193,6 @@ describe('N2 hosted rung scans', () => {
       expect(scan.verdict.pass, `rank ${rank}: ${scan.verdict.defects.join('; ')}`).toBe(true);
     }
   });
-
 
   it('scans read-only: a repeated scan is byte-identical', () => {
     const a = rungScan(engine, 1)!;

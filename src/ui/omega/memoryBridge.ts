@@ -88,7 +88,10 @@ export function buildMemoryPack(query: string, opts: PackOptions = {}): MemoryPa
         fields: stats.fields,
         bytes: stats.bytes,
       },
-      fields: rt.kb.fields().map((f) => f.field).slice(0, 24),
+      fields: rt.kb
+        .fields()
+        .map((f) => f.field)
+        .slice(0, 24),
       hits,
       pool,
     };

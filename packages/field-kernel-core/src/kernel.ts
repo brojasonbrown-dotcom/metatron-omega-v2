@@ -52,7 +52,7 @@ export function nAdd(state: Float64Array, x: number): void {
   if (!Number.isFinite(x)) return;
   const s = state[0];
   const t = s + x;
-  state[1] += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+  state[1] += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
   state[0] = t;
 }
 export function nValue(state: Float64Array): number {
@@ -126,7 +126,19 @@ const PHI_INV_SQ = PHI_INV * PHI_INV;
  *     psiM + psiC` instead of three adds.
  */
 export function runShardKernel(input: ShardKernelInput): ShardKernelOutput {
-  const { kStart, nodes, carrierHz, tSeconds, qScalar, reflectEnabled, computePressure, prev, out, bankCoef, bankAlpha } = input;
+  const {
+    kStart,
+    nodes,
+    carrierHz,
+    tSeconds,
+    qScalar,
+    reflectEnabled,
+    computePressure,
+    prev,
+    out,
+    bankCoef,
+    bankAlpha,
+  } = input;
   const reflectK = reflectEnabled ? KAPPA_REFLECT * qScalar : 0;
   const reflectK1 = 1 + reflectK;
   const passes = Math.max(1, Math.floor(computePressure));
@@ -155,7 +167,20 @@ export function runShardKernel(input: ShardKernelInput): ShardKernelOutput {
   }
 
   // Inline Neumaier state (sum,comp) pairs for each accumulator.
-  let s1=0,c1=0, s2=0,c2=0, s3=0,c3=0, s4=0,c4=0, sE=0,cE=0, sN=0,cN=0, sD=0,cD=0;
+  let s1 = 0,
+    c1 = 0,
+    s2 = 0,
+    c2 = 0,
+    s3 = 0,
+    c3 = 0,
+    s4 = 0,
+    c4 = 0,
+    sE = 0,
+    cE = 0,
+    sN = 0,
+    cN = 0,
+    sD = 0,
+    cD = 0;
 
   for (let pass = 0; pass < passes; pass++) {
     const phase = tSeconds + pass * PHI_INV * 0.000001;
@@ -185,44 +210,58 @@ export function runShardKernel(input: ShardKernelInput): ShardKernelOutput {
         // Inline Neumaier: same algorithm as nAdd(), no call overhead.
         // (a) coherence num = Σ psi*prev
         {
-          const x = psi * pv; const s = sN; const t = s + x;
-          cN += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+          const x = psi * pv;
+          const s = sN;
+          const t = s + x;
+          cN += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
           sN = t;
         }
         // (b) coherence den = Σ prev²
         {
-          const x = pv * pv; const s = sD; const t = s + x;
-          cD += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+          const x = pv * pv;
+          const s = sD;
+          const t = s + x;
+          cD += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
           sD = t;
         }
         // (c) term1 = Σ |psiL|
         {
-          const x = psiL < 0 ? -psiL : psiL; const s = s1; const t = s + x;
-          c1 += s >= x ? (s - t) + x : (x - t) + s;
+          const x = psiL < 0 ? -psiL : psiL;
+          const s = s1;
+          const t = s + x;
+          c1 += s >= x ? s - t + x : x - t + s;
           s1 = t;
         }
         // (d) term2 = Σ |psiM|
         {
-          const x = psiM < 0 ? -psiM : psiM; const s = s2; const t = s + x;
-          c2 += s >= x ? (s - t) + x : (x - t) + s;
+          const x = psiM < 0 ? -psiM : psiM;
+          const s = s2;
+          const t = s + x;
+          c2 += s >= x ? s - t + x : x - t + s;
           s2 = t;
         }
         // (e) term3 = Σ |psiC|
         {
-          const x = psiC < 0 ? -psiC : psiC; const s = s3; const t = s + x;
-          c3 += s >= x ? (s - t) + x : (x - t) + s;
+          const x = psiC < 0 ? -psiC : psiC;
+          const s = s3;
+          const t = s + x;
+          c3 += s >= x ? s - t + x : x - t + s;
           s3 = t;
         }
         // (f) term4 = Σ |psiR|
         {
-          const x = psiR < 0 ? -psiR : psiR; const s = s4; const t = s + x;
-          c4 += s >= x ? (s - t) + x : (x - t) + s;
+          const x = psiR < 0 ? -psiR : psiR;
+          const s = s4;
+          const t = s + x;
+          c4 += s >= x ? s - t + x : x - t + s;
           s4 = t;
         }
         // (g) energy = Σ psi²
         {
-          const x = psi * psi; const s = sE; const t = s + x;
-          cE += s >= x ? (s - t) + x : (x - t) + s;
+          const x = psi * psi;
+          const s = sE;
+          const t = s + x;
+          cE += s >= x ? s - t + x : x - t + s;
           sE = t;
         }
 

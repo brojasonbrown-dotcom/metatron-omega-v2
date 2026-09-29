@@ -30,15 +30,15 @@ export function phiPow(k: number): number {
  * an open boundary (n=7 sub-Planckian ceiling, n=8 hyper-galactic spiral).
  */
 export const CONTRACTION_FLOOR_EXPONENT: readonly number[] = Object.freeze([
-  2,    // n=0 Septenary
-  3,    // n=1 Quantum (Perron mode — strongest contraction)
-  2,    // n=2 Atomic
-  2,    // n=3 Geometric
-  1.5,  // n=4 Color/Music
-  1.5,  // n=5 Hebrew
-  1.5,  // n=6 Galactic
-  1,    // n=7 Sub-Planckian (open ceiling)
-  1.5,  // n=8 Hyper-Galactic (Fiedler mode)
+  2, // n=0 Septenary
+  3, // n=1 Quantum (Perron mode — strongest contraction)
+  2, // n=2 Atomic
+  2, // n=3 Geometric
+  1.5, // n=4 Color/Music
+  1.5, // n=5 Hebrew
+  1.5, // n=6 Galactic
+  1, // n=7 Sub-Planckian (open ceiling)
+  1.5, // n=8 Hyper-Galactic (Fiedler mode)
 ]);
 
 export function contractionFloor(scale: number): number {
@@ -91,29 +91,37 @@ export function probeDirection(out: Float64Array): void {
   if (norm > 0) for (let i = 0; i < n; i++) out[i] /= norm;
 }
 
-
 const EPS = 1e-300;
 
 /** Neumaier accumulator (matches the kernel's numerics). */
-interface NAcc { s: number; c: number; }
-function nAcc(): NAcc { return { s: 0, c: 0 }; }
+interface NAcc {
+  s: number;
+  c: number;
+}
+function nAcc(): NAcc {
+  return { s: 0, c: 0 };
+}
 function nAdd(a: NAcc, x: number): void {
   if (!Number.isFinite(x)) return;
   const s = a.s;
   const t = s + x;
-  a.c += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+  a.c += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
   a.s = t;
 }
-function nVal(a: NAcc): number { return a.s + a.c; }
+function nVal(a: NAcc): number {
+  return a.s + a.c;
+}
 
 class RungWindow {
-  private readonly buf: Float64Array;   // stores ln(λ_t)
+  private readonly buf: Float64Array; // stores ln(λ_t)
   private len = 0;
   private head = 0;
   prevNorm = NaN;
   lastRatio = NaN;
 
-  constructor(window: number) { this.buf = new Float64Array(window); }
+  constructor(window: number) {
+    this.buf = new Float64Array(window);
+  }
 
   push(lnRatio: number): void {
     if (!Number.isFinite(lnRatio)) return;
@@ -129,7 +137,9 @@ class RungWindow {
     return Math.exp(nVal(acc) / this.len);
   }
 
-  get samples(): number { return this.len; }
+  get samples(): number {
+    return this.len;
+  }
 }
 
 export class ContractionTracker {
@@ -147,7 +157,10 @@ export class ContractionTracker {
    */
   observeDrive(scale: number, errNorm: number): void {
     let w = this.drive.get(scale);
-    if (!w) { w = new RungWindow(this.window); this.drive.set(scale, w); }
+    if (!w) {
+      w = new RungWindow(this.window);
+      this.drive.set(scale, w);
+    }
 
     if (Number.isFinite(errNorm) && Number.isFinite(w.prevNorm) && w.prevNorm > EPS) {
       const ratio = errNorm / w.prevNorm;
@@ -165,7 +178,10 @@ export class ContractionTracker {
    */
   observeLipschitz(scale: number, ratio: number): void {
     let w = this.lip.get(scale);
-    if (!w) { w = new RungWindow(this.window); this.lip.set(scale, w); }
+    if (!w) {
+      w = new RungWindow(this.window);
+      this.lip.set(scale, w);
+    }
     if (Number.isFinite(ratio) && ratio > EPS) {
       w.lastRatio = ratio;
       w.push(Math.log(ratio));
@@ -190,7 +206,10 @@ export class ContractionTracker {
     };
   }
 
-  reset(): void { this.lip.clear(); this.drive.clear(); }
+  reset(): void {
+    this.lip.clear();
+    this.drive.clear();
+  }
 }
 
 export interface ChainReport {
@@ -215,8 +234,12 @@ export function composeChain(certs: readonly ContractionCertificate[]): ChainRep
   let runRate = 1;
 
   const flush = () => {
-    if (run.length > best.length) { best = run; bestRate = runRate; }
-    run = []; runRate = 1;
+    if (run.length > best.length) {
+      best = run;
+      bestRate = runRate;
+    }
+    run = [];
+    runRate = 1;
   };
 
   for (const c of sorted) {

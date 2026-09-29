@@ -25,6 +25,7 @@ export function wrapAt<T>(xs: ArrayLike<T>, i: number): T {
 
 /** Bounds-checked read from a plain object map. */
 export function get<T>(map: Readonly<Record<string, T>>, key: string, what = 'get'): T {
-  if (!Object.prototype.hasOwnProperty.call(map, key)) throw new RangeError(`${what}: missing key ${key}`);
+  if (!Object.prototype.hasOwnProperty.call(map, key))
+    throw new RangeError(`${what}: missing key ${key}`);
   return map[key];
 }

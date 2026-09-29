@@ -31,7 +31,8 @@ describe('review window before memory', () => {
   it('a corrected label is what gets learned and scored', () => {
     const s = new MemoryStore();
     const d = new Float64Array(SOUND_DIM).map((_, i) => Math.sin(i + 1));
-    s.submit('cat', 'heard', d, 0); s.flushPending(1e4);
+    s.submit('cat', 'heard', d, 0);
+    s.flushPending(1e4);
     const u = s.submit('cap', 'heard', d, 2e4)!;
     s.pending.edit(u.id, 0, 'cat');
     s.flushPending(1e5);
@@ -43,12 +44,19 @@ describe('review window before memory', () => {
 describe('every word has a unique pattern', () => {
   it('exact addresses never collide across the catalog and a generated sample', () => {
     const words = new Set<string>();
-    for (const e of lexiconCatalog()) { const t = lexeme(e.word).token; if (t && t.length <= 11) words.add(t); }
+    for (const e of lexiconCatalog()) {
+      const t = lexeme(e.word).token;
+      if (t && t.length <= 11) words.add(t);
+    }
     const a = 'abcdefghijklmnopqrstuvwxyz';
     for (let i = 0; i < 20000; i++) {
-      let w = ''; let x = i * 2654435761 >>> 0;
+      let w = '';
+      let x = (i * 2654435761) >>> 0;
       const n = 1 + (i % 11);
-      for (let k = 0; k < n; k++) { w += a[x % 26]; x = (x * 1103515245 + 12345) >>> 0; }
+      for (let k = 0; k < n; k++) {
+        w += a[x % 26];
+        x = (x * 1103515245 + 12345) >>> 0;
+      }
       words.add(w);
     }
     const seen = new Map<string, string>();

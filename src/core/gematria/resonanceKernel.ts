@@ -16,8 +16,16 @@ export const MERGE_THRESHOLD = 1 - 1 / (PHI * PHI * PHI);
 
 export function resonance(a: ArrayLike<number>, b: ArrayLike<number>): number {
   const n = Math.min(a.length, b.length);
-  let dot = 0, na = 0, nb = 0;
-  for (let i = 0; i < n; i++) { const x = a[i], y = b[i]; dot += x * y; na += x * x; nb += y * y; }
+  let dot = 0,
+    na = 0,
+    nb = 0;
+  for (let i = 0; i < n; i++) {
+    const x = a[i],
+      y = b[i];
+    dot += x * y;
+    na += x * x;
+    nb += y * y;
+  }
   for (let i = n; i < a.length; i++) na += a[i] * a[i];
   for (let i = n; i < b.length; i++) nb += b[i] * b[i];
   const denom = na * nb;
@@ -28,9 +36,12 @@ export function resonance(a: ArrayLike<number>, b: ArrayLike<number>): number {
 
 /** Sparse variant: index/amplitude pairs against a dense vector. */
 export function resonanceSparse(
-  indices: ArrayLike<number>, amps: ArrayLike<number>, dense: ArrayLike<number>,
+  indices: ArrayLike<number>,
+  amps: ArrayLike<number>,
+  dense: ArrayLike<number>,
 ): number {
-  let dot = 0, na = 0;
+  let dot = 0,
+    na = 0;
   for (let i = 0; i < indices.length; i++) {
     const a = amps[i];
     na += a * a;
@@ -73,7 +84,9 @@ export function calibratedBeta(n: number, gap: number): number {
  * monotonically (Ramsauer et al. 2020, re-verified in Certificate 2.4).
  */
 export function hopfieldStep(
-  patterns: ReadonlyArray<Float64Array>, query: Float64Array, beta = hopfieldBeta(query.length),
+  patterns: ReadonlyArray<Float64Array>,
+  query: Float64Array,
+  beta = hopfieldBeta(query.length),
 ): Float64Array {
   const m = patterns.length;
   const d = query.length;
@@ -89,7 +102,10 @@ export function hopfieldStep(
     if (scores[k] > max) max = scores[k];
   }
   let sum = 0;
-  for (let k = 0; k < m; k++) { scores[k] = Math.exp(scores[k] - max); sum += scores[k]; }
+  for (let k = 0; k < m; k++) {
+    scores[k] = Math.exp(scores[k] - max);
+    sum += scores[k];
+  }
   if (sum <= 0) return out;
   for (let k = 0; k < m; k++) {
     const w = scores[k] / sum;
@@ -105,7 +121,9 @@ export function hopfieldStep(
 
 /** Modern-Hopfield energy E(x) = −logsumexp(β·Xx)/β + ½⟨x,x⟩. */
 export function hopfieldEnergy(
-  patterns: ReadonlyArray<Float64Array>, x: Float64Array, beta = hopfieldBeta(x.length),
+  patterns: ReadonlyArray<Float64Array>,
+  x: Float64Array,
+  beta = hopfieldBeta(x.length),
 ): number {
   if (patterns.length === 0) return 0;
   let max = -Infinity;

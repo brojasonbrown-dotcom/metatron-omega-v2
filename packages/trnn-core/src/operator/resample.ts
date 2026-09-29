@@ -34,7 +34,8 @@ export function bandLimit(n: number): number {
  * and a pure mode keeps its amplitude.
  */
 export function resample(f: CField, m: number): CField {
-  if (!Number.isInteger(m) || m <= 0) throw new RangeError(`resample: target width must be a positive integer, got ${m}`);
+  if (!Number.isInteger(m) || m <= 0)
+    throw new RangeError(`resample: target width must be a positive integer, got ${m}`);
   const n = f.n;
   if (m === n) return { re: Float64Array.from(f.re), im: Float64Array.from(f.im), n };
 

@@ -40,7 +40,13 @@
  * Pure functions. No engine imports, no state.
  */
 
-import { PHI, HBAR_J_S, BOLTZMANN_J_K, SPEED_OF_LIGHT_M_S, PLANCK_LENGTH_M } from '@/core/constants/WolframVerified';
+import {
+  PHI,
+  HBAR_J_S,
+  BOLTZMANN_J_K,
+  SPEED_OF_LIGHT_M_S,
+  PLANCK_LENGTH_M,
+} from '@/core/constants/WolframVerified';
 import { ladderTemperature, PLANCK_TEMPERATURE_K } from './PhiLadder';
 
 /** T_P computed the independent way (ħc/k_B ℓ_P) — cross-checks PhiLadder. */
@@ -66,7 +72,10 @@ export interface ThermalReport {
  * Effective temperature of a mode-amplitude vector projected onto the ladder
  * starting at rung `nRef`: mode k occupies rung nRef + k.
  */
-export function thermalReport(modes: readonly number[] | Float64Array, nRef: number): ThermalReport {
+export function thermalReport(
+  modes: readonly number[] | Float64Array,
+  nRef: number,
+): ThermalReport {
   const M = modes.length;
   const tRef = ladderTemperature(nRef);
   if (M === 0) {
@@ -78,7 +87,9 @@ export function thermalReport(modes: readonly number[] | Float64Array, nRef: num
     return { tEff: tRef, nEff: nRef, nRef, tRef, thermalExcess: 1, spreadRungs: 0 };
   }
   // log-domain (geometric) mean over rung temperatures + occupancy variance.
-  let logT = 0, meanN = 0, meanN2 = 0;
+  let logT = 0,
+    meanN = 0,
+    meanN2 = 0;
   for (let i = 0; i < M; i++) {
     const p = (modes[i] * modes[i]) / total;
     if (p <= 0) continue;
@@ -132,7 +143,7 @@ export function chargeReport(
   // a fully one-sided field reads ±1.
   const centre = (N - 1) / 2;
   let moment = 0;
-  for (let i = 0; i < N; i++) moment += (modes[i] * modes[i]) * (i - centre);
+  for (let i = 0; i < N; i++) moment += modes[i] * modes[i] * (i - centre);
   const P = Math.max(-1, Math.min(1, moment / (total * (centre || 1))));
 
   // Circulation: golden-lag antisymmetric product Σ (ψᵢ ψᵢ₊ℓ − ψᵢ₊ℓ ψᵢ₊2ℓ),
@@ -154,7 +165,8 @@ export function chargeReport(
 
 // ───────────────────────── self-check ─────────────────────────
 
-const drift = Math.abs(PLANCK_TEMPERATURE_FROM_LENGTH_K - PLANCK_TEMPERATURE_K) / PLANCK_TEMPERATURE_K;
+const drift =
+  Math.abs(PLANCK_TEMPERATURE_FROM_LENGTH_K - PLANCK_TEMPERATURE_K) / PLANCK_TEMPERATURE_K;
 // The two routes (m_P = √(ħc/G) vs ℓ_P) disagree only by the rounding of the
 // stored CODATA values themselves — ℓ_P is tabulated to 7 significant digits
 // while G carries a 2.2e-5 relative uncertainty. Anything beyond ~1e-4 would

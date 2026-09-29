@@ -56,7 +56,8 @@ export function ojaStep(w: Float64Array, x: ArrayLike<number>, eta: number): Oja
   const n = Math.min(w.length, x.length);
   let y = 0;
   for (let i = 0; i < n; i++) y += w[i] * x[i];
-  let drift = 0, sq = 0;
+  let drift = 0,
+    sq = 0;
   for (let i = 0; i < n; i++) {
     const d = eta * y * (x[i] - y * w[i]);
     w[i] += d;
@@ -71,7 +72,13 @@ export function ojaStep(w: Float64Array, x: ArrayLike<number>, eta: number): Oja
  * the top-K principal subspace in ONE pass, ordered by eigenvalue. Rows of `W`
  * are the components (row-major, K×D).
  */
-export function sangerStep(W: Float64Array, k: number, d: number, x: ArrayLike<number>, eta: number): Float64Array {
+export function sangerStep(
+  W: Float64Array,
+  k: number,
+  d: number,
+  x: ArrayLike<number>,
+  eta: number,
+): Float64Array {
   const y = new Float64Array(k);
   for (let a = 0; a < k; a++) {
     let s = 0;
@@ -156,8 +163,15 @@ export function memristiveVector(
  */
 export class BcmThreshold {
   private theta: number;
-  constructor(readonly tau: number, initial = 0) { this.theta = initial; }
-  get value(): number { return this.theta; }
+  constructor(
+    readonly tau: number,
+    initial = 0,
+  ) {
+    this.theta = initial;
+  }
+  get value(): number {
+    return this.theta;
+  }
   /** Update θ with a new post-synaptic activity and return the drive factor. */
   observe(y: number): number {
     if (!Number.isFinite(y)) return 0;

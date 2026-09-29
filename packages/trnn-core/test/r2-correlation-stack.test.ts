@@ -79,12 +79,25 @@ describe('P2 · Level-2 correlation stack', () => {
 
   it('pearson is exact on a perfect affine relation and sign-correct', () => {
     const x = series(64, (i) => i);
-    expect(pearson(x, series(64, (i) => 3 * i + 7)).value).toBeCloseTo(1, 12);
-    expect(pearson(x, series(64, (i) => -3 * i + 7)).value).toBeCloseTo(-1, 12);
+    expect(
+      pearson(
+        x,
+        series(64, (i) => 3 * i + 7),
+      ).value,
+    ).toBeCloseTo(1, 12);
+    expect(
+      pearson(
+        x,
+        series(64, (i) => -3 * i + 7),
+      ).value,
+    ).toBeCloseTo(-1, 12);
   });
 
   it('pearson abstains on a constant channel instead of dividing by zero', () => {
-    const r = pearson(series(64, (i) => i), series(64, () => 5));
+    const r = pearson(
+      series(64, (i) => i),
+      series(64, () => 5),
+    );
     expect(r.value).toBeNull();
     expect(r.reason).toContain('variance');
   });
@@ -106,7 +119,10 @@ describe('P2 · Level-2 correlation stack', () => {
     const y = series(64, (i) => Math.floor(i / 4));
     const r = kendallTauB(x, y);
     expect(r.value).toBeCloseTo(1, 12);
-    const rev = kendallTauB(x, series(64, (i) => -Math.floor(i / 4)));
+    const rev = kendallTauB(
+      x,
+      series(64, (i) => -Math.floor(i / 4)),
+    );
     expect(rev.value).toBeCloseTo(-1, 12);
   });
 
@@ -258,8 +274,14 @@ describe('P2 · Level-1 signal statistics', () => {
       for (let i = 200; i < n - 200; i++) p += a[i] * a[i];
       return p / (n - 400);
     };
-    const inBand = sosFiltFilt(sos, series(n, (i) => Math.sin((2 * Math.PI * 16 * i) / fs)));
-    const outBand = sosFiltFilt(sos, series(n, (i) => Math.sin((2 * Math.PI * 80 * i) / fs)));
+    const inBand = sosFiltFilt(
+      sos,
+      series(n, (i) => Math.sin((2 * Math.PI * 16 * i) / fs)),
+    );
+    const outBand = sosFiltFilt(
+      sos,
+      series(n, (i) => Math.sin((2 * Math.PI * 80 * i) / fs)),
+    );
     expect(power(inBand)).toBeGreaterThan(0.4);
     expect(power(outBand)).toBeLessThan(0.01);
   });
@@ -298,7 +320,12 @@ describe('P2 · Level-1 signal statistics', () => {
   });
 
   it('PLV abstains on a short window', () => {
-    const r = bandPLV(series(20, (i) => i), series(20, (i) => i), [12, 20], 256);
+    const r = bandPLV(
+      series(20, (i) => i),
+      series(20, (i) => i),
+      [12, 20],
+      256,
+    );
     expect(r.plv).toBeNull();
     expect(r.abstained).toBe(true);
   });
@@ -319,7 +346,10 @@ describe('P2 · Level-1 signal statistics', () => {
     const s = rng('gcc0');
     const x = series(256, () => gauss(s));
     expect(Math.round(gccPhat(x, x, 16).lag!)).toBe(0);
-    const short = gccPhat(series(4, (i) => i), series(4, (i) => i));
+    const short = gccPhat(
+      series(4, (i) => i),
+      series(4, (i) => i),
+    );
     expect(short.lag).toBeNull();
     expect(short.abstained).toBe(true);
   });

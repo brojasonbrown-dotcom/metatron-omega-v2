@@ -56,7 +56,6 @@ export interface Throughput {
   readonly jitter: number;
 }
 
-
 export interface HardwareProbe {
   readonly cores: number;
   readonly coresSource: 'navigator' | 'os' | 'unavailable';
@@ -93,7 +92,8 @@ function probeCores(): { cores: number; source: HardwareProbe['coresSource'] } {
 
 function probeMemory(): { bytes: number | null; source: HardwareProbe['memorySource'] } {
   const dm = g.navigator?.deviceMemory;
-  if (typeof dm === 'number' && dm > 0) return { bytes: dm * 1024 * 1024 * 1024, source: 'deviceMemory' };
+  if (typeof dm === 'number' && dm > 0)
+    return { bytes: dm * 1024 * 1024 * 1024, source: 'deviceMemory' };
   const heap = g.performance?.memory?.jsHeapSizeLimit;
   if (typeof heap === 'number' && heap > 0) return { bytes: heap, source: 'jsHeap' };
   return { bytes: null, source: 'unavailable' };
@@ -111,12 +111,10 @@ async function probeWebGPU(): Promise<WebGPUInfo> {
   const gpu = g.navigator?.gpu;
   if (!gpu?.requestAdapter) return none;
   try {
-    const adapter = (await gpu.requestAdapter()) as
-      | {
-          info?: { vendor?: string; architecture?: string };
-          limits?: Record<string, number>;
-        }
-      | null;
+    const adapter = (await gpu.requestAdapter()) as {
+      info?: { vendor?: string; architecture?: string };
+      limits?: Record<string, number>;
+    } | null;
     if (!adapter) return none;
     const l = adapter.limits ?? {};
     return {
@@ -146,7 +144,9 @@ export function tickWorkUnits(nodes: number, modes: number, exchangePerNode = 0)
  * so a throttled or contended machine is visible rather than silently rated.
  * The rate is in work units per second (see `Throughput`).
  */
-export function benchmarkThroughput(opts: { nodes?: number; ticks?: number; repeats?: number; modes?: number } = {}): Throughput {
+export function benchmarkThroughput(
+  opts: { nodes?: number; ticks?: number; repeats?: number; modes?: number } = {},
+): Throughput {
   const nodes = opts.nodes ?? 233;
   const ticks = opts.ticks ?? 64;
   const modes = opts.modes ?? 13;
@@ -189,8 +189,9 @@ export function benchmarkThroughput(opts: { nodes?: number; ticks?: number; repe
   };
 }
 
-
-export async function probeHardware(opts: { bench?: { nodes?: number; ticks?: number; repeats?: number } } = {}): Promise<HardwareProbe> {
+export async function probeHardware(
+  opts: { bench?: { nodes?: number; ticks?: number; repeats?: number } } = {},
+): Promise<HardwareProbe> {
   const c = probeCores();
   const m = probeMemory();
   const webgpu = await probeWebGPU();

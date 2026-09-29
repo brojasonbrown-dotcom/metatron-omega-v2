@@ -35,8 +35,11 @@ const UNKNOWN_QUOTA: QuotaEstimate = { usage: NaN, quota: NaN };
 
 async function hostEstimate(): Promise<QuotaEstimate> {
   try {
-    const s = (globalThis as { navigator?: { storage?: { estimate?: () => Promise<{ usage?: number; quota?: number }> } } })
-      .navigator?.storage;
+    const s = (
+      globalThis as {
+        navigator?: { storage?: { estimate?: () => Promise<{ usage?: number; quota?: number }> } };
+      }
+    ).navigator?.storage;
     if (!s?.estimate) return UNKNOWN_QUOTA;
     const e = await s.estimate();
     return { usage: e.usage ?? NaN, quota: e.quota ?? NaN };
@@ -48,11 +51,22 @@ async function hostEstimate(): Promise<QuotaEstimate> {
 export class MemoryBlobStore implements BlobStore {
   readonly kind = 'memory' as const;
   private m = new Map<string, Uint8Array>();
-  async put(k: string, d: Uint8Array) { this.m.set(k, Uint8Array.from(d)); }
-  async get(k: string) { const v = this.m.get(k); return v ? Uint8Array.from(v) : null; }
-  async list(p: string) { return [...this.m.keys()].filter((k) => k.startsWith(p)).sort(); }
-  async erase(k: string) { this.m.delete(k); }
-  async bytes(k: string) { return this.m.get(k)?.byteLength ?? 0; }
+  async put(k: string, d: Uint8Array) {
+    this.m.set(k, Uint8Array.from(d));
+  }
+  async get(k: string) {
+    const v = this.m.get(k);
+    return v ? Uint8Array.from(v) : null;
+  }
+  async list(p: string) {
+    return [...this.m.keys()].filter((k) => k.startsWith(p)).sort();
+  }
+  async erase(k: string) {
+    this.m.delete(k);
+  }
+  async bytes(k: string) {
+    return this.m.get(k)?.byteLength ?? 0;
+  }
   async estimate(): Promise<QuotaEstimate> {
     let usage = 0;
     for (const v of this.m.values()) usage += v.byteLength;
@@ -69,13 +83,18 @@ class IdbBlobStore implements BlobStore {
   private open(): Promise<IDBDatabase> {
     return new Promise((res, rej) => {
       const req = indexedDB.open(DB_NAME, 1);
-      req.onupgradeneeded = () => { req.result.createObjectStore(STORE); };
+      req.onupgradeneeded = () => {
+        req.result.createObjectStore(STORE);
+      };
       req.onsuccess = () => res(req.result);
       req.onerror = () => rej(req.error);
     });
   }
 
-  private async tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+  private async tx<T>(
+    mode: IDBTransactionMode,
+    fn: (s: IDBObjectStore) => IDBRequest<T>,
+  ): Promise<T> {
     const db = await this.open();
     try {
       return await new Promise<T>((res, rej) => {
@@ -100,40 +119,64 @@ class IdbBlobStore implements BlobStore {
     return null;
   }
   async list(p: string) {
-    const keys = await this.tx<IDBValidKey[]>('readonly', (s) => s.getAllKeys() as IDBRequest<IDBValidKey[]>);
-    return keys.map(String).filter((k) => k.startsWith(p)).sort();
+    const keys = await this.tx<IDBValidKey[]>(
+      'readonly',
+      (s) => s.getAllKeys() as IDBRequest<IDBValidKey[]>,
+    );
+    return keys
+      .map(String)
+      .filter((k) => k.startsWith(p))
+      .sort();
   }
   async erase(k: string) {
     await this.tx('readwrite', (s) => s.delete(k) as unknown as IDBRequest<undefined>);
   }
-  async bytes(k: string) { return (await this.get(k))?.byteLength ?? 0; }
-  estimate() { return hostEstimate(); }
+  async bytes(k: string) {
+    return (await this.get(k))?.byteLength ?? 0;
+  }
+  estimate() {
+    return hostEstimate();
+  }
 }
 
 class OpfsBlobStore implements BlobStore {
   readonly kind = 'opfs' as const;
   private dirName: string;
-  constructor(dirName = 'corpus') { this.dirName = dirName; }
+  constructor(dirName = 'corpus') {
+    this.dirName = dirName;
+  }
 
   private async dir(): Promise<FileSystemDirectoryHandle> {
-    const root = await (navigator.storage as unknown as {
-      getDirectory: () => Promise<FileSystemDirectoryHandle>;
-    }).getDirectory();
+    const root = await (
+      navigator.storage as unknown as {
+        getDirectory: () => Promise<FileSystemDirectoryHandle>;
+      }
+    ).getDirectory();
     return root.getDirectoryHandle(this.dirName, { create: true });
   }
 
   /** Safe file name for a key — OPFS has no namespacing of its own. */
-  private file(key: string): string { return key.replace(/[^\w.-]+/g, '_'); }
+  private file(key: string): string {
+    return key.replace(/[^\w.-]+/g, '_');
+  }
 
   async put(k: string, d: Uint8Array) {
     const dir = await this.dir();
     // temp → rename, so a crash mid-write can never leave a half shard behind.
     const tmp = `${this.file(k)}.tmp`;
     const h = await dir.getFileHandle(tmp, { create: true });
-    const w = await (h as unknown as { createWritable: () => Promise<WritableStream & { write: (d: Uint8Array) => Promise<void>; close: () => Promise<void> }> }).createWritable();
+    const w = await (
+      h as unknown as {
+        createWritable: () => Promise<
+          WritableStream & { write: (d: Uint8Array) => Promise<void>; close: () => Promise<void> }
+        >;
+      }
+    ).createWritable();
     await w.write(Uint8Array.from(d));
     await w.close();
-    const mv = (h as unknown as { move?: (dir: FileSystemDirectoryHandle, name: string) => Promise<void> }).move;
+    const mv = (
+      h as unknown as { move?: (dir: FileSystemDirectoryHandle, name: string) => Promise<void> }
+    ).move;
     if (typeof mv === 'function') {
       await mv.call(h, dir, this.file(k));
     } else {
@@ -141,7 +184,14 @@ class OpfsBlobStore implements BlobStore {
       const src = await (await dir.getFileHandle(tmp)).getFile();
       const buf = new Uint8Array(await src.arrayBuffer());
       const dst = await dir.getFileHandle(this.file(k), { create: true });
-      const w2 = await (dst as unknown as { createWritable: () => Promise<{ write: (d: Uint8Array) => Promise<void>; close: () => Promise<void> }> }).createWritable();
+      const w2 = await (
+        dst as unknown as {
+          createWritable: () => Promise<{
+            write: (d: Uint8Array) => Promise<void>;
+            close: () => Promise<void>;
+          }>;
+        }
+      ).createWritable();
       await w2.write(buf);
       await w2.close();
       await dir.removeEntry(tmp).catch(() => {});
@@ -174,8 +224,12 @@ class OpfsBlobStore implements BlobStore {
     await dir.removeEntry(this.file(k)).catch(() => {});
   }
 
-  async bytes(k: string) { return (await this.get(k))?.byteLength ?? 0; }
-  estimate() { return hostEstimate(); }
+  async bytes(k: string) {
+    return (await this.get(k))?.byteLength ?? 0;
+  }
+  estimate() {
+    return hostEstimate();
+  }
 }
 
 /** OPFS if the host really has it, then IndexedDB, then memory. */

@@ -28,7 +28,7 @@
 import { getGovernorSync } from '@/core/runtime/governorSingleton';
 
 const PHI = 1.6180339887498949;
-const PHI_INV2 = 1 / (PHI * PHI);                // Λ ≈ 0.381966
+const PHI_INV2 = 1 / (PHI * PHI); // Λ ≈ 0.381966
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 const FIB_TIERS = [13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946];
 const FIB_STRIDES = [1, 1, 2, 3, 5, 8, 13];
@@ -39,27 +39,27 @@ const HIST = 21;
 const _strideScratch = new Uint8Array(14);
 
 export interface PhiLatticeReading {
-  amps: Float32Array;            // N node activations (live reference, do not mutate)
+  amps: Float32Array; // N node activations (live reference, do not mutate)
   N: number;
-  coherenceShort: number;         // lag 2 (≈ φ)
-  coherenceMid: number;            // lag 3 (≈ φ²)
-  coherenceLong: number;           // lag 5 (≈ φ³)
+  coherenceShort: number; // lag 2 (≈ φ)
+  coherenceMid: number; // lag 3 (≈ φ²)
+  coherenceLong: number; // lag 5 (≈ φ³)
   coherenceMean: number;
   closureFlux: number;
-  closureBaseline: number;         // 1/√N
-  anomaly: number;                  // |closureFlux − baseline|
-  stableFraction: number;        // fraction of last 89 samples with coherenceMean ≥ Λ
+  closureBaseline: number; // 1/√N
+  anomaly: number; // |closureFlux − baseline|
+  stableFraction: number; // fraction of last 89 samples with coherenceMean ≥ Λ
   lambda: number;
 }
 
 export class PhiLattice {
   readonly N: number;
   readonly D: number;
-  private W: Float32Array;           // N×D projection (row-major)
-  private dirs: Float32Array;        // N×3 sphere coords
-  private hold: Float32Array;        // current amps
-  private hist: Float32Array;        // HIST×N ring
-  private histTick: Int32Array;      // tick at which each ring slot was written
+  private W: Float32Array; // N×D projection (row-major)
+  private dirs: Float32Array; // N×3 sphere coords
+  private hold: Float32Array; // current amps
+  private hist: Float32Array; // HIST×N ring
+  private histTick: Int32Array; // tick at which each ring slot was written
   /** Per-node tick of last genuine update (-1 = never). Used to suppress
    *  stale-node contributions in cosSq(τ) so coherence reflects real signal. */
   private lastUpdate: Int32Array;
@@ -105,7 +105,8 @@ export class PhiLattice {
         s = (s * 1664525 + 1013904223) >>> 0;
         const v = ((s >>> 8) & 0xffff) / 0xffff;
         const g = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-        this.W[base + i] = g; norm += g * g;
+        this.W[base + i] = g;
+        norm += g * g;
       }
       const k = norm > 0 ? 1 / Math.sqrt(norm) : 1;
       for (let i = 0; i < this.D; i++) this.W[base + i] *= k;
@@ -118,7 +119,7 @@ export class PhiLattice {
     // from FIB_STRIDES (max 13), so we only need 14 mod-ops per tick (vs
     // N). `activeByStride[s] = (t % s === 0) ? 1 : 0`. Index-0 is unused.
     const activeByStride = _strideScratch;
-    for (let s = 1; s <= 13; s++) activeByStride[s] = (t % s === 0) ? 1 : 0;
+    for (let s = 1; s <= 13; s++) activeByStride[s] = t % s === 0 ? 1 : 0;
 
     const strides = this.strides;
     const W = this.W;
@@ -148,7 +149,11 @@ export class PhiLattice {
     // directional closure flux on the sphere — single contiguous walk over
     // `dirs` via a running base pointer (no per-axis index math).
     const dirs = this.dirs;
-    let sx = 0, sy = 0, sz = 0, sa = 0, db = 0;
+    let sx = 0,
+      sy = 0,
+      sz = 0,
+      sa = 0,
+      db = 0;
     for (let i = 0; i < this.N; i++) {
       const v = hold[i];
       sa += v < 0 ? -v : v;
@@ -161,18 +166,24 @@ export class PhiLattice {
     const closureBaseline = 1 / Math.sqrt(this.N);
     const anomaly = Math.abs(closureFlux - closureBaseline);
 
-
     this.cwin[this.cidx] = cMean >= PHI_INV2 ? 1 : 0;
     this.cidx = (this.cidx + 1) % this.cwin.length;
-    let cn = 0; for (let i = 0; i < this.cwin.length; i++) cn += this.cwin[i];
+    let cn = 0;
+    for (let i = 0; i < this.cwin.length; i++) cn += this.cwin[i];
     const stableFraction = cn / this.cwin.length;
 
     return {
-      amps: this.hold, N: this.N,
-      coherenceShort: cShort, coherenceMid: cMid, coherenceLong: cLong,
+      amps: this.hold,
+      N: this.N,
+      coherenceShort: cShort,
+      coherenceMid: cMid,
+      coherenceLong: cLong,
       coherenceMean: cMean,
-      closureFlux, closureBaseline, anomaly,
-      stableFraction, lambda: PHI_INV2,
+      closureFlux,
+      closureBaseline,
+      anomaly,
+      stableFraction,
+      lambda: PHI_INV2,
     };
   }
 
@@ -185,16 +196,23 @@ export class PhiLattice {
   private cosSqLag(lag: number, t: number): number {
     const aIdx = (this.histIdx - 1 + HIST) % HIST;
     const bIdx = (this.histIdx - 1 - lag + HIST * 2) % HIST;
-    const tA = this.histTick[aIdx], tB = this.histTick[bIdx];
+    const tA = this.histTick[aIdx],
+      tB = this.histTick[bIdx];
     if (tA < 0 || tB < 0) return 0;
     const aBase = aIdx * this.N;
     const bBase = bIdx * this.N;
     const fresh = t - lag - 1; // node must have updated at or after this tick
-    let dot = 0, na = 0, nb = 0, contributing = 0;
+    let dot = 0,
+      na = 0,
+      nb = 0,
+      contributing = 0;
     for (let i = 0; i < this.N; i++) {
       if (this.lastUpdate[i] < fresh) continue;
-      const a = this.hist[aBase + i], b = this.hist[bBase + i];
-      dot += a * b; na += a * a; nb += b * b;
+      const a = this.hist[aBase + i],
+        b = this.hist[bBase + i];
+      dot += a * b;
+      na += a * a;
+      nb += b * b;
       contributing++;
     }
     if (contributing < this.N * 0.1) return 0;
@@ -202,16 +220,30 @@ export class PhiLattice {
     return d > 1e-12 ? Math.min(1, (dot * dot) / d) : 0;
   }
 
-
   static similarity(a: Float32Array, b: Float32Array): number {
     const n = Math.min(a.length, b.length);
-    let dot = 0, na = 0, nb = 0;
-    for (let i = 0; i < n; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+    let dot = 0,
+      na = 0,
+      nb = 0;
+    for (let i = 0; i < n; i++) {
+      dot += a[i] * b[i];
+      na += a[i] * a[i];
+      nb += b[i] * b[i];
+    }
     const d = Math.sqrt(na) * Math.sqrt(nb);
     return d > 1e-9 ? dot / d : 0;
   }
 
-  bytes(): number { return this.W.byteLength + this.dirs.byteLength + this.hold.byteLength + this.hist.byteLength + this.lastUpdate.byteLength + this.histTick.byteLength; }
+  bytes(): number {
+    return (
+      this.W.byteLength +
+      this.dirs.byteLength +
+      this.hold.byteLength +
+      this.hist.byteLength +
+      this.lastUpdate.byteLength +
+      this.histTick.byteLength
+    );
+  }
 }
 
 /**
@@ -225,13 +257,19 @@ export function governorLatticeN(featureDim: number, fallback = 144): number {
   const snap = getGovernorSync();
   const m = snap?.gov.computeMaxM?.() ?? fallback;
   let pick = FIB_TIERS[0];
-  for (const f of FIB_TIERS) { if (f <= m) pick = f; else break; }
+  for (const f of FIB_TIERS) {
+    if (f <= m) pick = f;
+    else break;
+  }
   const ramBytes = snap?.gov.settings.ramBytes ?? 256 * 1024 * 1024;
   const perModalityBudget = ramBytes * 0.04; // 4% per modality, 4 modalities = 16% cap
   const bytesFor = (N: number) => N * featureDim * 4 + HIST * N * 4 + N * 3 * 4;
   if (bytesFor(pick) > perModalityBudget) {
     for (let i = FIB_TIERS.length - 1; i >= 0; i--) {
-      if (FIB_TIERS[i] <= pick && bytesFor(FIB_TIERS[i]) <= perModalityBudget) { pick = FIB_TIERS[i]; break; }
+      if (FIB_TIERS[i] <= pick && bytesFor(FIB_TIERS[i]) <= perModalityBudget) {
+        pick = FIB_TIERS[i];
+        break;
+      }
     }
   }
   return pick;

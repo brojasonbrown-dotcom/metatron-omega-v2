@@ -26,7 +26,7 @@ import type {
   ProfileId,
   WireProfile,
   WireVerdict,
-} from "@/core/omega/omegaProtocol";
+} from '@/core/omega/omegaProtocol';
 
 export interface OmegaState {
   supported: boolean;
@@ -72,15 +72,15 @@ export interface OmegaState {
 type Listener = (s: OmegaState) => void;
 
 const initial: OmegaState = {
-  supported: typeof Worker !== "undefined",
-  status: "IDLE — no engine built",
+  supported: typeof Worker !== 'undefined',
+  status: 'IDLE — no engine built',
   error: null,
   probing: false,
   probe: null,
   verdict: null,
   profiles: [],
   profile: null,
-  seed: "metatron-omega",
+  seed: 'metatron-omega',
   running: false,
   snapshot: null,
   footprintRatio: null,
@@ -120,14 +120,13 @@ class OmegaRuntime {
   }
 
   private ensureWorker(): Worker | null {
-    if (typeof Worker === "undefined") return null;
+    if (typeof Worker === 'undefined') return null;
     if (this.worker) return this.worker;
-    this.worker = new Worker(new URL("@/core/omega/omega.worker.ts", import.meta.url), {
-      type: "module",
+    this.worker = new Worker(new URL('@/core/omega/omega.worker.ts', import.meta.url), {
+      type: 'module',
     });
     this.worker.onmessage = (ev: MessageEvent<OmegaEvent>) => this.onEvent(ev.data);
-    this.worker.onerror = (e) =>
-      this.set({ error: e.message || "worker failed", status: "ERROR" });
+    this.worker.onerror = (e) => this.set({ error: e.message || 'worker failed', status: 'ERROR' });
     return this.worker;
   }
 
@@ -137,16 +136,16 @@ class OmegaRuntime {
 
   private onEvent(e: OmegaEvent): void {
     switch (e.type) {
-      case "probed":
+      case 'probed':
         this.set({
           probing: false,
           probe: e.probe,
           verdict: e.verdict,
           profiles: e.profiles,
-          status: `PROBED — governor selects ${e.verdict.selected}${e.verdict.degraded ? " (degraded)" : ""}`,
+          status: `PROBED — governor selects ${e.verdict.selected}${e.verdict.degraded ? ' (degraded)' : ''}`,
         });
         break;
-      case "built":
+      case 'built':
         this.set({
           profile: e.profile,
           seed: e.seed,
@@ -155,154 +154,154 @@ class OmegaRuntime {
           status: `BUILT — ${e.profile} · ${e.snapshot.totalNodes} nodes`,
         });
         break;
-      case "snapshot":
+      case 'snapshot':
         this.set({ snapshot: e.snapshot, running: e.snapshot.running });
         break;
-      case "running":
-        this.set({ running: e.running, status: e.running ? "RUNNING" : "HALTED" });
+      case 'running':
+        this.set({ running: e.running, status: e.running ? 'RUNNING' : 'HALTED' });
         break;
-      case "checkpointed":
+      case 'checkpointed':
         this.set({ lastCheckpoint: e.tick });
         break;
-      case "described":
+      case 'described':
         this.set({ description: e.description });
         break;
-      case "field":
+      case 'field':
         this.set({ frame: e.frame });
         break;
-      case "web":
+      case 'web':
         this.set({ web: e.view });
         break;
-      case "scan":
+      case 'scan':
         this.set({ scan: e.report });
         break;
-      case "spectral":
+      case 'spectral':
         this.set({ spectral: e.view });
         break;
-      case "sense":
+      case 'sense':
         this.set({ sense: e.view });
         break;
-      case "memory":
+      case 'memory':
         this.set({ braid: e.view });
         break;
-      case "mind":
+      case 'mind':
         this.set({ mind: e.report });
         break;
-      case "reflect":
+      case 'reflect':
         this.set({ reflection: e.trace });
         break;
-      case "learn":
+      case 'learn':
         this.set({ learn: e.run });
         break;
-      case "learning":
+      case 'learning':
         this.set({ learning: e.busy });
         break;
-      case "tiers":
+      case 'tiers':
         this.set({ tiers: e.map });
         break;
-      case "error":
-        this.set({ error: e.message, status: "ERROR" });
+      case 'error':
+        this.set({ error: e.message, status: 'ERROR' });
         break;
     }
   }
 
   probe(targetHz = 64): void {
-    this.set({ probing: true, error: null, status: "PROBING — timing the real engine" });
-    this.send({ type: "probe", targetHz });
+    this.set({ probing: true, error: null, status: 'PROBING — timing the real engine' });
+    this.send({ type: 'probe', targetHz });
   }
 
   build(profile: ProfileId, seed = this.state.seed): void {
     this.set({ status: `BUILDING ${profile}…`, error: null });
-    this.send({ type: "build", profile, seed });
+    this.send({ type: 'build', profile, seed });
   }
 
   start(): void {
-    this.send({ type: "start" });
+    this.send({ type: 'start' });
   }
 
   stop(): void {
-    this.send({ type: "stop" });
+    this.send({ type: 'stop' });
   }
 
   setHz(hz: number): void {
-    this.send({ type: "setHz", hz });
+    this.send({ type: 'setHz', hz });
   }
 
   checkpoint(): void {
-    this.send({ type: "checkpoint" });
+    this.send({ type: 'checkpoint' });
   }
 
   describe(): void {
-    this.send({ type: "describe" });
+    this.send({ type: 'describe' });
   }
 
   requestField(rank: number, maxSamples = 610): void {
-    this.send({ type: "field", rank, maxSamples });
+    this.send({ type: 'field', rank, maxSamples });
   }
 
   requestWeb(tail = 24): void {
-    this.send({ type: "web", tail });
+    this.send({ type: 'web', tail });
   }
 
   requestSpectral(rank: number): void {
-    this.send({ type: "spectral", rank });
+    this.send({ type: 'spectral', rank });
   }
 
   /** N1 — pull the six-section sensory scan of one toroid. */
   requestScan(rank: number): void {
-    this.send({ type: "scan", rank });
+    this.send({ type: 'scan', rank });
   }
 
   requestSense(): void {
-    this.send({ type: "sense" });
+    this.send({ type: 'sense' });
   }
 
   requestBraid(): void {
-    this.send({ type: "memory" });
+    this.send({ type: 'memory' });
   }
 
   requestMind(): void {
-    this.send({ type: "mind" });
+    this.send({ type: 'mind' });
   }
 
   requestReflection(k = 5): void {
-    this.send({ type: "reflect", k });
+    this.send({ type: 'reflect', k });
   }
 
   runBattery(iterations?: number, nodes?: number): void {
     this.set({ learning: true, error: null });
-    this.send({ type: "learn", iterations, nodes });
+    this.send({ type: 'learn', iterations, nodes });
   }
 
   probeTiers(sidecarUrl?: string, hostedUrl?: string): void {
-    this.send({ type: "tiers", sidecarUrl, hostedUrl });
+    this.send({ type: 'tiers', sidecarUrl, hostedUrl });
   }
 
   declareChannel(id: string, modality: SenseModality, nodes?: number, gain = 1): void {
-    this.send({ type: "senseDeclare", id, modality, nodes, gain });
+    this.send({ type: 'senseDeclare', id, modality, nodes, gain });
   }
 
   pushText(id: string, text: string): void {
-    this.send({ type: "sensePush", id, text });
+    this.send({ type: 'sensePush', id, text });
   }
 
   pushScalars(id: string, data: number[]): void {
-    this.send({ type: "sensePush", id, data });
+    this.send({ type: 'sensePush', id, data });
   }
 
   muteChannel(id: string): void {
-    this.send({ type: "senseMute", id });
+    this.send({ type: 'senseMute', id });
   }
 
   setSenseGain(gain: number): void {
-    this.send({ type: "senseGain", gain });
+    this.send({ type: 'senseGain', gain });
   }
 
   dispose(): void {
-    this.send({ type: "dispose" });
+    this.send({ type: 'dispose' });
     this.worker?.terminate();
     this.worker = null;
-    this.set({ running: false, status: "DISPOSED" });
+    this.set({ running: false, status: 'DISPOSED' });
   }
 }
 

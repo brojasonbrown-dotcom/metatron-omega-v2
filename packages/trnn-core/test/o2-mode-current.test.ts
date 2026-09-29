@@ -24,7 +24,8 @@ describe('O2 — mode-current Hodge witness', () => {
   it('a closed loop current is almost entirely circulation', () => {
     // Circulate on the triangle 0→1→2→0 using the ±1 and ±2 edges.
     const J = new Float64Array(edges.length);
-    const idx = (a: number, b: number) => edges.findIndex((e) => e.a === Math.min(a, b) && e.b === Math.max(a, b));
+    const idx = (a: number, b: number) =>
+      edges.findIndex((e) => e.a === Math.min(a, b) && e.b === Math.max(a, b));
     J[idx(0, 1)] = 1; // 0 → 1
     J[idx(1, 2)] = 1; // 1 → 2
     J[idx(0, 2)] = -1; // 2 → 0
@@ -35,7 +36,10 @@ describe('O2 — mode-current Hodge witness', () => {
 
   it('the ratio is invariant to a ×10 amplitude change (driver-free)', () => {
     const prev = Float64Array.from({ length: 13 }, (_, i) => 1 + 0.1 * i);
-    const curr = Float64Array.from({ length: 13 }, (_, i) => 1 + 0.1 * i + Math.sin(i * 2.3) * 0.05);
+    const curr = Float64Array.from(
+      { length: 13 },
+      (_, i) => 1 + 0.1 * i + Math.sin(i * 2.3) * 0.05,
+    );
     const a = modeCirculation(prev, curr, specs);
     const prev10 = Float64Array.from(prev, (v) => v * 10);
     const curr10 = Float64Array.from(curr, (v) => v * 10);

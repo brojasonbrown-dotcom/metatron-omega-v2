@@ -35,7 +35,11 @@
  *     reload can only reproduce them, never inherit a stale generation.
  */
 
-import { buildRingLaplacian, lanczosEigenpairs, spectrumDigest } from '@metatron/trnn-core/spectral/laplacian';
+import {
+  buildRingLaplacian,
+  lanczosEigenpairs,
+  spectrumDigest,
+} from '@metatron/trnn-core/spectral/laplacian';
 import { encodeText, senseField } from '@metatron/trnn-core/sense/encode';
 import type { CField } from '@metatron/trnn-core/core/complex';
 import { dcos, dexp, dsin } from '@metatron/trnn-core/core/dmath';
@@ -179,10 +183,16 @@ export class FieldSignatureEncoder {
     this.basis = BASES.get(tier.id) ?? null;
   }
 
-  ready(): boolean { return this.basis !== null; }
-  report(): BasisReport | null { return this.basis?.report ?? null; }
+  ready(): boolean {
+    return this.basis !== null;
+  }
+  report(): BasisReport | null {
+    return this.basis?.report ?? null;
+  }
   /** Signature width in floats (2 per retained mode). */
-  width(): number { return this.basis ? this.basis.vectors.length * 2 : 0; }
+  width(): number {
+    return this.basis ? this.basis.vectors.length * 2 : 0;
+  }
 
   /** Build (or reuse) the eigenbasis. Synchronous and deterministic. */
   prepare(): BasisReport {
@@ -217,7 +227,10 @@ export class FieldSignatureEncoder {
       const v = basis.vectors[m];
       // ⟨v|Ψ⟩ with a real eigenvector; Neumaier-compensated so the projection
       // is reproducible independent of summation order effects.
-      let sr = 0, cr = 0, si = 0, ci = 0;
+      let sr = 0,
+        cr = 0,
+        si = 0,
+        ci = 0;
       for (let i = 0; i < v.length; i++) {
         const tr = v[i] * psi.re[i];
         let t = sr + tr;
@@ -256,9 +269,15 @@ export class FieldSignatureEncoder {
  */
 export function signatureSimilarity(a: Float64Array | null, b: Float64Array | null): number {
   if (!a || !b || a.length === 0 || a.length !== b.length) return NaN;
-  let dr = 0, di = 0, na = 0, nb = 0;
+  let dr = 0,
+    di = 0,
+    na = 0,
+    nb = 0;
   for (let i = 0; i < a.length; i += 2) {
-    const ar = a[i], ai = a[i + 1], br = b[i], bi = b[i + 1];
+    const ar = a[i],
+      ai = a[i + 1],
+      br = b[i],
+      bi = b[i + 1];
     dr += ar * br + ai * bi;
     di += ai * br - ar * bi;
     na += ar * ar + ai * ai;
@@ -295,9 +314,15 @@ export function coarseWidth(len: number): number {
 export function signatureSimilarityCoarse(a: Float64Array | null, b: Float64Array | null): number {
   if (!a || !b || a.length === 0 || a.length !== b.length) return NaN;
   const w = coarseWidth(a.length);
-  let dr = 0, di = 0, na = 0, nb = 0;
+  let dr = 0,
+    di = 0,
+    na = 0,
+    nb = 0;
   for (let i = 0; i < w; i += 2) {
-    const ar = a[i], ai = a[i + 1], br = b[i], bi = b[i + 1];
+    const ar = a[i],
+      ai = a[i + 1],
+      br = b[i],
+      bi = b[i + 1];
     dr += ar * br + ai * bi;
     di += ai * br - ar * bi;
     na += ar * ar + ai * ai;

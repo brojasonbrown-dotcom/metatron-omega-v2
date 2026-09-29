@@ -23,29 +23,29 @@ import type { SensoryModality } from '@/core/sensory/SensoryAtom';
 
 export const PHI = (1 + Math.sqrt(5)) / 2;
 export const PHI_INV = 1 / PHI;
-export const PHI_INV_SQ = PHI_INV * PHI_INV;       // ≈ 0.381966 — EMA α
-export const PROMOTE_REINFORCEMENTS = 7;            // ⌈φ⁴⌉
-export const RECOG_CONFIDENT = PHI_INV;             // ≈ 0.618
-export const RECOG_FAMILIAR = PHI_INV_SQ;           // ≈ 0.382
-const NEAR_HAMMING = 8;                             // bits — same percept band
-const EMBED_DIM = 32;                               // matches SensoryGateway topK
-const COBIND_CAP = 16;                              // max co-bound ids per percept
+export const PHI_INV_SQ = PHI_INV * PHI_INV; // ≈ 0.381966 — EMA α
+export const PROMOTE_REINFORCEMENTS = 7; // ⌈φ⁴⌉
+export const RECOG_CONFIDENT = PHI_INV; // ≈ 0.618
+export const RECOG_FAMILIAR = PHI_INV_SQ; // ≈ 0.382
+const NEAR_HAMMING = 8; // bits — same percept band
+const EMBED_DIM = 32; // matches SensoryGateway topK
+const COBIND_CAP = 16; // max co-bound ids per percept
 
 export interface Percept {
   id: string;
-  hash: string;                  // 16-char hex simHash
+  hash: string; // 16-char hex simHash
   modality: SensoryModality;
   reinforcements: number;
   firstSeen: number;
   lastSeen: number;
-  embedding: Float32Array;       // EMA centroid of top-K amps, length EMBED_DIM
-  label?: string;                // user/Metatron-set name
-  coBound: Map<string, number>;  // perceptId → cross-modal co-activation weight
+  embedding: Float32Array; // EMA centroid of top-K amps, length EMBED_DIM
+  label?: string; // user/Metatron-set name
+  coBound: Map<string, number>; // perceptId → cross-modal co-activation weight
 }
 
 export interface Recognition {
   percept: Percept | null;
-  confidence: number;            // 0..1
+  confidence: number; // 0..1
   status: 'recognised' | 'familiar' | 'novel';
 }
 
@@ -58,19 +58,30 @@ export interface PerceptStats {
 
 export class PerceptRegistry {
   private byId = new Map<string, Percept>();
-  private byHash = new Map<string, string>();           // hash → id
+  private byHash = new Map<string, string>(); // hash → id
   private cap: number;
 
-  constructor(cap = 1024) { this.cap = Math.max(64, cap | 0); }
+  constructor(cap = 1024) {
+    this.cap = Math.max(64, cap | 0);
+  }
 
-  setCap(c: number): void { this.cap = Math.max(64, c | 0); this.evictIfFull(); }
-  capacity(): number { return this.cap; }
-  size(): number { return this.byId.size; }
+  setCap(c: number): void {
+    this.cap = Math.max(64, c | 0);
+    this.evictIfFull();
+  }
+  capacity(): number {
+    return this.cap;
+  }
+  size(): number {
+    return this.byId.size;
+  }
 
-  get(id: string): Percept | null { return this.byId.get(id) ?? null; }
+  get(id: string): Percept | null {
+    return this.byId.get(id) ?? null;
+  }
   getByHash(hash: string): Percept | null {
     const id = this.byHash.get(hash);
-    return id ? this.byId.get(id) ?? null : null;
+    return id ? (this.byId.get(id) ?? null) : null;
   }
 
   /** All percepts, newest first. */
@@ -96,9 +107,12 @@ export class PerceptRegistry {
       if (inj.reinforcements < PROMOTE_REINFORCEMENTS) return null;
       id = makeId(inj.hash);
       p = {
-        id, hash: inj.hash, modality: inj.modality,
+        id,
+        hash: inj.hash,
+        modality: inj.modality,
         reinforcements: inj.reinforcements,
-        firstSeen: tick, lastSeen: tick,
+        firstSeen: tick,
+        lastSeen: tick,
         embedding: embedFromTopK(inj.indices, inj.amplitudes),
         coBound: new Map(),
       };
@@ -124,7 +138,8 @@ export class PerceptRegistry {
    */
   bind(idA: string, idB: string, weight: number): void {
     if (idA === idB) return;
-    const a = this.byId.get(idA); const b = this.byId.get(idB);
+    const a = this.byId.get(idA);
+    const b = this.byId.get(idB);
     if (!a || !b) return;
     addBound(a, idB, weight);
     addBound(b, idA, weight);
@@ -151,7 +166,10 @@ export class PerceptRegistry {
       const hammingScore = 1 - hd / 64;
       const cos = cosineTopK(p.embedding, inj.indices, inj.amplitudes);
       const conf = Math.max(0, hammingScore * cos);
-      if (conf > bestConf) { bestConf = conf; best = p; }
+      if (conf > bestConf) {
+        bestConf = conf;
+        best = p;
+      }
     }
     return { percept: best, confidence: bestConf, status: classify(bestConf) };
   }
@@ -177,10 +195,19 @@ export class PerceptRegistry {
     return true;
   }
 
-  clear(): void { this.byId.clear(); this.byHash.clear(); }
+  clear(): void {
+    this.byId.clear();
+    this.byHash.clear();
+  }
 
   stats(): PerceptStats {
-    const perModality: Record<SensoryModality, number> = { audio: 0, video: 0, imu: 0, synthetic: 0, 'vision-embed': 0 };
+    const perModality: Record<SensoryModality, number> = {
+      audio: 0,
+      video: 0,
+      imu: 0,
+      synthetic: 0,
+      'vision-embed': 0,
+    };
     let named = 0;
     let bonds = 0;
     for (const p of this.byId.values()) {
@@ -204,11 +231,13 @@ export class PerceptRegistry {
   }
 }
 
-function makeId(hash: string): string { return 'p_' + hash.slice(0, 8); }
+function makeId(hash: string): string {
+  return 'p_' + hash.slice(0, 8);
+}
 
 function classify(conf: number): Recognition['status'] {
   if (conf >= RECOG_CONFIDENT) return 'recognised';
-  if (conf >= RECOG_FAMILIAR)  return 'familiar';
+  if (conf >= RECOG_FAMILIAR) return 'familiar';
   return 'novel';
 }
 
@@ -234,7 +263,7 @@ function cosineTopK(emb: Float32Array, indices: Int32Array, amps: Float32Array):
   const fresh = embedFromTopK(indices, amps);
   let dot = 0;
   for (let i = 0; i < emb.length; i++) dot += emb[i] * fresh[i];
-  return dot;          // both already L2-normalised
+  return dot; // both already L2-normalised
 }
 
 function addBound(p: Percept, sibId: string, weight: number): void {
@@ -245,7 +274,10 @@ function addBound(p: Percept, sibId: string, weight: number): void {
     let weakest: string | null = null;
     let weakestW = Number.POSITIVE_INFINITY;
     for (const [k, w] of p.coBound) {
-      if (w < weakestW) { weakestW = w; weakest = k; }
+      if (w < weakestW) {
+        weakestW = w;
+        weakest = k;
+      }
     }
     if (weakest && weakest !== sibId) p.coBound.delete(weakest);
   }

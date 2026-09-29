@@ -20,7 +20,13 @@ import {
   shtSynthesize,
   type SphericalBasis,
 } from './sphere';
-import { buildRadialBasis, radialAnalyze, radialGrid, radialSynthesize, type RadialBasis } from './radial';
+import {
+  buildRadialBasis,
+  radialAnalyze,
+  radialGrid,
+  radialSynthesize,
+  type RadialBasis,
+} from './radial';
 import { dpow } from '../core/dmath';
 
 export interface SpectralSiteOptions {

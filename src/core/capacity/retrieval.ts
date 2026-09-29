@@ -87,7 +87,8 @@ export function measureRetrieval(o: RetrievalOptions = {}): RetrievalCapacity {
   }
 
   const points: RetrievalPoint[] = CANDIDATE_SIZES.filter((c) => c <= clusters * k).map((cand) => {
-    let hits = 0, returned = 0;
+    let hits = 0,
+      returned = 0;
     for (const { bm, truth } of cues) {
       const got = index.query(bm, cand).slice(0, k);
       returned += got.length;

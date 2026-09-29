@@ -39,9 +39,12 @@ const DEFAULT_TOPK = 32;
 /** Generate the Fibonacci sequence up to <= maxTick. */
 function fibsUpTo(maxTick: number): Set<number> {
   const out = new Set<number>([1, 2]);
-  let a = 1, b = 2;
+  let a = 1,
+    b = 2;
   while (b <= maxTick) {
-    const c = a + b; a = b; b = c;
+    const c = a + b;
+    a = b;
+    b = c;
     out.add(b);
   }
   return out;
@@ -50,7 +53,10 @@ function fibsUpTo(maxTick: number): Set<number> {
 export function isFibonacciTick(tick: number, cache = new Map<number, Set<number>>()): boolean {
   if (tick < 1) return false;
   let s = cache.get(tick);
-  if (!s) { s = fibsUpTo(Math.max(tick, 144)); cache.set(tick, s); }
+  if (!s) {
+    s = fibsUpTo(Math.max(tick, 144));
+    cache.set(tick, s);
+  }
   return s.has(tick);
 }
 
@@ -75,7 +81,9 @@ export class FibonacciPatterns {
     if (this.store.length > this.cap) this.evict();
   }
 
-  capacity(): number { return this.cap; }
+  capacity(): number {
+    return this.cap;
+  }
 
   private ensureFibsUpTo(tick: number): void {
     while (this.maxFib < tick) {
@@ -126,9 +134,8 @@ export class FibonacciPatterns {
     const n = psi.length;
     // φ-rung promotion factor for sensory-touched indices.
     // α ∈ [0, φ⁻¹] ⇒ boost ∈ [1, φ]. Cap at φ⁻¹ to bound promotion to ≤1 rung.
-    const alpha = sensoryMask && sensoryMask.size > 0
-      ? Math.max(0, Math.min(PHI_INV, arousal * PHI_INV))
-      : 0;
+    const alpha =
+      sensoryMask && sensoryMask.size > 0 ? Math.max(0, Math.min(PHI_INV, arousal * PHI_INV)) : 0;
     // Score each mode by |a_i| · φ⁻ⁱ · (1 + α · 1_{i ∈ sensoryMask}). The
     // multiplicative running power avoids a transcendental per node — see
     // pre-Gap#3 invariant; mask membership is a single Set.has().
@@ -154,13 +161,16 @@ export class FibonacciPatterns {
     const norm = Math.sqrt(norm2);
 
     // Torus split: poloidal = even modes, toroidal = odd modes, rescaled to ‖Ψ‖.
-    let evenSq = 0, oddSq = 0;
+    let evenSq = 0,
+      oddSq = 0;
     for (let i = 0; i < n; i++) {
       const a = psi[i];
-      if ((i & 1) === 0) evenSq += a * a; else oddSq += a * a;
+      if ((i & 1) === 0) evenSq += a * a;
+      else oddSq += a * a;
     }
     const total = evenSq + oddSq;
-    let poloidal = 0, toroidal = 0;
+    let poloidal = 0,
+      toroidal = 0;
     if (total > 0) {
       const scale = norm / Math.sqrt(total);
       poloidal = Math.sqrt(evenSq) * scale;
@@ -173,8 +183,16 @@ export class FibonacciPatterns {
     const fibIdx = binarySearch(this.fibList, tick);
     const hash = this.hash(indices, amplitudes);
     return {
-      tick, fibIndex: fibIdx, indices, amplitudes, norm,
-      poloidal, toroidal, qualiaScalar, hash, lastSeen: tick,
+      tick,
+      fibIndex: fibIdx,
+      indices,
+      amplitudes,
+      norm,
+      poloidal,
+      toroidal,
+      qualiaScalar,
+      hash,
+      lastSeen: tick,
     };
   }
 
@@ -207,12 +225,18 @@ export class FibonacciPatterns {
 
   private evict(): void {
     // Drop lowest lruScore.
-    this.store.sort((a, b) => lruScore(b.lastSeen, b.qualiaScalar) - lruScore(a.lastSeen, a.qualiaScalar));
+    this.store.sort(
+      (a, b) => lruScore(b.lastSeen, b.qualiaScalar) - lruScore(a.lastSeen, a.qualiaScalar),
+    );
     this.store.length = this.cap;
   }
 
-  size(): number { return this.store.length; }
-  all(): readonly PatternSignature[] { return this.store; }
+  size(): number {
+    return this.store.length;
+  }
+  all(): readonly PatternSignature[] {
+    return this.store;
+  }
 
   /**
    * Drop patterns by hash. Used by the Hopfield consolidation pass to merge
@@ -225,9 +249,12 @@ export class FibonacciPatterns {
     return before - this.store.length;
   }
 
-
   snapshot(): PatternSignature[] {
-    return this.store.map((p) => ({ ...p, indices: new Int32Array(p.indices), amplitudes: new Float64Array(p.amplitudes) }));
+    return this.store.map((p) => ({
+      ...p,
+      indices: new Int32Array(p.indices),
+      amplitudes: new Float64Array(p.amplitudes),
+    }));
   }
   /**
    * Restore from a snapshot that may have crossed a JSON transport, where
@@ -244,12 +271,14 @@ export class FibonacciPatterns {
 
 /** Binary search a sorted-ascending number[]. Returns index of `target` or -1. */
 function binarySearch(arr: number[], target: number): number {
-  let lo = 0, hi = arr.length - 1;
+  let lo = 0,
+    hi = arr.length - 1;
   while (lo <= hi) {
     const mid = (lo + hi) >>> 1;
     const v = arr[mid];
     if (v === target) return mid;
-    if (v < target) lo = mid + 1; else hi = mid - 1;
+    if (v < target) lo = mid + 1;
+    else hi = mid - 1;
   }
   return -1;
 }
@@ -265,8 +294,10 @@ function cosineSparse(a: PatternSignature, b: PatternSignature): number {
     if (av !== undefined) dot += av * b.amplitudes[i];
   }
   // Norms over the sparse selection (consistent with what was stored).
-  let na = 0; for (let i = 0; i < a.amplitudes.length; i++) na += a.amplitudes[i] * a.amplitudes[i];
-  let nb = 0; for (let i = 0; i < b.amplitudes.length; i++) nb += b.amplitudes[i] * b.amplitudes[i];
+  let na = 0;
+  for (let i = 0; i < a.amplitudes.length; i++) na += a.amplitudes[i] * a.amplitudes[i];
+  let nb = 0;
+  for (let i = 0; i < b.amplitudes.length; i++) nb += b.amplitudes[i] * b.amplitudes[i];
   const denom = Math.sqrt(na) * Math.sqrt(nb);
   return denom > 0 ? dot / denom : 0;
 }

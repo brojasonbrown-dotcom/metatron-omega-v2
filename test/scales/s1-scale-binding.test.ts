@@ -14,11 +14,17 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-  bandOctaves, bandPhiRungs, bindScaleSensors, sensorCovers, sensorNyquistOk,
+  bandOctaves,
+  bandPhiRungs,
+  bindScaleSensors,
+  sensorCovers,
+  sensorNyquistOk,
   type SensorPassband,
 } from '@/core/runtime/rhuftf/ScaleMeasurement';
 import {
-  RHUFTF_SCALE_SHAPES, RHUFTF_SCALE_BANDS, RHUFTF_SENSOR_PASSBANDS,
+  RHUFTF_SCALE_SHAPES,
+  RHUFTF_SCALE_BANDS,
+  RHUFTF_SENSOR_PASSBANDS,
   rhuftfScaleBindings,
 } from '@/core/runtime/rhuftf/registry';
 import { RingWindow, fibWindow, pisotFloor } from '@/core/runtime/rhuftf/torusClosure';
@@ -37,9 +43,7 @@ describe('band arithmetic', () => {
   });
 
   it('reports width in φ-rungs, the ladder unit', () => {
-    expect(bandPhiRungs(AUDIBLE)).toBeCloseTo(
-      Math.log(1000) / Math.log(1.618033988749895), 6,
-    );
+    expect(bandPhiRungs(AUDIBLE)).toBeCloseTo(Math.log(1000) / Math.log(1.618033988749895), 6);
   });
 
   it('returns NaN rather than 0 for an undeclared band', () => {
@@ -143,7 +147,10 @@ describe('rung-enable criterion', () => {
     const w = new RingWindow(20, 5);
     let r = 1;
     let v = w.verdict();
-    for (let i = 0; i < 5; i++) { v = w.push(r); r /= 1.618033988749895; }
+    for (let i = 0; i < 5; i++) {
+      v = w.push(r);
+      r /= 1.618033988749895;
+    }
     expect(v.stable).toBe(true);
     expect(v.violation).toBe(-1);
     expect(v.decayPhiPerTick).toBeCloseTo(-1, 9);
@@ -170,11 +177,13 @@ describe('rung-enable criterion', () => {
 
   it('treats a non-finite residual as loss of evidence, not as stability', () => {
     const w = new RingWindow(20, 3);
-    w.push(1); w.push(0.5);
+    w.push(1);
+    w.push(0.5);
     const v = w.push(NaN);
     expect(v.count).toBe(0);
     expect(v.stable).toBe(false);
-    w.push(0.3); w.push(0.2);
+    w.push(0.3);
+    w.push(0.2);
     expect(w.push(0.1).stable).toBe(true);
   });
 });

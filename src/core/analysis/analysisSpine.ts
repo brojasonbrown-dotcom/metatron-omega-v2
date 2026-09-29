@@ -27,10 +27,7 @@ import {
   STAT_FLOOR,
   type CorrelationReport,
 } from '@metatron/trnn-core/substrate/correlation';
-import {
-  directedReport,
-  type DirectedReport,
-} from '@metatron/trnn-core/substrate/causal';
+import { directedReport, type DirectedReport } from '@metatron/trnn-core/substrate/causal';
 import {
   fuseResonance,
   type BusChannel,
@@ -170,9 +167,7 @@ export function analysePaired(
   return {
     ...base,
     verdict,
-    ...(verdict === 'abstain'
-      ? { reason: 'every bounded statistic abstained' }
-      : {}),
+    ...(verdict === 'abstain' ? { reason: 'every bounded statistic abstained' } : {}),
     correlation,
     causal,
     association,
@@ -222,8 +217,7 @@ export function analyseWindow(win: StreamWindow, opts: SpineOptions = {}): Spine
       strongest === null ||
       f.association > (strongest.association as number) ||
       // Deterministic tie-break so a replay picks the same winner.
-      (f.association === strongest.association &&
-        `${f.a}|${f.b}` < `${strongest.a}|${strongest.b}`)
+      (f.association === strongest.association && `${f.a}|${f.b}` < `${strongest.a}|${strongest.b}`)
     ) {
       strongest = f;
     }

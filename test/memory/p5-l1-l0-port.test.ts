@@ -13,7 +13,10 @@ import { HebbianMatrix } from '@/core/memory/HebbianMatrix';
 
 function drive(m: HebbianMatrix, steps: number, seed = 1): void {
   let s = seed;
-  const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+  const rnd = () => {
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    return s / 0x7fffffff;
+  };
   for (let t = 0; t < steps; t++) {
     const a = new Float64Array(8);
     for (let i = 0; i < 8; i++) a[i] = 2 * rnd() - 1;

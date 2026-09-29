@@ -42,7 +42,10 @@ function isqrt(n: bigint): bigint {
   if (n < 2n) return n;
   let x = n;
   let y = (x + 1n) / 2n;
-  while (y < x) { x = y; y = (x + n / x) / 2n; }
+  while (y < x) {
+    x = y;
+    y = (x + n / x) / 2n;
+  }
   return x;
 }
 
@@ -104,14 +107,24 @@ export const SQRT5_60 = fmt(SQRT5_FP);
 
 /** Exact Lucas numbers via BigInt recurrence. */
 export function lucasBig(n: number): bigint {
-  let a = 2n, b = 1n;
-  for (let i = 0; i < n; i++) { const t = a + b; a = b; b = t; }
+  let a = 2n,
+    b = 1n;
+  for (let i = 0; i < n; i++) {
+    const t = a + b;
+    a = b;
+    b = t;
+  }
   return a;
 }
 /** Exact Fibonacci numbers via BigInt recurrence. */
 export function fibBig(n: number): bigint {
-  let a = 0n, b = 1n;
-  for (let i = 0; i < n; i++) { const t = a + b; a = b; b = t; }
+  let a = 0n,
+    b = 1n;
+  for (let i = 0; i < n; i++) {
+    const t = a + b;
+    a = b;
+    b = t;
+  }
   return a;
 }
 
@@ -131,14 +144,22 @@ export interface IdentityCheck {
   readonly note?: string;
 }
 
-function exactCheck(id: string, statement: string, lhs: bigint, rhs: bigint, note?: string): IdentityCheck {
+function exactCheck(
+  id: string,
+  statement: string,
+  lhs: bigint,
+  rhs: bigint,
+  note?: string,
+): IdentityCheck {
   const r = abs(lhs - rhs);
   const exact = r <= ULP;
   const denom = abs(rhs) > 0n ? abs(rhs) : S;
   const ppm = Number((r * 1_000_000n * 1_000_000n) / denom) / 1e6;
   return {
-    id, statement,
-    lhs: fmt(lhs, 40), rhs: fmt(rhs, 40),
+    id,
+    statement,
+    lhs: fmt(lhs, 40),
+    rhs: fmt(rhs, 40),
     residual: fmtCompact(lhs - rhs),
     ppm,
     exact,
@@ -148,14 +169,21 @@ function exactCheck(id: string, statement: string, lhs: bigint, rhs: bigint, not
 }
 
 function coincidence(
-  id: string, statement: string, lhs: bigint, rhs: bigint, ppmTolerance: number, note?: string,
+  id: string,
+  statement: string,
+  lhs: bigint,
+  rhs: bigint,
+  ppmTolerance: number,
+  note?: string,
 ): IdentityCheck {
   const r = abs(lhs - rhs);
   const denom = abs(rhs) > 0n ? abs(rhs) : S;
   const ppm = Number((r * 1_000_000n * 1_000_000n) / denom) / 1e6;
   return {
-    id, statement,
-    lhs: fmt(lhs, 30), rhs: fmt(rhs, 30),
+    id,
+    statement,
+    lhs: fmt(lhs, 30),
+    rhs: fmt(rhs, 30),
     residual: fmtCompact(lhs - rhs),
     ppm,
     exact: false,
@@ -187,52 +215,73 @@ export function identityBank(): readonly IdentityCheck[] {
   out.push(exactCheck('phi3', 'φ³ = 2φ + 1', fpow(phi, 3), 2n * phi + S));
   out.push(exactCheck('phi4', 'φ⁴ = 3φ + 2', fpow(phi, 4), 3n * phi + 2n * S));
   out.push(exactCheck('phiinv', 'φ⁻¹ = φ − 1', div(S, phi), phi - S));
-  out.push(exactCheck('phisum', 'φ⁻¹ + φ⁻² = 1', div(S, phi) + fpow(phi, -2), S,
-    'the closure identity every rung damping leans on'));
+  out.push(
+    exactCheck(
+      'phisum',
+      'φ⁻¹ + φ⁻² = 1',
+      div(S, phi) + fpow(phi, -2),
+      S,
+      'the closure identity every rung damping leans on',
+    ),
+  );
   out.push(exactCheck('sqrt5', '√5 = 2φ − 1', SQRT5_FP, 2n * phi - S));
   out.push(exactCheck('psi', 'ψ = −1/φ  (ψ = (1−√5)/2)', PSI_FP, -div(S, phi)));
 
   // ── A: Binet / Lucas closed forms at the ladder's working indices ──
   for (const n of [13, 21, 28, 55]) {
-    out.push(exactCheck(
-      `lucas${n}`, `L_${n} = φ^${n} + ψ^${n}`,
-      fpow(phi, n) + fpow(PSI_FP, n),
-      lucasBig(n) * S,
-      'Lucas closure oracle — integer target',
-    ));
+    out.push(
+      exactCheck(
+        `lucas${n}`,
+        `L_${n} = φ^${n} + ψ^${n}`,
+        fpow(phi, n) + fpow(PSI_FP, n),
+        lucasBig(n) * S,
+        'Lucas closure oracle — integer target',
+      ),
+    );
   }
   for (const n of [13, 55]) {
-    out.push(exactCheck(
-      `binet${n}`, `F_${n} = (φ^${n} − ψ^${n})/√5`,
-      div(fpow(phi, n) - fpow(PSI_FP, n), SQRT5_FP),
-      fibBig(n) * S,
-    ));
+    out.push(
+      exactCheck(
+        `binet${n}`,
+        `F_${n} = (φ^${n} − ψ^${n})/√5`,
+        div(fpow(phi, n) - fpow(PSI_FP, n), SQRT5_FP),
+        fibBig(n) * S,
+      ),
+    );
   }
 
   // ── A: golden-angle and geometric identities used by the eigensolvers ──
-  out.push(exactCheck(
-    'goldenangle', '360/φ² = 720 − 360φ  (golden angle, degrees)',
-    div(lit('360'), mul(phi, phi)),
-    lit('720') - mul(lit('360'), phi),
-    'closed form of the spiral operator’s generator — exact, not a decimal literal',
-
-  ));
+  out.push(
+    exactCheck(
+      'goldenangle',
+      '360/φ² = 720 − 360φ  (golden angle, degrees)',
+      div(lit('360'), mul(phi, phi)),
+      lit('720') - mul(lit('360'), phi),
+      'closed form of the spiral operator’s generator — exact, not a decimal literal',
+    ),
+  );
 
   // ── B/C: numerical coincidences, never derivations ──
-  out.push(coincidence(
-    'alphaInv', '360/φ² − 2/φ³  vs  α⁻¹ = 137.035999177',
-    div(lit('360'), mul(phi, phi)) - div(2n * S, fpow(phi, 3)),
-    lit('137.035999177'),
-    10,
-    'CODATA 2022 α⁻¹; a few-ppm coincidence, NOT a derivation',
-  ));
-  out.push(coincidence(
-    'alphaClaim', 'corpus claim α⁻¹ = 13φ/√13 + 1/2',
-    div(mul(lit('13'), phi), fsqrt(lit('13'))) + S / 2n,
-    lit('137.035999177'),
-    10,
-    'fails by orders of magnitude — recorded so the claim cannot resurface',
-  ));
+  out.push(
+    coincidence(
+      'alphaInv',
+      '360/φ² − 2/φ³  vs  α⁻¹ = 137.035999177',
+      div(lit('360'), mul(phi, phi)) - div(2n * S, fpow(phi, 3)),
+      lit('137.035999177'),
+      10,
+      'CODATA 2022 α⁻¹; a few-ppm coincidence, NOT a derivation',
+    ),
+  );
+  out.push(
+    coincidence(
+      'alphaClaim',
+      'corpus claim α⁻¹ = 13φ/√13 + 1/2',
+      div(mul(lit('13'), phi), fsqrt(lit('13'))) + S / 2n,
+      lit('137.035999177'),
+      10,
+      'fails by orders of magnitude — recorded so the claim cannot resurface',
+    ),
+  );
 
   _bank = Object.freeze(out);
   return _bank;
@@ -251,7 +300,9 @@ export interface IdentityBankSummary {
 
 export function identityBankSummary(): IdentityBankSummary {
   const bank = identityBank();
-  const exactOnes = bank.filter((b) => b.cls !== 'B' && b.id !== 'alphaClaim' && b.id !== 'alphaInv');
+  const exactOnes = bank.filter(
+    (b) => b.cls !== 'B' && b.id !== 'alphaClaim' && b.id !== 'alphaInv',
+  );
   const failures = bank.filter((b) => b.cls === 'C').map((b) => b.id);
   return {
     total: bank.length,

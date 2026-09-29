@@ -3,12 +3,12 @@
  * The matrix is the engine's own weights; the ledger tail is the journal the
  * engine wrote, including the closure sink.
  */
-import { useCallback } from "react";
-import { getOmegaRuntime } from "../omegaRuntime";
-import { useOmegaState } from "../useOmegaRuntime";
-import { useOmegaPull, useOmegaDescribe } from "../useOmegaPull";
+import { useCallback } from 'react';
+import { getOmegaRuntime } from '../omegaRuntime';
+import { useOmegaState } from '../useOmegaRuntime';
+import { useOmegaPull, useOmegaDescribe } from '../useOmegaPull';
 
-const num = (x: number, d = 4) => (Number.isFinite(x) ? x.toFixed(d) : "—");
+const num = (x: number, d = 4) => (Number.isFinite(x) ? x.toFixed(d) : '—');
 
 export default function WebDeckPanel() {
   const s = useOmegaState();
@@ -37,25 +37,25 @@ export default function WebDeckPanel() {
     <div className="h-full overflow-auto p-2 space-y-2">
       <div className="rounded-md border border-border/40 bg-background/40 px-2.5 py-2 grid grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-1 text-[10px] font-mono">
         <span className="text-muted-foreground">turnover</span>
-        <span className="tabular-nums">{view ? view.turnover.toExponential(3) : "—"}</span>
+        <span className="tabular-nums">{view ? view.turnover.toExponential(3) : '—'}</span>
         <span className="text-muted-foreground">imbalance</span>
-        <span className="tabular-nums">{view ? view.imbalance.toExponential(3) : "—"}</span>
+        <span className="tabular-nums">{view ? view.imbalance.toExponential(3) : '—'}</span>
         <span className="text-muted-foreground">net imbalance</span>
-        <span className="tabular-nums">{view ? view.netImbalance.toExponential(3) : "—"}</span>
+        <span className="tabular-nums">{view ? view.netImbalance.toExponential(3) : '—'}</span>
         <span className="text-muted-foreground">sink</span>
-        <span className="tabular-nums">{view ? view.sink.toExponential(3) : "—"}</span>
+        <span className="tabular-nums">{view ? view.sink.toExponential(3) : '—'}</span>
         <span className="text-muted-foreground">ordering violations</span>
         <span
-          className={`tabular-nums ${view && view.orderingViolations > 0 ? "text-rose-400" : "text-emerald-400"}`}
+          className={`tabular-nums ${view && view.orderingViolations > 0 ? 'text-rose-400' : 'text-emerald-400'}`}
         >
-          {view?.orderingViolations ?? "—"}
+          {view?.orderingViolations ?? '—'}
         </span>
       </div>
 
       <div className="rounded-md border border-border/40 bg-background/40 px-2.5 py-2 grid grid-cols-2 md:grid-cols-6 gap-x-4 gap-y-1 text-[10px] font-mono">
         <span className="text-muted-foreground">organ nodes</span>
         <span
-          className={`tabular-nums ${snap.organNodes === snap.totalNodes ? "text-emerald-400" : "text-amber-400"}`}
+          className={`tabular-nums ${snap.organNodes === snap.totalNodes ? 'text-emerald-400' : 'text-amber-400'}`}
         >
           {snap.organNodes}/{snap.totalNodes}
         </span>
@@ -64,14 +64,20 @@ export default function WebDeckPanel() {
         <span className="text-muted-foreground">participation</span>
         <span className="tabular-nums">{num(snap.organParticipation, 4)}</span>
         <span className="text-muted-foreground">chords</span>
-        <span className="tabular-nums">{snap.chords.length > 0 ? snap.chords.join(" · ") : "none"}</span>
+        <span className="tabular-nums">
+          {snap.chords.length > 0 ? snap.chords.join(' · ') : 'none'}
+        </span>
         <span className="text-muted-foreground">tape</span>
         <span className="tabular-nums">
-          {snap.tapeCapacity > 0 ? `${snap.tapeOccupancy}/${snap.tapeCapacity} @ ${snap.tapeHead}` : "off"}
+          {snap.tapeCapacity > 0
+            ? `${snap.tapeOccupancy}/${snap.tapeCapacity} @ ${snap.tapeHead}`
+            : 'off'}
         </span>
         <span className="text-muted-foreground">tape fill</span>
         <span className="tabular-nums">
-          {snap.tapeCapacity > 0 ? `${((snap.tapeOccupancy / snap.tapeCapacity) * 100).toFixed(1)}%` : "—"}
+          {snap.tapeCapacity > 0
+            ? `${((snap.tapeOccupancy / snap.tapeCapacity) * 100).toFixed(1)}%`
+            : '—'}
         </span>
       </div>
 
@@ -106,10 +112,10 @@ export default function WebDeckPanel() {
                           background:
                             v > 0
                               ? `hsl(var(--primary) / ${(0.08 + 0.72 * (v / maxW)).toFixed(3)})`
-                              : "transparent",
+                              : 'transparent',
                         }}
                       >
-                        {v > 0 ? v.toFixed(3).slice(1) : "·"}
+                        {v > 0 ? v.toFixed(3).slice(1) : '·'}
                       </td>
                     );
                   })}
@@ -135,7 +141,7 @@ export default function WebDeckPanel() {
                     <div className="flex-1 h-2 relative bg-background/50 rounded">
                       <div className="absolute inset-y-0 left-1/2 w-px bg-border" />
                       <div
-                        className={`absolute inset-y-0 ${net >= 0 ? "bg-emerald-500/70 left-1/2" : "bg-rose-500/70 right-1/2"} rounded`}
+                        className={`absolute inset-y-0 ${net >= 0 ? 'bg-emerald-500/70 left-1/2' : 'bg-rose-500/70 right-1/2'} rounded`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
@@ -164,8 +170,12 @@ export default function WebDeckPanel() {
                   {(view?.entries ?? []).map((e, i) => (
                     <tr key={i} className="border-t border-border/20">
                       <td className="px-1 tabular-nums">{e.tick}</td>
-                      <td className="px-1">{e.from < 0 ? "SINK" : `n=${desc.rungs[e.from]?.n ?? e.from}`}</td>
-                      <td className="px-1">{e.to < 0 ? "SINK" : `n=${desc.rungs[e.to]?.n ?? e.to}`}</td>
+                      <td className="px-1">
+                        {e.from < 0 ? 'SINK' : `n=${desc.rungs[e.from]?.n ?? e.from}`}
+                      </td>
+                      <td className="px-1">
+                        {e.to < 0 ? 'SINK' : `n=${desc.rungs[e.to]?.n ?? e.to}`}
+                      </td>
                       <td className="px-1 text-right tabular-nums">{e.amount.toExponential(3)}</td>
                     </tr>
                   ))}
@@ -187,7 +197,7 @@ export default function WebDeckPanel() {
         Row sums are normalised to 1 (defect {num(desc.web.rowSumDefect, 3)}), so the matrix moves
         mass without creating it; every transfer above is booked twice, and the residue that cannot
         be placed within the band lands in the closure sink. Cells beyond the band carry the
-        stable-ratio chords (rank offsets {snap.chords.join(", ") || "—"}), weighted φ^(−d/φ) and
+        stable-ratio chords (rank offsets {snap.chords.join(', ') || '—'}), weighted φ^(−d/φ) and
         renormalised, so long-range structure never outranks a nearer neighbour.
       </p>
     </div>

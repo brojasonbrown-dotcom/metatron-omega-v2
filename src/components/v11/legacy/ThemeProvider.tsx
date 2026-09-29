@@ -4,12 +4,15 @@
  * effect reads localStorage and applies the saved selection if different.
  * Renders nothing; pure side-effect component.
  */
-import { useEffect } from "react";
+import { useEffect } from 'react';
 import {
-  applyTheme, loadTheme,
-  applyDensity, loadDensity,
-  applyGlow, loadGlow,
-} from "@/lib/themes";
+  applyTheme,
+  loadTheme,
+  applyDensity,
+  loadDensity,
+  applyGlow,
+  loadGlow,
+} from '@/lib/themes';
 
 export function ThemeProvider() {
   useEffect(() => {

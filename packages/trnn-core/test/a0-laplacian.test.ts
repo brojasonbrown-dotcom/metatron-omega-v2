@@ -72,7 +72,8 @@ describe('Gate A · Lanczos eigenpairs', () => {
     for (let a = 0; a < pairs.vectors.length; a++) {
       for (let b = a; b < pairs.vectors.length; b++) {
         let s = 0;
-        for (let i = 0; i < pairs.vectors[a].length; i++) s += pairs.vectors[a][i] * pairs.vectors[b][i];
+        for (let i = 0; i < pairs.vectors[a].length; i++)
+          s += pairs.vectors[a][i] * pairs.vectors[b][i];
         expect(Math.abs(s - (a === b ? 1 : 0))).toBeLessThan(1e-9);
       }
     }

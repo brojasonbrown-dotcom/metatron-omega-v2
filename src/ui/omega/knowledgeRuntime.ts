@@ -21,7 +21,6 @@ import type { BasisReport } from '@/core/knowledge/fieldSignature';
 import { memoryPolicy } from '@/core/memory/MemoryPolicy';
 import { registerFlush } from '@/lib/persist/flush';
 
-
 const FIELD_KEY = 'metatron.omega.knowledge.field';
 
 export interface KnowledgeRuntimeStats {
@@ -61,8 +60,28 @@ class KnowledgeRuntime {
 
   private cache: KnowledgeRuntimeStats = {
     version: 0,
-    stats: { fields: 0, documents: 0, chunks: 0, terms: 0, concepts: 0, edges: 0, bytes: 0, bands: 0 },
-    run: { field: '', active: false, phase: 'idle', cycle: 0, fetched: 0, failed: 0, newChunks: 0, novelty: 1, frontier: 0, events: [] },
+    stats: {
+      fields: 0,
+      documents: 0,
+      chunks: 0,
+      terms: 0,
+      concepts: 0,
+      edges: 0,
+      bytes: 0,
+      bands: 0,
+    },
+    run: {
+      field: '',
+      active: false,
+      phase: 'idle',
+      cycle: 0,
+      fetched: 0,
+      failed: 0,
+      newChunks: 0,
+      novelty: 1,
+      frontier: 0,
+      events: [],
+    },
     storage: { kind: 'memory', bytes: 0, usage: 0, quota: 0 },
     saving: false,
     lastSavedAt: null,
@@ -111,12 +130,16 @@ class KnowledgeRuntime {
       this.lastAutoSave = Date.now();
       await this.refreshStorage();
       this.bump({ lastSavedAt: this.lastAutoSave });
-    } catch { /* stay dirty; the next checkpoint retries */ }
+    } catch {
+      /* stay dirty; the next checkpoint retries */
+    }
     this.savingNow = false;
   }
 
   /** Wire the tool dispatcher (a bound useServerFn from the panel). */
-  setToolCall(call: ToolCall): void { this.call = call; }
+  setToolCall(call: ToolCall): void {
+    this.call = call;
+  }
 
   setField(field: string): void {
     if (typeof localStorage !== 'undefined') localStorage.setItem(FIELD_KEY, field);
@@ -131,8 +154,12 @@ class KnowledgeRuntime {
     await this.refreshStorage();
     this.dirty = false;
     if (typeof window !== 'undefined') {
-      setInterval(() => { void this.autoSave(); }, 20_000);
-      registerFlush(() => { void this.autoSave(true); });
+      setInterval(() => {
+        void this.autoSave();
+      }, 20_000);
+      registerFlush(() => {
+        void this.autoSave(true);
+      });
     }
     this.bump();
     this.dirty = false;
@@ -151,10 +178,14 @@ class KnowledgeRuntime {
     if (typeof window === 'undefined') return;
     if (this.cache.signing || this.cache.stats.chunks === 0) return;
     if (this.kb.signatureState().ready) return;
-    const start = () => { void this.buildSignatures(); };
-    const ric = (window as unknown as {
-      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
-    }).requestIdleCallback;
+    const start = () => {
+      void this.buildSignatures();
+    };
+    const ric = (
+      window as unknown as {
+        requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      }
+    ).requestIdleCallback;
     if (typeof ric === 'function') ric(start, { timeout: 4000 });
     else setTimeout(start, 1200);
   }
@@ -208,7 +239,6 @@ class KnowledgeRuntime {
     return this.kb.recall(query, topN, field, ctx);
   }
 
-
   /**
    * Run one consolidation pass. Budgeted by the single memory dial so a large
    * corpus cannot stall the tab; the pass is annotation-only and never deletes.
@@ -251,7 +281,9 @@ class KnowledgeRuntime {
     }
   }
 
-  signatureState() { return this.kb.signatureState(); }
+  signatureState() {
+    return this.kb.signatureState();
+  }
 
   /**
    * Ingest one locally provided document (drag-dropped CAD/BIM asset, OCR'd
@@ -266,9 +298,13 @@ class KnowledgeRuntime {
   }
 
   /** Live rung provider used to scale-tag newly acquired material. */
-  setRungProvider(fn: () => number): void { this.rungAt = fn; }
+  setRungProvider(fn: () => number): void {
+    this.rungAt = fn;
+  }
 
-  running(): boolean { return this.cache.run.active; }
+  running(): boolean {
+    return this.cache.run.active;
+  }
 
   start(field: string): void {
     if (!this.call) throw new Error('tool dispatcher not wired');
@@ -289,7 +325,9 @@ class KnowledgeRuntime {
         }
       },
     });
-    void this.runner.run().then(() => { void this.save(); });
+    void this.runner.run().then(() => {
+      void this.save();
+    });
   }
 
   stop(): void {

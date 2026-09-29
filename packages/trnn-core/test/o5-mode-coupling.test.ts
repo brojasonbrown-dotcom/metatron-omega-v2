@@ -138,6 +138,14 @@ describe('O5 — banded mode coupling', () => {
     expect(() => new ModeCoupling(13, 1.5)).toThrow();
     const m = new ModeCoupling(13);
     fill(m, 1);
-    expect(() => m.apply(new Float64Array(13), new Float64Array(13), new Float64Array(4), new Float64Array(4), 1)).toThrow();
+    expect(() =>
+      m.apply(
+        new Float64Array(13),
+        new Float64Array(13),
+        new Float64Array(4),
+        new Float64Array(4),
+        1,
+      ),
+    ).toThrow();
   });
 });

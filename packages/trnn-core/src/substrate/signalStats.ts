@@ -228,7 +228,6 @@ export function butterBandpass(f1: number, f2: number, fs: number, order = 2): B
     }
   }
 
-
   // normalise the cascade to unit gain at the geometric centre frequency
   const fc = Math.sqrt(f1 * f2);
   const w = (2 * Math.PI * fc) / fs;

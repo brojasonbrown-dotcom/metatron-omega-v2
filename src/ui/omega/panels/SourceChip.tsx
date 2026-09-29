@@ -5,7 +5,7 @@
  * already-resolved oklch values).
  */
 
-export type SourceTone = "ok" | "idle" | "warn" | "error";
+export type SourceTone = 'ok' | 'idle' | 'warn' | 'error';
 
 interface Props {
   state: string;
@@ -15,13 +15,13 @@ interface Props {
 }
 
 const toneToColor: Record<SourceTone, string> = {
-  ok: "var(--primary)",
-  idle: "var(--muted-foreground)",
-  warn: "var(--accent)",
-  error: "var(--destructive)",
+  ok: 'var(--primary)',
+  idle: 'var(--muted-foreground)',
+  warn: 'var(--accent)',
+  error: 'var(--destructive)',
 };
 
-export default function SourceChip({ state, tone = "idle", prefix = "SRC", title }: Props) {
+export default function SourceChip({ state, tone = 'idle', prefix = 'SRC', title }: Props) {
   return (
     <span
       className="text-[8px] font-display tracking-[0.15em] tabular-nums"

@@ -49,7 +49,10 @@ export function classifyAsset(url: string, contentType = ''): AssetKind {
 /** Sniff by content when the extension lies (very common on CDN links). */
 export function sniffAsset(text: string): AssetKind {
   const head = text.slice(0, 4096);
-  if (/^\s*ISO-10303-21/i.test(head)) return /IFC[24]?X?\d?/i.test(head) || /FILE_SCHEMA\s*\(\s*\(\s*'IFC/i.test(head) ? 'ifc' : 'step';
+  if (/^\s*ISO-10303-21/i.test(head))
+    return /IFC[24]?X?\d?/i.test(head) || /FILE_SCHEMA\s*\(\s*\(\s*'IFC/i.test(head)
+      ? 'ifc'
+      : 'step';
   if (/<svg[\s>]/i.test(head)) return 'svg';
   if (/^\s*solid\s/i.test(head) && /facet\s+normal/i.test(text.slice(0, 20000))) return 'stl';
   if (/^\s*0\s*[\r\n]+\s*SECTION/i.test(head)) return 'dxf';
@@ -59,14 +62,27 @@ export function sniffAsset(text: string): AssetKind {
 
 export function parseGeometry(text: string, kind: AssetKind): GeometryDoc {
   switch (kind) {
-    case 'dxf': return parseDxf(text);
-    case 'svg': return parseSvg(text);
-    case 'obj': return parseObj(text);
-    case 'stl': return parseStl(text);
+    case 'dxf':
+      return parseDxf(text);
+    case 'svg':
+      return parseSvg(text);
+    case 'obj':
+      return parseObj(text);
+    case 'stl':
+      return parseStl(text);
     case 'ifc':
-    case 'step': return parseStepFile(text, kind);
+    case 'step':
+      return parseStepFile(text, kind);
     default:
-      return { kind: 'unknown', segments: EMPTY, points: EMPTY, entities: new Map(), labels: [], units: '', triangles: 0 };
+      return {
+        kind: 'unknown',
+        segments: EMPTY,
+        points: EMPTY,
+        entities: new Map(),
+        labels: [],
+        units: '',
+        triangles: 0,
+      };
   }
 }
 
@@ -89,7 +105,10 @@ export function parseDxf(text: string): GeometryDoc {
   const flush = () => {
     if (!type) return;
     entities.set(type, (entities.get(type) ?? 0) + 1);
-    const x = cur[10] ?? [], y = cur[20] ?? [], x2 = cur[11] ?? [], y2 = cur[21] ?? [];
+    const x = cur[10] ?? [],
+      y = cur[20] ?? [],
+      x2 = cur[11] ?? [],
+      y2 = cur[21] ?? [];
     if (type === 'LINE' && x.length && y.length && x2.length && y2.length) {
       seg.push(x[0], y[0], x2[0], y2[0]);
     } else if ((type === 'LWPOLYLINE' || type === 'POLYLINE') && x.length > 1) {
@@ -104,21 +123,39 @@ export function parseDxf(text: string): GeometryDoc {
       const span = a1 >= a0 ? a1 - a0 : a1 + Math.PI * 2 - a0;
       const steps = 24;
       for (let i = 0; i < steps; i++) {
-        const t0 = a0 + (span * i) / steps, t1 = a0 + (span * (i + 1)) / steps;
-        seg.push(x[0] + r * Math.cos(t0), y[0] + r * Math.sin(t0), x[0] + r * Math.cos(t1), y[0] + r * Math.sin(t1));
+        const t0 = a0 + (span * i) / steps,
+          t1 = a0 + (span * (i + 1)) / steps;
+        seg.push(
+          x[0] + r * Math.cos(t0),
+          y[0] + r * Math.sin(t0),
+          x[0] + r * Math.cos(t1),
+          y[0] + r * Math.sin(t1),
+        );
       }
     } else if (x.length && y.length) {
       pts.push(x[0], y[0], cur[30]?.[0] ?? 0);
     }
-    type = ''; cur = {};
+    type = '';
+    cur = {};
   };
 
   for (let i = 0; i + 1 < lines.length; i += 2) {
     const code = Number(lines[i].trim());
     const val = lines[i + 1];
-    if (!Number.isFinite(code)) { i -= 1; continue; }   // resync on odd files
-    if (code === 0) { flush(); type = val.trim().toUpperCase(); continue; }
-    if (code === 8 || code === 2) { const s = val.trim(); if (s && s.length < 60) labels.add(s); continue; }
+    if (!Number.isFinite(code)) {
+      i -= 1;
+      continue;
+    } // resync on odd files
+    if (code === 0) {
+      flush();
+      type = val.trim().toUpperCase();
+      continue;
+    }
+    if (code === 8 || code === 2) {
+      const s = val.trim();
+      if (s && s.length < 60) labels.add(s);
+      continue;
+    }
     if (code === 9 && val.trim() === '$INSUNITS') units = 'insunits';
     const n = Number(val);
     if (Number.isFinite(n)) (cur[code] ??= []).push(n);
@@ -126,8 +163,13 @@ export function parseDxf(text: string): GeometryDoc {
   flush();
 
   return {
-    kind: 'dxf', segments: Float64Array.from(seg), points: Float64Array.from(pts),
-    entities, labels: [...labels].slice(0, 400), units, triangles: 0,
+    kind: 'dxf',
+    segments: Float64Array.from(seg),
+    points: Float64Array.from(pts),
+    entities,
+    labels: [...labels].slice(0, 400),
+    units,
+    triangles: 0,
   };
 }
 
@@ -140,7 +182,10 @@ export function parseSvg(text: string): GeometryDoc {
 
   for (const m of text.matchAll(/<line\b[^>]*>/gi)) {
     const a = attrNums(m[0], ['x1', 'y1', 'x2', 'y2']);
-    if (a) { seg.push(a[0], a[1], a[2], a[3]); bump('line'); }
+    if (a) {
+      seg.push(a[0], a[1], a[2], a[3]);
+      bump('line');
+    }
   }
   for (const m of text.matchAll(/<rect\b[^>]*>/gi)) {
     const a = attrNums(m[0], ['x', 'y', 'width', 'height']);
@@ -155,15 +200,22 @@ export function parseSvg(text: string): GeometryDoc {
     if (a) {
       const [cx, cy, r] = a;
       for (let i = 0; i < 24; i++) {
-        const t0 = (Math.PI * 2 * i) / 24, t1 = (Math.PI * 2 * (i + 1)) / 24;
-        seg.push(cx + r * Math.cos(t0), cy + r * Math.sin(t0), cx + r * Math.cos(t1), cy + r * Math.sin(t1));
+        const t0 = (Math.PI * 2 * i) / 24,
+          t1 = (Math.PI * 2 * (i + 1)) / 24;
+        seg.push(
+          cx + r * Math.cos(t0),
+          cy + r * Math.sin(t0),
+          cx + r * Math.cos(t1),
+          cy + r * Math.sin(t1),
+        );
       }
       bump('circle');
     }
   }
   for (const m of text.matchAll(/<(polyline|polygon)\b[^>]*\bpoints=["']([^"']+)["'][^>]*>/gi)) {
     const nums = (m[2].match(/-?\d*\.?\d+(?:e-?\d+)?/gi) ?? []).map(Number);
-    for (let i = 2; i + 1 < nums.length; i += 2) seg.push(nums[i - 2], nums[i - 1], nums[i], nums[i + 1]);
+    for (let i = 2; i + 1 < nums.length; i += 2)
+      seg.push(nums[i - 2], nums[i - 1], nums[i], nums[i + 1]);
     if (m[1].toLowerCase() === 'polygon' && nums.length >= 4) {
       seg.push(nums[nums.length - 2], nums[nums.length - 1], nums[0], nums[1]);
     }
@@ -173,44 +225,97 @@ export function parseSvg(text: string): GeometryDoc {
   // their endpoints, never guessed at.
   for (const m of text.matchAll(/<path\b[^>]*\bd=["']([^"']+)["'][^>]*>/gi)) {
     bump('path');
-    let cx = 0, cy = 0, sx = 0, sy = 0, started = false;
+    let cx = 0,
+      cy = 0,
+      sx = 0,
+      sy = 0,
+      started = false;
     const toks = m[1].match(/[MmLlHhVvZzCcSsQqTtAa]|-?\d*\.?\d+(?:e-?\d+)?/gi) ?? [];
     let i = 0;
     let cmd = '';
     while (i < toks.length) {
       const t = toks[i];
-      if (/[A-Za-z]/.test(t)) { cmd = t; i++; if (/[Zz]/.test(cmd)) { if (started) seg.push(cx, cy, sx, sy); cx = sx; cy = sy; } continue; }
+      if (/[A-Za-z]/.test(t)) {
+        cmd = t;
+        i++;
+        if (/[Zz]/.test(cmd)) {
+          if (started) seg.push(cx, cy, sx, sy);
+          cx = sx;
+          cy = sy;
+        }
+        continue;
+      }
       const rel = cmd === cmd.toLowerCase();
       const num = () => Number(toks[i++]);
       if (cmd === 'M' || cmd === 'm') {
-        const x = num(), y = num();
-        cx = rel && started ? cx + x : x; cy = rel && started ? cy + y : y;
-        sx = cx; sy = cy; started = true; cmd = rel ? 'l' : 'L';
+        const x = num(),
+          y = num();
+        cx = rel && started ? cx + x : x;
+        cy = rel && started ? cy + y : y;
+        sx = cx;
+        sy = cy;
+        started = true;
+        cmd = rel ? 'l' : 'L';
       } else if (cmd === 'L' || cmd === 'l') {
-        const x = num(), y = num(); const nx = rel ? cx + x : x, ny = rel ? cy + y : y;
-        seg.push(cx, cy, nx, ny); cx = nx; cy = ny;
+        const x = num(),
+          y = num();
+        const nx = rel ? cx + x : x,
+          ny = rel ? cy + y : y;
+        seg.push(cx, cy, nx, ny);
+        cx = nx;
+        cy = ny;
       } else if (cmd === 'H' || cmd === 'h') {
-        const x = num(); const nx = rel ? cx + x : x; seg.push(cx, cy, nx, cy); cx = nx;
+        const x = num();
+        const nx = rel ? cx + x : x;
+        seg.push(cx, cy, nx, cy);
+        cx = nx;
       } else if (cmd === 'V' || cmd === 'v') {
-        const y = num(); const ny = rel ? cy + y : y; seg.push(cx, cy, cx, ny); cy = ny;
+        const y = num();
+        const ny = rel ? cy + y : y;
+        seg.push(cx, cy, cx, ny);
+        cy = ny;
       } else if (/[CcSsQqTtAa]/.test(cmd)) {
-        const arity = cmd.toLowerCase() === 'c' ? 6 : cmd.toLowerCase() === 's' || cmd.toLowerCase() === 'q' ? 4 : cmd.toLowerCase() === 't' ? 2 : 7;
+        const arity =
+          cmd.toLowerCase() === 'c'
+            ? 6
+            : cmd.toLowerCase() === 's' || cmd.toLowerCase() === 'q'
+              ? 4
+              : cmd.toLowerCase() === 't'
+                ? 2
+                : 7;
         const vals: number[] = [];
         for (let k = 0; k < arity && i < toks.length; k++) vals.push(num());
         if (vals.length >= 2) {
-          const ex = vals[vals.length - 2], ey = vals[vals.length - 1];
-          const nx = rel ? cx + ex : ex, ny = rel ? cy + ey : ey;
-          seg.push(cx, cy, nx, ny); cx = nx; cy = ny;
+          const ex = vals[vals.length - 2],
+            ey = vals[vals.length - 1];
+          const nx = rel ? cx + ex : ex,
+            ny = rel ? cy + ey : ey;
+          seg.push(cx, cy, nx, ny);
+          cx = nx;
+          cy = ny;
         }
-      } else { i++; }
+      } else {
+        i++;
+      }
     }
   }
   for (const m of text.matchAll(/<(?:text|title|desc)[^>]*>([\s\S]{0,200}?)<\//gi)) {
-    const s = m[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const s = m[1]
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
     if (s) labels.push(s);
   }
 
-  return { kind: 'svg', segments: Float64Array.from(seg), points: EMPTY, entities, labels: labels.slice(0, 400), units: 'px', triangles: 0 };
+  return {
+    kind: 'svg',
+    segments: Float64Array.from(seg),
+    points: EMPTY,
+    entities,
+    labels: labels.slice(0, 400),
+    units: 'px',
+    triangles: 0,
+  };
 }
 
 function attrNums(tag: string, names: string[]): number[] | null {
@@ -238,13 +343,17 @@ export function parseObj(text: string): GeometryDoc {
       vx.push(Number(rest[0]) || 0, Number(rest[1]) || 0, Number(rest[2]) || 0);
       entities.set('vertex', (entities.get('vertex') ?? 0) + 1);
     } else if (tag === 'f') {
-      const idx = rest.map((t) => {
-        const i = Number(t.split('/')[0]);
-        return i < 0 ? vx.length / 3 + i : i - 1;
-      }).filter((i) => Number.isInteger(i) && i >= 0);
+      const idx = rest
+        .map((t) => {
+          const i = Number(t.split('/')[0]);
+          return i < 0 ? vx.length / 3 + i : i - 1;
+        })
+        .filter((i) => Number.isInteger(i) && i >= 0);
       for (let k = 0; k < idx.length; k++) {
-        const a = idx[k], b = idx[(k + 1) % idx.length];
-        if (a * 3 + 1 < vx.length && b * 3 + 1 < vx.length) seg.push(vx[a * 3], vx[a * 3 + 1], vx[b * 3], vx[b * 3 + 1]);
+        const a = idx[k],
+          b = idx[(k + 1) % idx.length];
+        if (a * 3 + 1 < vx.length && b * 3 + 1 < vx.length)
+          seg.push(vx[a * 3], vx[a * 3 + 1], vx[b * 3], vx[b * 3 + 1]);
       }
       tris += Math.max(0, idx.length - 2);
       entities.set('face', (entities.get('face') ?? 0) + 1);
@@ -253,7 +362,15 @@ export function parseObj(text: string): GeometryDoc {
       if (s) labels.add(s);
     }
   }
-  return { kind: 'obj', segments: Float64Array.from(seg), points: Float64Array.from(vx), entities, labels: [...labels].slice(0, 400), units: '', triangles: tris };
+  return {
+    kind: 'obj',
+    segments: Float64Array.from(seg),
+    points: Float64Array.from(vx),
+    entities,
+    labels: [...labels].slice(0, 400),
+    units: '',
+    triangles: tris,
+  };
 }
 
 // ── STL (ASCII) ───────────────────────────────────────────────────────────
@@ -272,14 +389,24 @@ export function parseStl(text: string): GeometryDoc {
     pts.push(v[0], v[1], v[2]);
     if (verts.length === 3) {
       for (let k = 0; k < 3; k++) {
-        const a = verts[k], b = verts[(k + 1) % 3];
+        const a = verts[k],
+          b = verts[(k + 1) % 3];
         seg.push(a[0], a[1], b[0], b[1]);
       }
-      tris++; verts.length = 0;
+      tris++;
+      verts.length = 0;
     }
   }
   const entities = new Map<string, number>([['facet', tris]]);
-  return { kind: 'stl', segments: Float64Array.from(seg), points: Float64Array.from(pts), entities, labels, units: '', triangles: tris };
+  return {
+    kind: 'stl',
+    segments: Float64Array.from(seg),
+    points: Float64Array.from(pts),
+    entities,
+    labels,
+    units: '',
+    triangles: tris,
+  };
 }
 
 // ── IFC / STEP physical file ──────────────────────────────────────────────
@@ -305,7 +432,9 @@ export function parseStepFile(text: string, kind: 'ifc' | 'step'): GeometryDoc {
     entities.set(type, (entities.get(type) ?? 0) + 1);
     const body = m[3];
     if (type === 'IFCCARTESIANPOINT' || type === 'CARTESIAN_POINT') {
-      const nums = (body.match(/-?\d*\.?\d+(?:E[+-]?\d+)?/gi) ?? []).map(Number).filter(Number.isFinite);
+      const nums = (body.match(/-?\d*\.?\d+(?:E[+-]?\d+)?/gi) ?? [])
+        .map(Number)
+        .filter(Number.isFinite);
       if (nums.length >= 2) pts.push(nums[0], nums[1], nums[2] ?? 0);
     } else if (labels.size < 400) {
       for (const s of body.match(/'([^']{2,60})'/g) ?? []) {
@@ -321,7 +450,12 @@ export function parseStepFile(text: string, kind: 'ifc' | 'step'): GeometryDoc {
   for (let i = 3; i + 1 < pts.length; i += 3) seg.push(pts[i - 3], pts[i - 2], pts[i], pts[i + 1]);
 
   return {
-    kind, segments: Float64Array.from(seg), points: Float64Array.from(pts),
-    entities, labels: [...labels].slice(0, 400), units, triangles: 0,
+    kind,
+    segments: Float64Array.from(seg),
+    points: Float64Array.from(pts),
+    entities,
+    labels: [...labels].slice(0, 400),
+    units,
+    triangles: 0,
   };
 }

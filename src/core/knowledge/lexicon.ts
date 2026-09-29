@@ -69,7 +69,11 @@ export function atom(key: string, d = LEX_DIM): Phasor {
   let h = fnv1a(key);
   for (let i = 0; i < d; i++) {
     // xorshift32 — deterministic across runtimes
-    h ^= h << 13; h >>>= 0; h ^= h >>> 17; h ^= h << 5; h >>>= 0;
+    h ^= h << 13;
+    h >>>= 0;
+    h ^= h >>> 17;
+    h ^= h << 5;
+    h >>>= 0;
     const theta = (h / 4294967296) * 2 * Math.PI;
     out.re[i] = Math.cos(theta);
     out.im[i] = Math.sin(theta);
@@ -83,8 +87,13 @@ export function toUnit(v: Phasor): Phasor {
   const out = zeros(d);
   for (let i = 0; i < d; i++) {
     const m = Math.hypot(v.re[i], v.im[i]);
-    if (m > 1e-12) { out.re[i] = v.re[i] / m; out.im[i] = v.im[i] / m; }
-    else { out.re[i] = 1; out.im[i] = 0; }
+    if (m > 1e-12) {
+      out.re[i] = v.re[i] / m;
+      out.im[i] = v.im[i] / m;
+    } else {
+      out.re[i] = 1;
+      out.im[i] = 0;
+    }
   }
   return out;
 }
@@ -114,7 +123,10 @@ export function spellingSignature(word: string, d = LEX_DIM): Phasor {
   const grams = Math.max(1, w.length - 2);
   for (let j = 0; j < grams; j++) {
     const a = atom(`g:${w.slice(j, j + 3)}`, d);
-    for (let i = 0; i < d; i++) { acc.re[i] += a.re[i]; acc.im[i] += a.im[i]; }
+    for (let i = 0; i < d; i++) {
+      acc.re[i] += a.re[i];
+      acc.im[i] += a.im[i];
+    }
   }
   const sig = toUnit(acc);
   if (sigCache.size > 4181) sigCache.clear();
@@ -158,7 +170,10 @@ export function encodeSentence(frame: SentenceFrame, lex?: LexiconMemory, d = LE
     const w = frame[r];
     if (!w) continue;
     const s = bind(atom(`role:${r}`, d), lex ? lex.signature(w) : spellingSignature(w, d));
-    for (let i = 0; i < d; i++) { acc.re[i] += s.re[i]; acc.im[i] += s.im[i]; }
+    for (let i = 0; i < d; i++) {
+      acc.re[i] += s.re[i];
+      acc.im[i] += s.im[i];
+    }
   }
   return acc;
 }
@@ -172,20 +187,34 @@ export interface RoleDecode {
 
 /** Recover each role's filler by unbinding and matching against candidates. */
 export function decodeSentence(
-  v: Phasor, candidates: readonly string[], lex?: LexiconMemory, d = LEX_DIM,
+  v: Phasor,
+  candidates: readonly string[],
+  lex?: LexiconMemory,
+  d = LEX_DIM,
 ): RoleDecode[] {
   const sigs = candidates.map((w) => (lex ? lex.signature(w) : spellingSignature(w, d)));
   const res: RoleDecode[] = [];
   for (const r of ROLES) {
     const probe = unbind(v, atom(`role:${r}`, d));
-    let best = -Infinity, second = -Infinity, bi = -1;
+    let best = -Infinity,
+      second = -Infinity,
+      bi = -1;
     for (let k = 0; k < sigs.length; k++) {
       const s = similarity(probe, sigs[k]);
-      if (s > best) { second = best; best = s; bi = k; } else if (s > second) second = s;
+      if (s > best) {
+        second = best;
+        best = s;
+        bi = k;
+      } else if (s > second) second = s;
     }
     // a slot is filled iff its best match clears the chance floor 3/√d
     const floor = 3 / Math.sqrt(d);
-    res.push({ role: r, word: bi >= 0 && best > floor ? candidates[bi] : null, score: best, runnerUp: second });
+    res.push({
+      role: r,
+      word: bi >= 0 && best > floor ? candidates[bi] : null,
+      score: best,
+      runnerUp: second,
+    });
   }
   return res;
 }
@@ -221,11 +250,19 @@ export class LexiconMemory {
   private readonly freq = new Map<string, number>();
   private total = 0;
 
-  constructor(d = LEX_DIM) { this.d = d; }
+  constructor(d = LEX_DIM) {
+    this.d = d;
+  }
 
-  get size(): number { return this.freq.size; }
-  get tokens(): number { return this.total; }
-  count(word: string): number { return this.freq.get(normToken(word)) ?? 0; }
+  get size(): number {
+    return this.freq.size;
+  }
+  get tokens(): number {
+    return this.total;
+  }
+  count(word: string): number {
+    return this.freq.get(normToken(word)) ?? 0;
+  }
 
   /** Meaning vector: unit(spelling + context delta). */
   signature(word: string): Phasor {
@@ -234,7 +271,10 @@ export class LexiconMemory {
     const dl = this.delta.get(t);
     if (!dl) return base;
     const acc = zeros(this.d);
-    for (let i = 0; i < this.d; i++) { acc.re[i] = base.re[i] + dl.re[i]; acc.im[i] = base.im[i] + dl.im[i]; }
+    for (let i = 0; i < this.d; i++) {
+      acc.re[i] = base.re[i] + dl.re[i];
+      acc.im[i] = base.im[i] + dl.im[i];
+    }
     return toUnit(acc);
   }
 
@@ -248,8 +288,15 @@ export class LexiconMemory {
       this.total++;
       if (g === 0) continue;
       let dl = this.delta.get(t);
-      if (!dl) { dl = { re: new Float32Array(this.d), im: new Float32Array(this.d), n: 0 }; this.delta.set(t, dl); }
-      for (let k = Math.max(0, i - LEX_WINDOW); k <= Math.min(toks.length - 1, i + LEX_WINDOW); k++) {
+      if (!dl) {
+        dl = { re: new Float32Array(this.d), im: new Float32Array(this.d), n: 0 };
+        this.delta.set(t, dl);
+      }
+      for (
+        let k = Math.max(0, i - LEX_WINDOW);
+        k <= Math.min(toks.length - 1, i + LEX_WINDOW);
+        k++
+      ) {
         if (k === i) continue;
         const nb = spellingSignature(toks[k], this.d);
         // IDF-style damping: frequent neighbours (Zipf head) teach less.
@@ -323,7 +370,9 @@ export class LexiconMemory {
 
   /** Replace this memory's contents in place (the store holds a readonly ref). */
   load(s: LexiconSnapshot): void {
-    this.freq.clear(); this.delta.clear(); this.total = 0;
+    this.freq.clear();
+    this.delta.clear();
+    this.total = 0;
     if (!s || s.d !== this.d || !Array.isArray(s.words)) return;
     this.total = Number.isFinite(s.total) ? s.total : 0;
     for (const [w, f, re, im] of s.words) {
@@ -378,17 +427,26 @@ function fftMag2(frame: Float64Array): Float64Array {
     let bit = n >> 1;
     for (; j & bit; bit >>= 1) j ^= bit;
     j ^= bit;
-    if (i < j) { const t = re[i]; re[i] = re[j]; re[j] = t; }
+    if (i < j) {
+      const t = re[i];
+      re[i] = re[j];
+      re[j] = t;
+    }
   }
   for (let len = 2; len <= n; len <<= 1) {
     const ang = (-2 * Math.PI) / len;
     for (let i = 0; i < n; i += len) {
       for (let k = 0; k < len / 2; k++) {
-        const wr = Math.cos(ang * k), wi = Math.sin(ang * k);
-        const ar = re[i + k + len / 2], ai = im[i + k + len / 2];
-        const xr = ar * wr - ai * wi, xi = ar * wi + ai * wr;
-        re[i + k + len / 2] = re[i + k] - xr; im[i + k + len / 2] = im[i + k] - xi;
-        re[i + k] += xr; im[i + k] += xi;
+        const wr = Math.cos(ang * k),
+          wi = Math.sin(ang * k);
+        const ar = re[i + k + len / 2],
+          ai = im[i + k + len / 2];
+        const xr = ar * wr - ai * wi,
+          xi = ar * wi + ai * wr;
+        re[i + k + len / 2] = re[i + k] - xr;
+        im[i + k + len / 2] = im[i + k] - xi;
+        re[i + k] += xr;
+        im[i + k] += xi;
       }
     }
   }
@@ -405,12 +463,14 @@ function fftMag2(frame: Float64Array): Float64Array {
  * the word. Returns null when the chunk holds no signal.
  */
 export function soundDescriptor(pcm: ArrayLike<number>, sampleRate: number): Float64Array | null {
-  const N = 1024, hop = 512;
+  const N = 1024,
+    hop = 512;
   if (!(sampleRate > 0) || pcm.length < N) return null;
   const hann = new Float64Array(N);
   for (let i = 0; i < N; i++) hann[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (N - 1));
   const edges: number[] = [];
-  for (let b = 0; b <= SOUND_BANDS; b++) edges.push(SOUND_LO * Math.pow(SOUND_HI / SOUND_LO, b / SOUND_BANDS));
+  for (let b = 0; b <= SOUND_BANDS; b++)
+    edges.push(SOUND_LO * Math.pow(SOUND_HI / SOUND_LO, b / SOUND_BANDS));
   const binHz = sampleRate / N;
   const frames: Float64Array[] = [];
   const energy: number[] = [];
@@ -425,9 +485,11 @@ export function soundDescriptor(pcm: ArrayLike<number>, sampleRate: number): Flo
       const hi = Math.min(p.length - 1, Math.max(lo, Math.ceil(edges[b + 1] / binHz)));
       let acc = 0;
       for (let k = lo; k <= hi; k++) acc += p[k];
-      bands[b] = acc; e += acc;
+      bands[b] = acc;
+      e += acc;
     }
-    frames.push(bands); energy.push(e);
+    frames.push(bands);
+    energy.push(e);
   }
   const peak = Math.max(...energy);
   if (!(peak > 0)) return null;
@@ -439,8 +501,12 @@ export function soundDescriptor(pcm: ArrayLike<number>, sampleRate: number): Flo
     for (const f of voiced) m += Math.log(f[b] + 1e-12);
     m /= voiced.length;
     let v = 0;
-    for (const f of voiced) { const x = Math.log(f[b] + 1e-12) - m; v += x * x; }
-    out[b] = m; out[SOUND_BANDS + b] = Math.sqrt(v / voiced.length);
+    for (const f of voiced) {
+      const x = Math.log(f[b] + 1e-12) - m;
+      v += x * x;
+    }
+    out[b] = m;
+    out[SOUND_BANDS + b] = Math.sqrt(v / voiced.length);
   }
   // Remove overall level from the means, then unit-normalise.
   let mu = 0;
@@ -465,8 +531,15 @@ export interface SoundTrial {
 }
 
 export interface SoundWordSnapshot {
-  d: number; k: number; re: ArrayLike<number>; im: ArrayLike<number>;
-  trials: number; scored: number; hits1: number; hits5: number; recent: number[];
+  d: number;
+  k: number;
+  re: ArrayLike<number>;
+  im: ArrayLike<number>;
+  trials: number;
+  scored: number;
+  hits1: number;
+  hits5: number;
+  recent: number[];
 }
 
 export class SoundWordMap {
@@ -492,10 +565,15 @@ export class SoundWordMap {
   predict(a: ArrayLike<number>): Phasor {
     const out = zeros(this.d);
     for (let i = 0; i < this.d; i++) {
-      let r = 0, m = 0;
+      let r = 0,
+        m = 0;
       const o = i * this.k;
-      for (let j = 0; j < this.k; j++) { r += this.re[o + j] * a[j]; m += this.im[o + j] * a[j]; }
-      out.re[i] = r; out.im[i] = m;
+      for (let j = 0; j < this.k; j++) {
+        r += this.re[o + j] * a[j];
+        m += this.im[o + j] * a[j];
+      }
+      out.re[i] = r;
+      out.im[i] = m;
     }
     return out;
   }
@@ -511,7 +589,14 @@ export class SoundWordMap {
    * Trials with no heard words are neither scored nor learned.
    */
   observe(a: ArrayLike<number>, heardText: string, lex: LexiconMemory): SoundTrial | null {
-    const heard = [...new Set(heardText.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean))];
+    const heard = [
+      ...new Set(
+        heardText
+          .toLowerCase()
+          .split(/[^a-z0-9]+/)
+          .filter(Boolean),
+      ),
+    ];
     if (heard.length === 0 || a.length !== this.k) return null;
     const g = this.guess(a, lex);
     let trial: SoundTrial | null = null;
@@ -530,7 +615,10 @@ export class SoundWordMap {
     const t = zeros(this.d);
     for (const w of heard) {
       const s = lex.signature(w);
-      for (let i = 0; i < this.d; i++) { t.re[i] += s.re[i] / heard.length; t.im[i] += s.im[i] / heard.length; }
+      for (let i = 0; i < this.d; i++) {
+        t.re[i] += s.re[i] / heard.length;
+        t.im[i] += s.im[i] / heard.length;
+      }
     }
     const y = this.predict(a);
     let a2 = 0;
@@ -538,13 +626,24 @@ export class SoundWordMap {
     if (a2 > 0) {
       const step = SOUND_MU / a2;
       for (let i = 0; i < this.d; i++) {
-        const er = (t.re[i] - y.re[i]) * step, ei = (t.im[i] - y.im[i]) * step;
+        const er = (t.re[i] - y.re[i]) * step,
+          ei = (t.im[i] - y.im[i]) * step;
         const o = i * this.k;
-        for (let j = 0; j < this.k; j++) { this.re[o + j] += er * a[j]; this.im[o + j] += ei * a[j]; }
+        for (let j = 0; j < this.k; j++) {
+          this.re[o + j] += er * a[j];
+          this.im[o + j] += ei * a[j];
+        }
       }
     }
     this.trials++;
-    this.lastTrial = trial ?? { guess: null, guessTop: [], heard, hit1: false, hit5: false, crisp: false };
+    this.lastTrial = trial ?? {
+      guess: null,
+      guessTop: [],
+      heard,
+      hit1: false,
+      hit5: false,
+      crisp: false,
+    };
     return this.lastTrial;
   }
 
@@ -566,13 +665,34 @@ export class SoundWordMap {
   }
 
   snapshot(): SoundWordSnapshot {
-    return { d: this.d, k: this.k, re: this.re.slice(), im: this.im.slice(), trials: this.trials, scored: this.scoredN, hits1: this.hits1, hits5: this.hits5, recent: [...this.recent] };
+    return {
+      d: this.d,
+      k: this.k,
+      re: this.re.slice(),
+      im: this.im.slice(),
+      trials: this.trials,
+      scored: this.scoredN,
+      hits1: this.hits1,
+      hits5: this.hits5,
+      recent: [...this.recent],
+    };
   }
 
   load(s: SoundWordSnapshot): void {
-    if (!s || s.d !== this.d || s.k !== this.k || s.re.length !== this.re.length || s.im.length !== this.im.length) return;
-    this.re = Float32Array.from(s.re); this.im = Float32Array.from(s.im);
-    this.trials = s.trials | 0; this.scoredN = s.scored | 0; this.hits1 = s.hits1 | 0; this.hits5 = s.hits5 | 0;
+    if (
+      !s ||
+      s.d !== this.d ||
+      s.k !== this.k ||
+      s.re.length !== this.re.length ||
+      s.im.length !== this.im.length
+    )
+      return;
+    this.re = Float32Array.from(s.re);
+    this.im = Float32Array.from(s.im);
+    this.trials = s.trials | 0;
+    this.scoredN = s.scored | 0;
+    this.hits1 = s.hits1 | 0;
+    this.hits5 = s.hits5 | 0;
     this.recent = Array.isArray(s.recent) ? s.recent.slice(-SOUND_WINDOW) : [];
   }
 }
@@ -588,8 +708,17 @@ export interface Trajectory {
 }
 
 export type PredicateKind =
-  | 'rising' | 'falling' | 'accelerating' | 'decelerating' | 'steady'
-  | 'changed' | 'returned' | 'periodic' | 'converging' | 'approaching' | 'eigen';
+  | 'rising'
+  | 'falling'
+  | 'accelerating'
+  | 'decelerating'
+  | 'steady'
+  | 'changed'
+  | 'returned'
+  | 'periodic'
+  | 'converging'
+  | 'approaching'
+  | 'eigen';
 
 export interface CatalogEntry {
   readonly word: string;
@@ -619,26 +748,41 @@ export function compileCondition(cond: string): PredicateKind | null {
   return null;
 }
 
-interface RawRow { w: string; s: string; t: string; c: string }
+interface RawRow {
+  w: string;
+  s: string;
+  t: string;
+  c: string;
+}
 
 let catalogCache: CatalogEntry[] | null = null;
 
 export function lexiconCatalog(): readonly CatalogEntry[] {
   if (catalogCache) return catalogCache;
   catalogCache = (catalogRaw as RawRow[]).map((r) => ({
-    word: r.w, section: r.s, type: r.t, condition: r.c, predicate: compileCondition(r.c),
+    word: r.w,
+    section: r.s,
+    type: r.t,
+    condition: r.c,
+    predicate: compileCondition(r.c),
   }));
   return catalogCache;
 }
 
 export function groundedEntries(): readonly CatalogEntry[] {
-  return lexiconCatalog().filter((e) => e.predicate !== null && /^[A-Za-z][A-Za-z -]*$/.test(e.word));
+  return lexiconCatalog().filter(
+    (e) => e.predicate !== null && /^[A-Za-z][A-Za-z -]*$/.test(e.word),
+  );
 }
 
 /** Tolerance on a finite difference: φ⁻⁵ of the channel's own spread. */
 function tol(x: readonly number[]): number {
-  let lo = Infinity, hi = -Infinity;
-  for (const v of x) { if (v < lo) lo = v; if (v > hi) hi = v; }
+  let lo = Infinity,
+    hi = -Infinity;
+  for (const v of x) {
+    if (v < lo) lo = v;
+    if (v > hi) hi = v;
+  }
   const span = hi - lo;
   return Number.isFinite(span) && span > 0 ? span * 0.09016994374947424 : 1e-9;
 }
@@ -646,7 +790,10 @@ function tol(x: readonly number[]): number {
 function dist(a: ArrayLike<number>, b: ArrayLike<number>): number {
   let s = 0;
   const n = Math.min(a.length, b.length);
-  for (let i = 0; i < n; i++) { const d = a[i] - b[i]; s += d * d; }
+  for (let i = 0; i < n; i++) {
+    const d = a[i] - b[i];
+    s += d * d;
+  }
   return Math.sqrt(s);
 }
 
@@ -660,14 +807,21 @@ export function evaluatePredicate(kind: PredicateKind, tr: Trajectory): boolean 
   const v0 = x[n - 2] - x[n - 3];
   const a = v1 - v0;
   switch (kind) {
-    case 'rising': return v1 > e && v0 > 0;
-    case 'falling': return v1 < -e && v0 < 0;
-    case 'accelerating': return a > e;
-    case 'decelerating': return a < -e;
-    case 'steady': return Math.abs(v1) <= e && Math.abs(v0) <= e;
-    case 'changed': return Math.abs(x[n - 1] - x[0]) > e;
+    case 'rising':
+      return v1 > e && v0 > 0;
+    case 'falling':
+      return v1 < -e && v0 < 0;
+    case 'accelerating':
+      return a > e;
+    case 'decelerating':
+      return a < -e;
+    case 'steady':
+      return Math.abs(v1) <= e && Math.abs(v0) <= e;
+    case 'changed':
+      return Math.abs(x[n - 1] - x[0]) > e;
     case 'returned': {
-      for (let i = 0; i < n - 2; i++) if (Math.abs(x[n - 1] - x[i]) <= e && Math.abs(x[n - 2] - x[i]) > e) return true;
+      for (let i = 0; i < n - 2; i++)
+        if (Math.abs(x[n - 1] - x[i]) <= e && Math.abs(x[n - 2] - x[i]) > e) return true;
       return false;
     }
     case 'periodic': {
@@ -699,9 +853,16 @@ export function evaluatePredicate(kind: PredicateKind, tr: Trajectory): boolean 
     case 'eigen': {
       const s = tr.states;
       if (!s || s.length < 2) return false;
-      const p = s[s.length - 2], q = s[s.length - 1];
-      let dot = 0, np = 0, nq = 0;
-      for (let i = 0; i < Math.min(p.length, q.length); i++) { dot += p[i] * q[i]; np += p[i] * p[i]; nq += q[i] * q[i]; }
+      const p = s[s.length - 2],
+        q = s[s.length - 1];
+      let dot = 0,
+        np = 0,
+        nq = 0;
+      for (let i = 0; i < Math.min(p.length, q.length); i++) {
+        dot += p[i] * q[i];
+        np += p[i] * p[i];
+        nq += q[i] * q[i];
+      }
       if (np === 0 || nq === 0) return false;
       const cos = Math.abs(dot) / Math.sqrt(np * nq);
       return cos > 0.999 && Math.abs(Math.sqrt(nq / np) - 1) > 1e-6;
@@ -722,7 +883,10 @@ export function detectWords(tr: Trajectory): Detection[] {
   for (const e of groundedEntries()) {
     const k = e.predicate!;
     let ok = fired.get(k);
-    if (ok === undefined) { ok = evaluatePredicate(k, tr); fired.set(k, ok); }
+    if (ok === undefined) {
+      ok = evaluatePredicate(k, tr);
+      fired.set(k, ok);
+    }
     if (ok) out.push({ word: e.word, predicate: k, section: e.section });
   }
   return out;
@@ -740,16 +904,29 @@ export function groundingStats(): GroundingStats {
   const g = groundedEntries();
   const by: Record<string, number> = {};
   for (const e of g) by[e.predicate!] = (by[e.predicate!] ?? 0) + 1;
-  return { entries: all.length, grounded: g.length, ungrounded: all.length - g.length, byPredicate: by };
+  return {
+    entries: all.length,
+    grounded: g.length,
+    ungrounded: all.length - g.length,
+    byPredicate: by,
+  };
 }
 
 // ─── 6. Field → words ─────────────────────────────────────────────────────
 
 /** One canonical word per fired predicate — the verb the field is "doing". */
 const CANON: Readonly<Record<PredicateKind, string>> = {
-  rising: 'rise', falling: 'fall', accelerating: 'accelerate', decelerating: 'slow',
-  steady: 'hold', changed: 'change', returned: 'return', periodic: 'cycle',
-  converging: 'settle', approaching: 'approach', eigen: 'scale',
+  rising: 'rise',
+  falling: 'fall',
+  accelerating: 'accelerate',
+  decelerating: 'slow',
+  steady: 'hold',
+  changed: 'change',
+  returned: 'return',
+  periodic: 'cycle',
+  converging: 'settle',
+  approaching: 'approach',
+  eigen: 'scale',
 };
 
 /**
@@ -758,14 +935,35 @@ const CANON: Readonly<Record<PredicateKind, string>> = {
  * statics); object = top recalled concept word. Returns null when nothing
  * fired — the brain stays silent rather than inventing a description.
  */
-export function describeField(tr: Trajectory, recalled: readonly string[] = []): { frame: SentenceFrame; text: string; fired: PredicateKind[] } | null {
-  const order: PredicateKind[] = ['accelerating', 'decelerating', 'rising', 'falling', 'approaching', 'converging', 'periodic', 'returned', 'eigen', 'changed', 'steady'];
+export function describeField(
+  tr: Trajectory,
+  recalled: readonly string[] = [],
+): { frame: SentenceFrame; text: string; fired: PredicateKind[] } | null {
+  const order: PredicateKind[] = [
+    'accelerating',
+    'decelerating',
+    'rising',
+    'falling',
+    'approaching',
+    'converging',
+    'periodic',
+    'returned',
+    'eigen',
+    'changed',
+    'steady',
+  ];
   const fired = order.filter((k) => evaluatePredicate(k, tr));
   if (fired.length === 0) return null;
   const frame: SentenceFrame = { agent: 'field', action: CANON[fired[0]] };
   if (recalled[0]) frame.object = recalled[0];
   if (fired.length > 1) frame.manner = CANON[fired[1]];
-  const text = [frame.agent, frame.action + 's', frame.object, frame.manner ? `while ${frame.manner}ing`.replace(/eing$/, 'ing') : null]
-    .filter(Boolean).join(' ');
+  const text = [
+    frame.agent,
+    frame.action + 's',
+    frame.object,
+    frame.manner ? `while ${frame.manner}ing`.replace(/eing$/, 'ing') : null,
+  ]
+    .filter(Boolean)
+    .join(' ');
   return { frame, text, fired };
 }

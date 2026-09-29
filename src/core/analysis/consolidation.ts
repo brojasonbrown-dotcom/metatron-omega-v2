@@ -134,14 +134,22 @@ export class FindingConsolidator {
     this.protocol = new TenSweepProtocol(this.ledger, OWNER);
   }
 
-  get size(): number { return this.corpus.items.length; }
-  get cycleCount(): number { return this.cycles; }
-  get ledgerSize(): number { return this.ledger.size; }
+  get size(): number {
+    return this.corpus.items.length;
+  }
+  get cycleCount(): number {
+    return this.cycles;
+  }
+  get ledgerSize(): number {
+    return this.ledger.size;
+  }
 
   /** Seals each reported finding as a corpus atom. Abstentions are skipped:
    *  an abstention is the absence of evidence, not a fact to consolidate. */
   ingest(report: SpineReport, at: number): IngestResult {
-    let added = 0, superseded = 0, contradictions = 0;
+    let added = 0,
+      superseded = 0,
+      contradictions = 0;
     const byId = this.corpus.byId();
 
     for (const f of report.findings) {
@@ -149,12 +157,13 @@ export class FindingConsolidator {
       const key = pairKeyOf(f);
       const id = `assoc:${key}:${this.atoms++}`;
       const priorId = this.latest.get(key) ?? null;
-      const prior = priorId ? byId.get(priorId) ?? null : null;
+      const prior = priorId ? (byId.get(priorId) ?? null) : null;
 
       const contradicts: string[] = [];
       if (
         prior &&
-        typeof f.direction === 'number' && Number.isFinite(f.direction) &&
+        typeof f.direction === 'number' &&
+        Number.isFinite(f.direction) &&
         Number.isFinite(prior.trust) &&
         typeof priorDirection(prior) === 'number' &&
         (priorDirection(prior) as number) * f.direction < 0
@@ -167,7 +176,10 @@ export class FindingConsolidator {
         id,
         kind: FINDING_KIND,
         body: {
-          pair: key, a: f.a, b: f.b, n: f.n,
+          pair: key,
+          a: f.a,
+          b: f.b,
+          n: f.n,
           association: fin(f.association),
           pearson: fin(f.correlation?.pearson.value),
           spearman: fin(f.correlation?.spearman.value),
@@ -189,17 +201,20 @@ export class FindingConsolidator {
         id,
         kind: FINDING_KIND,
         vector: findingVector(f),
-        trust: typeof f.association === 'number' && Number.isFinite(f.association)
-          ? f.association
-          : Number.NaN,
+        trust:
+          typeof f.association === 'number' && Number.isFinite(f.association)
+            ? f.association
+            : Number.NaN,
         contradicts,
         recordedAt: at,
         validFrom: at,
         validTo: null,
         supersededBy: null,
       });
-      DIRECTION.set(item.id, typeof f.direction === 'number' && Number.isFinite(f.direction)
-        ? f.direction : null);
+      DIRECTION.set(
+        item.id,
+        typeof f.direction === 'number' && Number.isFinite(f.direction) ? f.direction : null,
+      );
       byId.set(id, item);
       added++;
 
@@ -305,6 +320,10 @@ export interface SweepLine {
 export function sweepLines(res: ProtocolResult | null): SweepLine[] {
   if (!res) return [];
   return res.reports.map((r: SweepReport) => ({
-    n: r.n, name: r.name, ok: r.ok, reason: r.reason, sealId: r.sealId,
+    n: r.n,
+    name: r.name,
+    ok: r.ok,
+    reason: r.reason,
+    sealId: r.sealId,
   }));
 }

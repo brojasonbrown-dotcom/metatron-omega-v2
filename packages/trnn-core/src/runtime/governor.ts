@@ -70,13 +70,8 @@ export function evaluateProfile(
   const memoryLoad = memBudget === null ? null : cost.bytes / memBudget;
   const computeBad = !(computeLoad <= 1);
   const memBad = memoryLoad !== null && !(memoryLoad <= 1);
-  const reason: ProfileVerdict['reason'] = computeBad && memBad
-    ? 'compute+memory'
-    : computeBad
-      ? 'compute'
-      : memBad
-        ? 'memory'
-        : 'ok';
+  const reason: ProfileVerdict['reason'] =
+    computeBad && memBad ? 'compute+memory' : computeBad ? 'compute' : memBad ? 'memory' : 'ok';
   return {
     id: p.id,
     tier: p.tier,

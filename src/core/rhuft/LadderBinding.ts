@@ -35,8 +35,14 @@
 
 import { PHI } from '@/core/constants/WolframVerified';
 import {
-  ladderLength, ladderTime, ladderFrequency, ladderMass, ladderTemperature,
-  rungOfLength, nearestStableRung, LADDER_MAX_N,
+  ladderLength,
+  ladderTime,
+  ladderFrequency,
+  ladderMass,
+  ladderTemperature,
+  rungOfLength,
+  nearestStableRung,
+  LADDER_MAX_N,
   type EpistemicClass,
 } from './PhiLadder';
 import { closureRecord, type ClosureRecord } from './LucasClosure';
@@ -59,15 +65,78 @@ export interface ScaleAnchorSpec {
  * physical quantity; none is chosen to make an index come out round.
  */
 export const SCALE_ANCHORS: readonly ScaleAnchorSpec[] = Object.freeze([
-  { scale: 0, framework: 'Septenary',      nodes: 7,  metres: 1.7,               cls: 'B', why: 'organismal / human scale — the septenary framework’s seven-fold body of reference' },
-  { scale: 1, framework: 'Quantum',        nodes: 55, metres: 3.8615926744e-13,  cls: 'B', why: 'electron reduced Compton wavelength (CODATA 2022)' },
-  { scale: 2, framework: 'Atomic',         nodes: 7,  metres: 5.29177210544e-11, cls: 'B', why: 'Bohr radius a₀ (CODATA 2022)' },
-  { scale: 3, framework: 'Geometric',      nodes: 13, metres: 2.0e-9,            cls: 'B', why: 'B-DNA helix pitch — the smallest measured structure with 13-fold φ geometry' },
-  { scale: 4, framework: 'Color/Music',    nodes: 9,  metres: 5.5e-7,            cls: 'B', why: 'mid-visible wavelength 550 nm — the octave the colour framework is defined on' },
-  { scale: 5, framework: 'Hebrew',         nodes: 22, metres: 1.0e-5,            cls: 'B', why: 'eukaryotic cell diameter — 22-letter alphabet mapped to the cellular scale (conventional)' },
-  { scale: 6, framework: 'Galactic',       nodes: 55, metres: 4.7e20,            cls: 'B', why: 'Milky Way disc radius' },
-  { scale: 7, framework: 'Sub-Planckian',  nodes: 55, metres: 1.616255e-35,      cls: 'A', why: 'Planck length ℓ_P — ladder rung 0 by construction' },
-  { scale: 8, framework: 'Hyper-Galactic', nodes: 55, metres: 4.4e26,            cls: 'B', why: 'observable-universe comoving radius' },
+  {
+    scale: 0,
+    framework: 'Septenary',
+    nodes: 7,
+    metres: 1.7,
+    cls: 'B',
+    why: 'organismal / human scale — the septenary framework’s seven-fold body of reference',
+  },
+  {
+    scale: 1,
+    framework: 'Quantum',
+    nodes: 55,
+    metres: 3.8615926744e-13,
+    cls: 'B',
+    why: 'electron reduced Compton wavelength (CODATA 2022)',
+  },
+  {
+    scale: 2,
+    framework: 'Atomic',
+    nodes: 7,
+    metres: 5.29177210544e-11,
+    cls: 'B',
+    why: 'Bohr radius a₀ (CODATA 2022)',
+  },
+  {
+    scale: 3,
+    framework: 'Geometric',
+    nodes: 13,
+    metres: 2.0e-9,
+    cls: 'B',
+    why: 'B-DNA helix pitch — the smallest measured structure with 13-fold φ geometry',
+  },
+  {
+    scale: 4,
+    framework: 'Color/Music',
+    nodes: 9,
+    metres: 5.5e-7,
+    cls: 'B',
+    why: 'mid-visible wavelength 550 nm — the octave the colour framework is defined on',
+  },
+  {
+    scale: 5,
+    framework: 'Hebrew',
+    nodes: 22,
+    metres: 1.0e-5,
+    cls: 'B',
+    why: 'eukaryotic cell diameter — 22-letter alphabet mapped to the cellular scale (conventional)',
+  },
+  {
+    scale: 6,
+    framework: 'Galactic',
+    nodes: 55,
+    metres: 4.7e20,
+    cls: 'B',
+    why: 'Milky Way disc radius',
+  },
+  {
+    scale: 7,
+    framework: 'Sub-Planckian',
+    nodes: 55,
+    metres: 1.616255e-35,
+    cls: 'A',
+    why: 'Planck length ℓ_P — ladder rung 0 by construction',
+  },
+  {
+    scale: 8,
+    framework: 'Hyper-Galactic',
+    nodes: 55,
+    metres: 4.4e26,
+    cls: 'B',
+    why: 'observable-universe comoving radius',
+  },
 ]);
 
 export interface ScaleBinding {
@@ -203,7 +272,10 @@ export function proveBindings(): BindingProof {
   const sorted = [...bs].sort((a, b) => a.rung - b.rung);
   let monotoneRungs = true;
   for (let i = 1; i < sorted.length; i++) {
-    if (!(sorted[i].rung > sorted[i - 1].rung)) { monotoneRungs = false; break; }
+    if (!(sorted[i].rung > sorted[i - 1].rung)) {
+      monotoneRungs = false;
+      break;
+    }
   }
   return {
     monotoneRungs,

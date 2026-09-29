@@ -51,7 +51,7 @@ export interface MemoryCaps {
 const FALLBACK_RAM_BYTES = 256 * 1024 * 1024;
 
 /** Fraction of the ceiling the brain is allowed to hold at once. */
-export const WORKING_FRACTION = 0.70;
+export const WORKING_FRACTION = 0.7;
 
 const PHI_INV = 1 / PHI;
 /** Start trimming above φ⁻¹ of the working budget. */
@@ -60,12 +60,12 @@ export const PRESSURE_TRIM = PHI_INV;
 export const PRESSURE_FREEZE = 1 - PHI_INV * PHI_INV * PHI_INV;
 
 const SHARE = {
-  sensory: 0.20,
-  tape:    0.22,
+  sensory: 0.2,
+  tape: 0.22,
   fractal: 0.08,
-  hebbian: 0.20,
-  episodic:0.12,
-  patterns:0.08,
+  hebbian: 0.2,
+  episodic: 0.12,
+  patterns: 0.08,
   pathway: 0.05,
   journal: 0.03,
   // reflective: 0.02 reserved, no bytes (uses episodic)
@@ -75,9 +75,9 @@ const BYTES_PER_PATTERN = 12 * 1024;
 const BYTES_PER_HEBBIAN = 16;
 const BYTES_PER_EDGE = 48;
 const BYTES_PER_JOURNAL = 1024;
-const BYTES_PER_TAPE_FRAME = 288;            // 40-mode top-K f32 frame
-const BYTES_PER_EPISODE = 2 * 1024;          // ~2 KB full top-K episode
-const BYTES_PER_SENSORY = atomBytes(32);     // 32-mode top-K atom
+const BYTES_PER_TAPE_FRAME = 288; // 40-mode top-K f32 frame
+const BYTES_PER_EPISODE = 2 * 1024; // ~2 KB full top-K episode
+const BYTES_PER_SENSORY = atomBytes(32); // 32-mode top-K atom
 
 export interface CapsInput {
   /** Override the ceiling (tests / synthetic envelopes). */
@@ -107,7 +107,9 @@ export function computeMemoryCaps(input: CapsInput = {}): MemoryCaps {
   const declared = snap?.gov.settings.ramBytes;
   const ceiling =
     input.ceilingBytes ??
-    (typeof declared === 'number' && declared > 0 ? declared : env?.ramBytes ?? FALLBACK_RAM_BYTES);
+    (typeof declared === 'number' && declared > 0
+      ? declared
+      : (env?.ramBytes ?? FALLBACK_RAM_BYTES));
   const provenance: RamProvenance = input.provenance ?? env?.ramProvenance ?? 'fallback';
 
   const ram = Math.max(64 * 1024 * 1024, ceiling * WORKING_FRACTION);
@@ -140,14 +142,14 @@ export function computeMemoryCaps(input: CapsInput = {}): MemoryCaps {
     shedLevel: level,
     fractalFrozen: level >= 2,
     trims,
-    fractalPoolBytes:   Math.max(0, Math.floor(ram * share.fractal)),
-    maxSensoryAtoms:    Math.max(64,  Math.floor((ram * share.sensory)  / BYTES_PER_SENSORY)),
-    maxTapeFrames:      Math.max(1024,Math.floor((ram * share.tape)     / BYTES_PER_TAPE_FRAME)),
-    maxHebbianEntries:  Math.max(64,  Math.floor((ram * share.hebbian)  / BYTES_PER_HEBBIAN)),
-    maxEpisodes:        Math.max(64,  Math.floor((ram * share.episodic) / BYTES_PER_EPISODE)),
-    maxPatterns:        Math.max(8,   Math.floor((ram * share.patterns) / BYTES_PER_PATTERN)),
-    maxPathwayEdges:    Math.max(32,  Math.floor((ram * share.pathway)  / BYTES_PER_EDGE)),
-    maxJournalRecords:  Math.max(16,  Math.floor((ram * share.journal)  / BYTES_PER_JOURNAL)),
+    fractalPoolBytes: Math.max(0, Math.floor(ram * share.fractal)),
+    maxSensoryAtoms: Math.max(64, Math.floor((ram * share.sensory) / BYTES_PER_SENSORY)),
+    maxTapeFrames: Math.max(1024, Math.floor((ram * share.tape) / BYTES_PER_TAPE_FRAME)),
+    maxHebbianEntries: Math.max(64, Math.floor((ram * share.hebbian) / BYTES_PER_HEBBIAN)),
+    maxEpisodes: Math.max(64, Math.floor((ram * share.episodic) / BYTES_PER_EPISODE)),
+    maxPatterns: Math.max(8, Math.floor((ram * share.patterns) / BYTES_PER_PATTERN)),
+    maxPathwayEdges: Math.max(32, Math.floor((ram * share.pathway) / BYTES_PER_EDGE)),
+    maxJournalRecords: Math.max(16, Math.floor((ram * share.journal) / BYTES_PER_JOURNAL)),
   };
 }
 

@@ -10,14 +10,14 @@
  * The projection is throttled to ~4 Hz: the worker bus runs at 8–64 Hz, but the
  * chat/tool tree must not re-render on the tick path.
  */
-import { useCallback, useMemo, useSyncExternalStore, type ReactNode } from "react";
-import { EngineProvider, type EngineCtx } from "@/components/v11/EngineContext";
-import { computeMetatronMemo } from "@/core/MetatronCore";
-import { computeChapterResidualsMemo } from "@/core/residuals/ChapterResiduals";
-import { getMemoryRuntime } from "./memoryRuntime";
-import { useMemorySelector } from "./useMemoryRuntime";
-import { getOmegaRuntime, type OmegaState } from "./omegaRuntime";
-import { projectEngineState } from "./engineProjection";
+import { useCallback, useMemo, useSyncExternalStore, type ReactNode } from 'react';
+import { EngineProvider, type EngineCtx } from '@/components/v11/EngineContext';
+import { computeMetatronMemo } from '@/core/MetatronCore';
+import { computeChapterResidualsMemo } from '@/core/residuals/ChapterResiduals';
+import { getMemoryRuntime } from './memoryRuntime';
+import { useMemorySelector } from './useMemoryRuntime';
+import { getOmegaRuntime, type OmegaState } from './omegaRuntime';
+import { projectEngineState } from './engineProjection';
 
 /** UI-facing refresh period for the engine context (ms). */
 const CTX_PERIOD_MS = 250;
@@ -49,7 +49,11 @@ function useThrottledOmega(): OmegaState {
     },
     [rt],
   );
-  return useSyncExternalStore(subscribe, () => rt.get(), () => rt.get());
+  return useSyncExternalStore(
+    subscribe,
+    () => rt.get(),
+    () => rt.get(),
+  );
 }
 
 export function OmegaEngineShim({ children }: { children: ReactNode }) {
@@ -91,7 +95,7 @@ export function OmegaEngineShim({ children }: { children: ReactNode }) {
       setEnergy: () => undefined,
       autoStabilize: true,
       setAutoStabilize: () => undefined,
-      resolution: "auto",
+      resolution: 'auto',
       setResolution: () => undefined,
       fieldState: engine.fieldState,
       fieldCapabilities: engine.fieldCapabilities,
@@ -108,9 +112,15 @@ export function OmegaEngineShim({ children }: { children: ReactNode }) {
       memoryStatus: mem.status,
       memoryStore: memory.store,
       memoryRefresh: mem.version,
-      saveMem: () => { void memory.save(); },
-      loadMem: () => { void memory.load(); },
-      clearMem: () => { void memory.clear(); },
+      saveMem: () => {
+        void memory.save();
+      },
+      loadMem: () => {
+        void memory.load();
+      },
+      clearMem: () => {
+        void memory.clear();
+      },
 
       pinealFeedbackEnabled: false,
       setPinealFeedbackEnabled: () => undefined,

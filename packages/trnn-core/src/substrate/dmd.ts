@@ -67,7 +67,11 @@ export interface DmdFit {
 /* ── small dense linear algebra (deterministic, no libm on state paths) ────── */
 
 /** Symmetric eigendecomposition by cyclic Jacobi. A is n×n row-major, destroyed. */
-export function jacobiEigen(A: Float64Array, n: number, sweeps = 60): { values: Float64Array; vectors: Float64Array } {
+export function jacobiEigen(
+  A: Float64Array,
+  n: number,
+  sweeps = 60,
+): { values: Float64Array; vectors: Float64Array } {
   const V = new Float64Array(n * n);
   for (let i = 0; i < n; i++) V[i * n + i] = 1;
   for (let s = 0; s < sweeps; s++) {
@@ -78,23 +82,27 @@ export function jacobiEigen(A: Float64Array, n: number, sweeps = 60): { values: 
       for (let q = p + 1; q < n; q++) {
         const apq = A[p * n + q];
         if (Math.abs(apq) < 1e-300) continue;
-        const app = A[p * n + p], aqq = A[q * n + q];
+        const app = A[p * n + p],
+          aqq = A[q * n + q];
         const theta = (aqq - app) / (2 * apq);
         const t = Math.sign(theta || 1) / (Math.abs(theta) + Math.sqrt(theta * theta + 1));
         const c = 1 / Math.sqrt(t * t + 1);
         const sn = t * c;
         for (let k = 0; k < n; k++) {
-          const akp = A[k * n + p], akq = A[k * n + q];
+          const akp = A[k * n + p],
+            akq = A[k * n + q];
           A[k * n + p] = c * akp - sn * akq;
           A[k * n + q] = sn * akp + c * akq;
         }
         for (let k = 0; k < n; k++) {
-          const apk = A[p * n + k], aqk = A[q * n + k];
+          const apk = A[p * n + k],
+            aqk = A[q * n + k];
           A[p * n + k] = c * apk - sn * aqk;
           A[q * n + k] = sn * apk + c * aqk;
         }
         for (let k = 0; k < n; k++) {
-          const vkp = V[k * n + p], vkq = V[k * n + q];
+          const vkp = V[k * n + p],
+            vkq = V[k * n + q];
           V[k * n + p] = c * vkp - sn * vkq;
           V[k * n + q] = sn * vkp + c * vkq;
         }
@@ -112,13 +120,25 @@ export function jacobiEigen(A: Float64Array, n: number, sweeps = 60): { values: 
  */
 export function hessenberg(A: Float64Array, n: number): void {
   for (let m = 1; m < n - 1; m++) {
-    let x = 0, i = m;
+    let x = 0,
+      i = m;
     for (let j = m; j < n; j++) {
-      if (Math.abs(A[j * n + (m - 1)]) > Math.abs(x)) { x = A[j * n + (m - 1)]; i = j; }
+      if (Math.abs(A[j * n + (m - 1)]) > Math.abs(x)) {
+        x = A[j * n + (m - 1)];
+        i = j;
+      }
     }
     if (i !== m) {
-      for (let j = m - 1; j < n; j++) { const t = A[i * n + j]; A[i * n + j] = A[m * n + j]; A[m * n + j] = t; }
-      for (let j = 0; j < n; j++) { const t = A[j * n + i]; A[j * n + i] = A[j * n + m]; A[j * n + m] = t; }
+      for (let j = m - 1; j < n; j++) {
+        const t = A[i * n + j];
+        A[i * n + j] = A[m * n + j];
+        A[m * n + j] = t;
+      }
+      for (let j = 0; j < n; j++) {
+        const t = A[j * n + i];
+        A[j * n + i] = A[j * n + m];
+        A[j * n + m] = t;
+      }
     }
     if (x !== 0) {
       for (let k = m + 1; k < n; k++) {
@@ -145,16 +165,23 @@ export function hessenberg(A: Float64Array, n: number): void {
  *
  * Returns real and imaginary parts; conjugate pairs come out adjacent.
  */
-export function generalEigenvalues(M: Float64Array, n: number, iters = 60): { re: Float64Array; im: Float64Array } {
+export function generalEigenvalues(
+  M: Float64Array,
+  n: number,
+  iters = 60,
+): { re: Float64Array; im: Float64Array } {
   const a = Float64Array.from(M);
   hessenberg(a, n);
   const wr = new Float64Array(n);
   const wi = new Float64Array(n);
   const A = (i: number, j: number) => a[i * n + j];
-  const set = (i: number, j: number, v: number) => { a[i * n + j] = v; };
+  const set = (i: number, j: number, v: number) => {
+    a[i * n + j] = v;
+  };
 
   let anorm = 0;
-  for (let i = 0; i < n; i++) for (let j = Math.max(i - 1, 0); j < n; j++) anorm += Math.abs(A(i, j));
+  for (let i = 0; i < n; i++)
+    for (let j = Math.max(i - 1, 0); j < n; j++) anorm += Math.abs(A(i, j));
 
   let nn = n - 1;
   let t = 0;
@@ -165,10 +192,18 @@ export function generalEigenvalues(M: Float64Array, n: number, iters = 60): { re
       for (l = nn; l >= 1; l--) {
         const s = Math.abs(A(l - 1, l - 1)) + Math.abs(A(l, l));
         const sc = s === 0 ? anorm : s;
-        if (Math.abs(A(l, l - 1)) + sc === sc) { set(l, l - 1, 0); break; }
+        if (Math.abs(A(l, l - 1)) + sc === sc) {
+          set(l, l - 1, 0);
+          break;
+        }
       }
       let x = A(nn, nn);
-      if (l === nn) { wr[nn] = x + t; wi[nn] = 0; nn--; break; }
+      if (l === nn) {
+        wr[nn] = x + t;
+        wi[nn] = 0;
+        nn--;
+        break;
+      }
       let y = A(nn - 1, nn - 1);
       let w = A(nn, nn - 1) * A(nn - 1, nn);
       if (l === nn - 1) {
@@ -188,8 +223,17 @@ export function generalEigenvalues(M: Float64Array, n: number, iters = 60): { re
         nn -= 2;
         break;
       }
-      if (its === iters) { wr[nn] = x + t; wi[nn] = 0; nn--; break; }
-      let p = 0, q = 0, r = 0, z = 0, s = 0;
+      if (its === iters) {
+        wr[nn] = x + t;
+        wi[nn] = 0;
+        nn--;
+        break;
+      }
+      let p = 0,
+        q = 0,
+        r = 0,
+        z = 0,
+        s = 0;
       if (its === 10 || its === 20) {
         // exceptional shift — breaks the rare cycling case
         t += x;
@@ -208,10 +252,13 @@ export function generalEigenvalues(M: Float64Array, n: number, iters = 60): { re
         q = A(m + 1, m + 1) - z - r - s;
         r = A(m + 2, m + 1);
         s = Math.abs(p) + Math.abs(q) + Math.abs(r);
-        p /= s; q /= s; r /= s;
+        p /= s;
+        q /= s;
+        r /= s;
         if (m === l) break;
         const u = Math.abs(A(m, m - 1)) * (Math.abs(q) + Math.abs(r));
-        const v = Math.abs(p) * (Math.abs(A(m - 1, m - 1)) + Math.abs(z) + Math.abs(A(m + 1, m + 1)));
+        const v =
+          Math.abs(p) * (Math.abs(A(m - 1, m - 1)) + Math.abs(z) + Math.abs(A(m + 1, m + 1)));
         if (u + v === v) break;
       }
       for (let i = m + 2; i <= nn; i++) {
@@ -224,7 +271,11 @@ export function generalEigenvalues(M: Float64Array, n: number, iters = 60): { re
           q = A(k + 1, k - 1);
           r = k !== nn - 1 ? A(k + 2, k - 1) : 0;
           x = Math.abs(p) + Math.abs(q) + Math.abs(r);
-          if (x !== 0) { p /= x; q /= x; r /= x; }
+          if (x !== 0) {
+            p /= x;
+            q /= x;
+            r /= x;
+          }
         }
         const sg = Math.sqrt(p * p + q * q + r * r);
         s = p >= 0 ? Math.abs(sg) : -Math.abs(sg);
@@ -235,27 +286,35 @@ export function generalEigenvalues(M: Float64Array, n: number, iters = 60): { re
           set(k, k - 1, -s * x);
         }
         p += s;
-        const px = p / s, py = q / s, pz = r / s;
-        q /= p; r /= p;
+        const px = p / s,
+          py = q / s,
+          pz = r / s;
+        q /= p;
+        r /= p;
         for (let j = k; j <= nn; j++) {
           let pp = A(k, j) + q * A(k + 1, j);
-          if (k !== nn - 1) { pp += r * A(k + 2, j); set(k + 2, j, A(k + 2, j) - pp * pz); }
+          if (k !== nn - 1) {
+            pp += r * A(k + 2, j);
+            set(k + 2, j, A(k + 2, j) - pp * pz);
+          }
           set(k + 1, j, A(k + 1, j) - pp * py);
           set(k, j, A(k, j) - pp * px);
         }
         const mmin = nn < k + 3 ? nn : k + 3;
         for (let i = l; i <= mmin; i++) {
           let pp = px * A(i, k) + py * A(i, k + 1);
-          if (k !== nn - 1) { pp += pz * A(i, k + 2); set(i, k + 2, A(i, k + 2) - pp * r); }
+          if (k !== nn - 1) {
+            pp += pz * A(i, k + 2);
+            set(i, k + 2, A(i, k + 2) - pp * r);
+          }
           set(i, k + 1, A(i, k + 1) - pp * q);
           set(i, k, A(i, k) - pp);
         }
       }
-    } while (true);
+    } while (true); // eslint-disable-line no-constant-condition -- QR sweep exits via deflation breaks
   }
   return { re: wr, im: wi };
 }
-
 
 export interface DmdOptions {
   /** Sample interval in seconds; drives growth/frequency units. */
@@ -271,7 +330,10 @@ export interface DmdOptions {
  * every snapshot must have the same length and be finite. Returns null when
  * the fit does not exist.
  */
-export function fitDmd(snapshots: readonly ArrayLike<number>[], opts: DmdOptions = {}): DmdFit | null {
+export function fitDmd(
+  snapshots: readonly ArrayLike<number>[],
+  opts: DmdOptions = {},
+): DmdFit | null {
   const dt = opts.dt ?? 1;
   // The Gram (XᵀX) route squares the condition number, so a singular value is
   // only trustworthy to ~√eps·σ₀ ≈ 1.5e-8·σ₀. Anything at or near that band is
@@ -292,9 +354,11 @@ export function fitDmd(snapshots: readonly ArrayLike<number>[], opts: DmdOptions
   for (let a = 0; a < cols; a++) {
     for (let b = a; b < cols; b++) {
       let s = 0;
-      const xa = snapshots[a], xb = snapshots[b];
+      const xa = snapshots[a],
+        xb = snapshots[b];
       for (let i = 0; i < D; i++) s += xa[i] * xb[i];
-      G[a * cols + b] = s; G[b * cols + a] = s;
+      G[a * cols + b] = s;
+      G[b * cols + a] = s;
     }
   }
   const { values, vectors } = jacobiEigen(Float64Array.from(G), cols);
@@ -348,7 +412,9 @@ export function fitDmd(snapshots: readonly ArrayLike<number>[], opts: DmdOptions
     const mag = Math.sqrt(re[j] * re[j] + im[j] * im[j]);
     radius = Math.max(radius, mag);
     modes.push({
-      lambdaRe: re[j], lambdaIm: im[j], magnitude: mag,
+      lambdaRe: re[j],
+      lambdaIm: im[j],
+      magnitude: mag,
       growth: mag > 0 ? dlog(mag) / dt : Number.NEGATIVE_INFINITY,
       frequency: datan2(im[j], re[j]) / (2 * Math.PI * dt),
       energy: energyTotal > 0 ? (sv[j] * sv[j]) / energyTotal : NaN,
@@ -356,7 +422,8 @@ export function fitDmd(snapshots: readonly ArrayLike<number>[], opts: DmdOptions
   }
 
   // Reconstruction error of the projected operator, measured not assumed.
-  let num = 0, den = 0;
+  let num = 0,
+    den = 0;
   const predictFrom = (x: ArrayLike<number>): Float64Array => {
     const z = new Float64Array(r);
     for (let a = 0; a < r; a++) {
@@ -381,7 +448,11 @@ export function fitDmd(snapshots: readonly ArrayLike<number>[], opts: DmdOptions
   for (let k = 0; k < cols; k++) {
     const pred = predictFrom(snapshots[k]);
     const y = snapshots[k + 1];
-    for (let i = 0; i < D; i++) { const e = y[i] - pred[i]; num += e * e; den += y[i] * y[i]; }
+    for (let i = 0; i < D; i++) {
+      const e = y[i] - pred[i];
+      num += e * e;
+      den += y[i] * y[i];
+    }
   }
 
   return {

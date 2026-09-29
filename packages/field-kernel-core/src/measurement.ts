@@ -19,22 +19,30 @@ import type { FieldStateN } from './state';
 
 /* ────────────────────────────  Neumaier helpers  ─────────────────────────── */
 
-interface NAcc { s: number; c: number; }
-function nAcc(): NAcc { return { s: 0, c: 0 }; }
+interface NAcc {
+  s: number;
+  c: number;
+}
+function nAcc(): NAcc {
+  return { s: 0, c: 0 };
+}
 function nAdd(a: NAcc, x: number): void {
   if (!Number.isFinite(x)) return;
   const s = a.s;
   const t = s + x;
-  a.c += Math.abs(s) >= Math.abs(x) ? (s - t) + x : (x - t) + s;
+  a.c += Math.abs(s) >= Math.abs(x) ? s - t + x : x - t + s;
   a.s = t;
 }
-function nVal(a: NAcc): number { return a.s + a.c; }
+function nVal(a: NAcc): number {
+  return a.s + a.c;
+}
 
 /* ─────────────────────────────  Measurements  ────────────────────────────── */
 
 /** ‖ψ − ψ̂‖² — real, unclamped. Returns NaN if lengths mismatch. */
 export function measureDrift(state: FieldStateN): number {
-  const psi = state.psi, hat = state.psiHat;
+  const psi = state.psi,
+    hat = state.psiHat;
   if (psi.length !== hat.length) return NaN;
   const acc = nAcc();
   for (let i = 0; i < psi.length; i++) {
@@ -52,7 +60,8 @@ export function measureDrift(state: FieldStateN): number {
  */
 export function measureTemporalCoherence(psi: Float64Array, prev: Float64Array): number {
   if (psi.length !== prev.length) return NaN;
-  const num = nAcc(); const den = nAcc();
+  const num = nAcc();
+  const den = nAcc();
   for (let i = 0; i < psi.length; i++) {
     nAdd(num, psi[i] * prev[i]);
     nAdd(den, prev[i] * prev[i]);
@@ -96,7 +105,7 @@ export function measureInformationDensity(state: FieldStateN): number {
   const LN2 = Math.LN2;
   const ent = nAcc();
   for (let i = 0; i < psi.length; i++) {
-    const p = (psi[i] * psi[i]) * invTotal;
+    const p = psi[i] * psi[i] * invTotal;
     if (p > 0) {
       nAdd(ent, -p * (Math.log(p) / LN2));
     }
@@ -124,7 +133,8 @@ export function measureBurden(state: FieldStateN): number {
  * Returns NaN on length mismatch.
  */
 export function measureInertia(curr: FieldStateN, prev: FieldStateN): number {
-  const a = curr.psi, b = prev.psi;
+  const a = curr.psi,
+    b = prev.psi;
   if (a.length !== b.length) return NaN;
   const acc = nAcc();
   for (let i = 0; i < a.length; i++) {

@@ -43,13 +43,14 @@ export function f8ZpeModeSum(maxN: number): number {
   // Inlined Neumaier compensation — no class dispatch per term. Bit-identical
   // to the NeumaierSum-based version on finite inputs; phiPow already
   // guards under/overflow so the per-term finiteness check is unnecessary.
-  let s = 0, c = 0;
+  let s = 0,
+    c = 0;
   for (let n = 0; n <= maxN; n++) {
     const x = 0.5 * phiPow(-n);
     const t = s + x;
     const as = s < 0 ? -s : s;
     const ax = x < 0 ? -x : x;
-    c += as >= ax ? (s - t) + x : (x - t) + s;
+    c += as >= ax ? s - t + x : x - t + s;
     s = t;
   }
   return s + c;
@@ -139,7 +140,8 @@ export interface F2MassLadderBridge {
 export function f2MassLadderBridge(masses: readonly number[]): F2MassLadderBridge {
   const pos: number[] = [];
   for (const m of masses) if (Number.isFinite(m) && m > 0) pos.push(m);
-  if (pos.length < 2) return { raw: 0, bridgedSlope: 0, bridgedSlopeResidual: 0, bridgedQedResidual: 0 };
+  if (pos.length < 2)
+    return { raw: 0, bridgedSlope: 0, bridgedSlopeResidual: 0, bridgedQedResidual: 0 };
   let minLog = Infinity;
   for (let i = 0; i < pos.length; i++) {
     const lm = Math.log(pos[i]);
@@ -152,13 +154,21 @@ export function f2MassLadderBridge(masses: readonly number[]): F2MassLadderBridg
   for (const m of pos) {
     const nReal = (Math.log(m) - minLog) / LN_PHI;
     const nInt = Math.round(nReal);
-    const d = nReal - nInt;            // n-units
+    const d = nReal - nInt; // n-units
     rawSquares.add(d * d);
-    if (nInt > 0) { ns.push(nInt); deltas.push(d); }
+    if (nInt > 0) {
+      ns.push(nInt);
+      deltas.push(d);
+    }
   }
   const rawRms = finiteOr(Math.sqrt(rawSquares.value() / pos.length));
   if (ns.length === 0) {
-    return { raw: rawRms, bridgedSlope: 0, bridgedSlopeResidual: rawRms, bridgedQedResidual: rawRms };
+    return {
+      raw: rawRms,
+      bridgedSlope: 0,
+      bridgedSlopeResidual: rawRms,
+      bridgedQedResidual: rawRms,
+    };
   }
   // δ-slope: closed-form least squares  δ = Σ(n·Δ) / Σ(n²)
   const sumN2 = new NeumaierSum();
@@ -169,12 +179,15 @@ export function f2MassLadderBridge(masses: readonly number[]): F2MassLadderBridg
   }
   const slope = sumN2.value() > 0 ? sumNd.value() / sumN2.value() : 0;
   // QED 1-loop bridge:  ε_n = (α/π) · ln(n+1) / ln φ
-  const qedCoeff = (ALPHA_FS / Math.PI) / LN_PHI;
+  const qedCoeff = ALPHA_FS / Math.PI / LN_PHI;
   const slopeSq = new NeumaierSum();
   const qedSq = new NeumaierSum();
   // Include the anchor's zero residual so RMS divides by `pos.length` (consistent with raw).
   const anchorZeroCount = pos.length - ns.length;
-  for (let i = 0; i < anchorZeroCount; i++) { slopeSq.add(0); qedSq.add(0); }
+  for (let i = 0; i < anchorZeroCount; i++) {
+    slopeSq.add(0);
+    qedSq.add(0);
+  }
   for (let i = 0; i < ns.length; i++) {
     const rs = deltas[i] - ns[i] * slope;
     slopeSq.add(rs * rs);
@@ -210,7 +223,7 @@ export function f7TitiusBodeResidual(radiiAu: readonly number[]): number {
 // CODATA reference ratios:
 //   m_μ/m_e = 206.7682830  →  log_φ ≈ 11.0795  (Δ ≈ 0.0795)
 //   m_τ/m_e = 3477.23      →  log_φ ≈ 16.9447  (Δ ≈ 0.0553)
-export const LEPTON_RATIO_MU_E = 206.7682830;
+export const LEPTON_RATIO_MU_E = 206.768283;
 export const LEPTON_RATIO_TAU_E = 3477.23;
 
 export interface PhiIntegerFit {
@@ -252,9 +265,7 @@ export function leptonPhiResiduals(
 //   tetrahedral    109.4712°  = arccos(−1/3), sp³
 //   octahedral      90°       sp³d²
 export const TETRAHEDRAL_DEG = (Math.acos(-1 / 3) * 180) / Math.PI;
-export const BOND_ANGLE_CANONICAL_DEG: readonly number[] = [
-  90, TETRAHEDRAL_DEG, 120, 180,
-] as const;
+export const BOND_ANGLE_CANONICAL_DEG: readonly number[] = [90, TETRAHEDRAL_DEG, 120, 180] as const;
 
 export function bondAngleResidualDeg(measuredDeg: number): number {
   let best = Infinity;
@@ -322,7 +333,7 @@ export interface TorusVector {
 
 export function torusVector(scalar: number): TorusVector {
   const p = scalar / NORM_PT;
-  const t = scalar * PHI / NORM_PT;
+  const t = (scalar * PHI) / NORM_PT;
   return { scalar, poloidal: p, toroidal: t };
 }
 
@@ -343,7 +354,12 @@ export function torusVector(scalar: number): TorusVector {
 // arithmetic path (log-space, exp(ln λ)) and the two must agree within
 // 1/φ⁸ ≈ 0.021 — anything wider is labelled `divergent`.
 
-import { LYAPUNOV_BANK, SATURATION_BAND_LO, SATURATION_BAND_HI, type RungName } from '../v12/audit/LyapunovBank';
+import {
+  LYAPUNOV_BANK,
+  SATURATION_BAND_LO,
+  SATURATION_BAND_HI,
+  type RungName,
+} from '../v12/audit/LyapunovBank';
 
 export type SaturationLabel = 'saturated-OK' | 'under' | 'over' | 'absent' | 'divergent';
 
@@ -373,9 +389,13 @@ export function classifyRung(rung: ChainDiagnostic): RungSaturation {
   if (!(measured > 0)) {
     return {
       framework: rung.framework,
-      measured, floor, saturation: 0,
-      label: 'absent', lambdaSymbol,
-      saturationCrossCheck: 0, crossCheckResidual: 0,
+      measured,
+      floor,
+      saturation: 0,
+      label: 'absent',
+      lambdaSymbol,
+      saturationCrossCheck: 0,
+      crossCheckResidual: 0,
     };
   }
   // Direct path:  sat = measured / floor
@@ -387,19 +407,30 @@ export function classifyRung(rung: ChainDiagnostic): RungSaturation {
   if (residual > CROSS_CHECK_TOL * Math.max(1, sat)) {
     return {
       framework: rung.framework,
-      measured, floor, saturation: sat,
-      label: 'divergent', lambdaSymbol,
-      saturationCrossCheck: satCross, crossCheckResidual: residual,
+      measured,
+      floor,
+      saturation: sat,
+      label: 'divergent',
+      lambdaSymbol,
+      saturationCrossCheck: satCross,
+      crossCheckResidual: residual,
     };
   }
   const label: SaturationLabel =
-    sat >= SATURATION_BAND_LO && sat <= SATURATION_BAND_HI ? 'saturated-OK'
-    : sat < SATURATION_BAND_LO ? 'under'
-    : 'over';
+    sat >= SATURATION_BAND_LO && sat <= SATURATION_BAND_HI
+      ? 'saturated-OK'
+      : sat < SATURATION_BAND_LO
+        ? 'under'
+        : 'over';
   return {
     framework: rung.framework,
-    measured, floor, saturation: sat, label, lambdaSymbol,
-    saturationCrossCheck: satCross, crossCheckResidual: residual,
+    measured,
+    floor,
+    saturation: sat,
+    label,
+    lambdaSymbol,
+    saturationCrossCheck: satCross,
+    crossCheckResidual: residual,
   };
 }
 
@@ -453,12 +484,10 @@ export interface ChapterResiduals {
 }
 
 // Canonical lepton mass ladder (CODATA, MeV/c²) — drives F2 ladder by default.
-const DEFAULT_LEPTON_MASSES_MEV: readonly number[] = [
-  0.51099895, 105.6583755, 1776.86,
-];
+const DEFAULT_LEPTON_MASSES_MEV: readonly number[] = [0.51099895, 105.6583755, 1776.86];
 // Solar-system semi-major axes (AU) — drives F7 Titius-Bode by default.
 const DEFAULT_PLANETARY_AU: readonly number[] = [
-  0.387, 0.723, 1.000, 1.524, 5.203, 9.537, 19.191, 30.069,
+  0.387, 0.723, 1.0, 1.524, 5.203, 9.537, 19.191, 30.069,
 ];
 
 export function computeChapterResiduals(
@@ -531,7 +560,10 @@ let lastOutputRef: MetatronOutput | null = null;
 let lastOutputTag = 0;
 function outputTag(o: MetatronOutput): string {
   // Reference identity gives an O(1) tag; allocate a fresh number per new ref.
-  if (o !== lastOutputRef) { lastOutputRef = o; lastOutputTag++; }
+  if (o !== lastOutputRef) {
+    lastOutputRef = o;
+    lastOutputTag++;
+  }
   return String(lastOutputTag);
 }
 
@@ -542,7 +574,8 @@ export function computeChapterResidualsMemo(
   const key = `${outputTag(output)}|${extrasFp(extras)}|${isChapter47Active() ? '1' : '0'}:${chapter47CoherenceFloor()}`;
   const hit = crLru.get(key);
   if (hit !== undefined) {
-    crLru.delete(key); crLru.set(key, hit);
+    crLru.delete(key);
+    crLru.set(key, hit);
     return hit;
   }
   const out = computeChapterResiduals(output, extras);
@@ -555,9 +588,10 @@ export function computeChapterResidualsMemo(
 }
 
 export function resetChapterResidualsMemo() {
-  crLru.clear(); lastOutputRef = null; lastOutputTag = 0;
+  crLru.clear();
+  lastOutputRef = null;
+  lastOutputTag = 0;
 }
 export function chapterResidualsMemoStats() {
   return { size: crLru.size, max: CR_LRU_MAX };
 }
-

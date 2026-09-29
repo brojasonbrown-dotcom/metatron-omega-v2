@@ -4,8 +4,8 @@
  * The driver is advanced by the omega runtime, not by React, so the hook only
  * polls its immutable snapshot. Nothing here can drive the engine.
  */
-import { useEffect, useState } from "react";
-import { getCognitiveDriver, type CognitiveSnapshot } from "./cognitiveDriver";
+import { useEffect, useState } from 'react';
+import { getCognitiveDriver, type CognitiveSnapshot } from './cognitiveDriver';
 
 export function useCognitive(hz = 4): CognitiveSnapshot {
   const [snap, setSnap] = useState<CognitiveSnapshot>(() => getCognitiveDriver().getSnapshot());

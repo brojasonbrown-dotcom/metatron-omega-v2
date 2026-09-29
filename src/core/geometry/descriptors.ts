@@ -25,7 +25,7 @@ export const ORIENT_BINS = 14;
 export const OCTAVES = 5;
 /** quadtree depth → 4^Q occupancy cells. */
 export const QUAD_DEPTH = 4;
-const QUAD_CELLS = 4 ** QUAD_DEPTH;          // 256
+const QUAD_CELLS = 4 ** QUAD_DEPTH; // 256
 
 export interface GeometryDescriptor {
   kind: string;
@@ -67,17 +67,30 @@ export function describeGeometry(g: GeometryDoc): GeometryDescriptor {
   const nSeg = Math.floor(s.length / 4);
 
   // ── bbox over segments and points ──────────────────────────────────────
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   for (let i = 0; i + 1 < s.length; i += 2) {
-    if (s[i] < minX) minX = s[i]; if (s[i] > maxX) maxX = s[i];
-    if (s[i + 1] < minY) minY = s[i + 1]; if (s[i + 1] > maxY) maxY = s[i + 1];
+    if (s[i] < minX) minX = s[i];
+    if (s[i] > maxX) maxX = s[i];
+    if (s[i + 1] < minY) minY = s[i + 1];
+    if (s[i + 1] > maxY) maxY = s[i + 1];
   }
   for (let i = 0; i + 1 < g.points.length; i += 3) {
-    if (g.points[i] < minX) minX = g.points[i]; if (g.points[i] > maxX) maxX = g.points[i];
-    if (g.points[i + 1] < minY) minY = g.points[i + 1]; if (g.points[i + 1] > maxY) maxY = g.points[i + 1];
+    if (g.points[i] < minX) minX = g.points[i];
+    if (g.points[i] > maxX) maxX = g.points[i];
+    if (g.points[i + 1] < minY) minY = g.points[i + 1];
+    if (g.points[i + 1] > maxY) maxY = g.points[i + 1];
   }
-  if (!Number.isFinite(minX)) { minX = 0; minY = 0; maxX = 0; maxY = 0; }
-  const w = Math.max(maxX - minX, 1e-12), h = Math.max(maxY - minY, 1e-12);
+  if (!Number.isFinite(minX)) {
+    minX = 0;
+    minY = 0;
+    maxX = 0;
+    maxY = 0;
+  }
+  const w = Math.max(maxX - minX, 1e-12),
+    h = Math.max(maxY - minY, 1e-12);
   const span = Math.max(w, h);
 
   // ── orientation histogram, length-weighted ─────────────────────────────
@@ -85,34 +98,50 @@ export function describeGeometry(g: GeometryDoc): GeometryDescriptor {
   const orientAcc = Array.from({ length: ORIENT_BINS }, () => new NeumaierSum());
   const lenAcc = new NeumaierSum();
   for (let k = 0; k < nSeg; k++) {
-    const x1 = s[k * 4], y1 = s[k * 4 + 1], x2 = s[k * 4 + 2], y2 = s[k * 4 + 3];
-    const dx = x2 - x1, dy = y2 - y1;
+    const x1 = s[k * 4],
+      y1 = s[k * 4 + 1],
+      x2 = s[k * 4 + 2],
+      y2 = s[k * 4 + 3];
+    const dx = x2 - x1,
+      dy = y2 - y1;
     const L = Math.hypot(dx, dy);
     if (!(L > 0)) continue;
     lenAcc.add(L);
     let a = Math.atan2(dy, dx);
-    if (a < 0) a += Math.PI;                        // undirected lines
+    if (a < 0) a += Math.PI; // undirected lines
     if (a >= Math.PI) a -= Math.PI;
     const bin = Math.min(ORIENT_BINS - 1, Math.floor((a / Math.PI) * ORIENT_BINS));
     orientAcc[bin].add(L);
   }
   const totalLen = lenAcc.value();
-  for (let b = 0; b < ORIENT_BINS; b++) orient[b] = totalLen > 0 ? orientAcc[b].value() / totalLen : 0;
+  for (let b = 0; b < ORIENT_BINS; b++)
+    orient[b] = totalLen > 0 ? orientAcc[b].value() / totalLen : 0;
 
-  let d1 = 0, d1i = 0, d2 = 0, d2i = 0;
+  let d1 = 0,
+    d1i = 0,
+    d2 = 0,
+    d2i = 0;
   for (let b = 0; b < ORIENT_BINS; b++) {
-    if (orient[b] > d1) { d2 = d1; d2i = d1i; d1 = orient[b]; d1i = b; }
-    else if (orient[b] > d2) { d2 = orient[b]; d2i = b; }
+    if (orient[b] > d1) {
+      d2 = d1;
+      d2i = d1i;
+      d1 = orient[b];
+      d1i = b;
+    } else if (orient[b] > d2) {
+      d2 = orient[b];
+      d2i = b;
+    }
   }
   const angleOf = (b: number) => ((b + 0.5) / ORIENT_BINS) * Math.PI;
   const delta = Math.abs(angleOf(d1i) - angleOf(d2i));
-  const orthogonality = d2 > 0 ? 1 - Math.abs(Math.min(delta, Math.PI - delta) - Math.PI / 2) / (Math.PI / 2) : 0;
+  const orthogonality =
+    d2 > 0 ? 1 - Math.abs(Math.min(delta, Math.PI - delta) - Math.PI / 2) / (Math.PI / 2) : 0;
 
   // ── φ-octave density pyramid ───────────────────────────────────────────
   const density = new Float64Array(OCTAVES);
   const occCounts: number[] = [];
   for (let o = 0; o < OCTAVES; o++) {
-    const n = Math.max(2, Math.round(2 * PHI ** o));      // 2,3,5,8,13 — Fibonacci-like
+    const n = Math.max(2, Math.round(2 * PHI ** o)); // 2,3,5,8,13 — Fibonacci-like
     const cells = new Uint8Array(n * n);
     markCells(s, g.points, minX, minY, span, n, cells);
     let occ = 0;
@@ -121,13 +150,23 @@ export function describeGeometry(g: GeometryDoc): GeometryDescriptor {
     occCounts.push(occ);
   }
   // Box-counting slope: log N(ε) vs log(1/ε), least squares over the pyramid.
-  let sx = 0, sy = 0, sxx = 0, sxy = 0, m = 0;
+  let sx = 0,
+    sy = 0,
+    sxx = 0,
+    sxy = 0,
+    m = 0;
   for (let o = 0; o < OCTAVES; o++) {
     if (occCounts[o] <= 0) continue;
-    const x = o * Math.log(PHI), y = Math.log(occCounts[o]);
-    sx += x; sy += y; sxx += x * x; sxy += x * y; m++;
+    const x = o * Math.log(PHI),
+      y = Math.log(occCounts[o]);
+    sx += x;
+    sy += y;
+    sxx += x * x;
+    sxy += x * y;
+    m++;
   }
-  const densitySlope = m >= 2 && m * sxx - sx * sx !== 0 ? (m * sxy - sx * sy) / (m * sxx - sx * sx) : 0;
+  const densitySlope =
+    m >= 2 && m * sxx - sx * sx !== 0 ? (m * sxy - sx * sy) / (m * sxx - sx * sx) : 0;
 
   // ── quadtree occupancy layout ──────────────────────────────────────────
   const side = 2 ** QUAD_DEPTH;
@@ -136,14 +175,18 @@ export function describeGeometry(g: GeometryDoc): GeometryDescriptor {
   const layout = layoutCells.slice(0, QUAD_CELLS);
 
   // ── rotation-invariant radial/angular moments ──────────────────────────
-  const RAD = 8, HARM = 4;
+  const RAD = 8,
+    HARM = 4;
   const moments = new Float64Array(RAD * HARM);
   {
-    const cx = minX + w / 2, cy = minY + h / 2;
+    const cx = minX + w / 2,
+      cy = minY + h / 2;
     const R = Math.max(span / 2, 1e-12);
-    const re = new Float64Array(RAD * HARM), im = new Float64Array(RAD * HARM);
+    const re = new Float64Array(RAD * HARM),
+      im = new Float64Array(RAD * HARM);
     const add = (x: number, y: number, weight: number) => {
-      const rx = (x - cx) / R, ry = (y - cy) / R;
+      const rx = (x - cx) / R,
+        ry = (y - cy) / R;
       const r = Math.min(1, Math.hypot(rx, ry));
       const th = Math.atan2(ry, rx);
       const ring = Math.min(RAD - 1, Math.floor(r * RAD));
@@ -153,7 +196,10 @@ export function describeGeometry(g: GeometryDoc): GeometryDescriptor {
       }
     };
     for (let k = 0; k < nSeg; k++) {
-      const x1 = s[k * 4], y1 = s[k * 4 + 1], x2 = s[k * 4 + 2], y2 = s[k * 4 + 3];
+      const x1 = s[k * 4],
+        y1 = s[k * 4 + 1],
+        x2 = s[k * 4 + 2],
+        y2 = s[k * 4 + 3];
       const L = Math.hypot(x2 - x1, y2 - y1);
       if (!(L > 0)) continue;
       const steps = 4;
@@ -176,16 +222,21 @@ export function describeGeometry(g: GeometryDoc): GeometryDescriptor {
   const topology = topologyOf(s, span);
 
   // ── symmetry: circular autocorrelation of the orientation ring ─────────
-  let symmetry = 0, symmetryOrder = 0;
+  let symmetry = 0,
+    symmetryOrder = 0;
   {
     const mean = orient.reduce((a, b) => a + b, 0) / ORIENT_BINS;
     let denom = 0;
     for (let b = 0; b < ORIENT_BINS; b++) denom += (orient[b] - mean) ** 2;
     for (let lag = 1; lag < ORIENT_BINS; lag++) {
       let acc = 0;
-      for (let b = 0; b < ORIENT_BINS; b++) acc += (orient[b] - mean) * (orient[(b + lag) % ORIENT_BINS] - mean);
+      for (let b = 0; b < ORIENT_BINS; b++)
+        acc += (orient[b] - mean) * (orient[(b + lag) % ORIENT_BINS] - mean);
       const c = denom > 0 ? acc / denom : 0;
-      if (c > symmetry) { symmetry = c; symmetryOrder = lag; }
+      if (c > symmetry) {
+        symmetry = c;
+        symmetryOrder = lag;
+      }
     }
     symmetry = Math.max(0, Math.min(1, symmetry));
   }
@@ -223,8 +274,13 @@ export function describeGeometry(g: GeometryDoc): GeometryDescriptor {
 
 /** Rasterise segments and points into an n×n occupancy grid (Bresenham-free, exact DDA). */
 function markCells(
-  seg: Float64Array, pts: Float64Array,
-  minX: number, minY: number, span: number, n: number, cells: Uint8Array,
+  seg: Float64Array,
+  pts: Float64Array,
+  minX: number,
+  minY: number,
+  span: number,
+  n: number,
+  cells: Uint8Array,
 ): void {
   const put = (x: number, y: number) => {
     const cx = Math.min(n - 1, Math.max(0, Math.floor(((x - minX) / span) * n)));
@@ -233,8 +289,14 @@ function markCells(
   };
   const nSeg = Math.floor(seg.length / 4);
   for (let k = 0; k < nSeg; k++) {
-    const x1 = seg[k * 4], y1 = seg[k * 4 + 1], x2 = seg[k * 4 + 2], y2 = seg[k * 4 + 3];
-    const steps = Math.min(512, Math.max(1, Math.ceil((Math.hypot(x2 - x1, y2 - y1) / span) * n * 2)));
+    const x1 = seg[k * 4],
+      y1 = seg[k * 4 + 1],
+      x2 = seg[k * 4 + 2],
+      y2 = seg[k * 4 + 3];
+    const steps = Math.min(
+      512,
+      Math.max(1, Math.ceil((Math.hypot(x2 - x1, y2 - y1) / span) * n * 2)),
+    );
     for (let t = 0; t <= steps; t++) {
       const u = t / steps;
       put(x1 + (x2 - x1) * u, y1 + (y2 - y1) * u);
@@ -253,11 +315,25 @@ function topologyOf(seg: Float64Array, span: number): GeometryDescriptor['topolo
   const parent: number[] = [];
   const idx = (k: string) => {
     let v = id.get(k);
-    if (v === undefined) { v = parent.length; id.set(k, v); parent.push(v); }
+    if (v === undefined) {
+      v = parent.length;
+      id.set(k, v);
+      parent.push(v);
+    }
     return v;
   };
-  const find = (a: number): number => { while (parent[a] !== a) { parent[a] = parent[parent[a]]; a = parent[a]; } return a; };
-  const union = (a: number, b: number) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
+  const find = (a: number): number => {
+    while (parent[a] !== a) {
+      parent[a] = parent[parent[a]];
+      a = parent[a];
+    }
+    return a;
+  };
+  const union = (a: number, b: number) => {
+    const ra = find(a),
+      rb = find(b);
+    if (ra !== rb) parent[ra] = rb;
+  };
 
   let edges = 0;
   const seen = new Set<string>();
@@ -266,7 +342,7 @@ function topologyOf(seg: Float64Array, span: number): GeometryDescriptor['topolo
     const b = idx(key(seg[k * 4 + 2], seg[k * 4 + 3]));
     if (a === b) continue;
     const ek = a < b ? `${a}-${b}` : `${b}-${a}`;
-    if (seen.has(ek)) continue;                 // multi-edges counted once
+    if (seen.has(ek)) continue; // multi-edges counted once
     seen.add(ek);
     union(a, b);
     edges++;
@@ -306,9 +382,12 @@ export function featureVector(d: GeometryDescriptor): Float64Array {
 
   const out = new Float64Array(ORIENT_BINS + OCTAVES + d.moments.length + scalars.length + 32);
   let o = 0;
-  out.set(d.orientation, o); o += ORIENT_BINS;
-  out.set(d.density, o); o += OCTAVES;
-  out.set(d.moments, o); o += d.moments.length;
+  out.set(d.orientation, o);
+  o += ORIENT_BINS;
+  out.set(d.density, o);
+  o += OCTAVES;
+  out.set(d.moments, o);
+  o += d.moments.length;
   for (const v of scalars) out[o++] = v;
   out.set(proj, o);
 
@@ -328,11 +407,19 @@ const squash = (x: number) => (Number.isFinite(x) ? Math.max(0, Math.min(1, x)) 
  */
 export function summariseGeometry(d: GeometryDescriptor, title: string): string {
   const deg = (r: number) => `${((r * 180) / Math.PI).toFixed(1)}°`;
-  const ent = d.entities.slice(0, 12).map((e) => `${e.type}×${e.count}`).join(', ');
-  const dens = Array.from(d.density).map((x) => x.toFixed(3)).join(' / ');
+  const ent = d.entities
+    .slice(0, 12)
+    .map((e) => `${e.type}×${e.count}`)
+    .join(', ');
+  const dens = Array.from(d.density)
+    .map((x) => x.toFixed(3))
+    .join(' / ');
   const orient = Array.from(d.orientation)
-    .map((v, i) => (v > 0.03 ? `${deg(((i + 0.5) / ORIENT_BINS) * Math.PI)}:${(v * 100).toFixed(0)}%` : ''))
-    .filter(Boolean).join(' ');
+    .map((v, i) =>
+      v > 0.03 ? `${deg(((i + 0.5) / ORIENT_BINS) * Math.PI)}:${(v * 100).toFixed(0)}%` : '',
+    )
+    .filter(Boolean)
+    .join(' ');
   return [
     `GEOMETRY ${d.kind.toUpperCase()} — ${title}`,
     `Primitives: ${d.segments} segments, ${d.points} points, total drawn length ${d.length.toFixed(3)}.`,
@@ -343,5 +430,7 @@ export function summariseGeometry(d: GeometryDescriptor, title: string): string 
     `Repetition: autocorrelation peak ${d.symmetry.toFixed(3)} at order ${d.symmetryOrder}.`,
     ent ? `Entities: ${ent}.` : '',
     d.labels.length ? `Labels: ${d.labels.slice(0, 40).join('; ')}.` : '',
-  ].filter(Boolean).join('\n');
+  ]
+    .filter(Boolean)
+    .join('\n');
 }

@@ -206,7 +206,10 @@ describe('G6.4 — engine integration', () => {
   });
 
   it('a plane attached to the web drives every rung and stays finite', () => {
-    const engine = new MultiTorusEngine({ nodes: (_r, rank) => [144, 89, 55][rank] ?? 55, seed: 'g6w' });
+    const engine = new MultiTorusEngine({
+      nodes: (_r, rank) => [144, 89, 55][rank] ?? 55,
+      seed: 'g6w',
+    });
     const ranks = engine.rungs.length;
     const plane = new SensoryPlane(engine.engines.map((e) => e.nodes));
     plane.declare({ id: 'scalar', modality: 'scalar', nodes: engine.engines[0].nodes });
@@ -294,7 +297,11 @@ describe('G6.5 — TorusBraid Hopfield', () => {
     probe.re.set(originals[5].re);
     probe.im.set(originals[5].im);
     // knock out 40% of the support
-    for (let i = 0; i < 144; i++) if (i % 5 < 2) { probe.re[i] = 0; probe.im[i] = 0; }
+    for (let i = 0; i < 144; i++)
+      if (i % 5 < 2) {
+        probe.re[i] = 0;
+        probe.im[i] = 0;
+      }
     const r = braid.recall(probe);
     expect(r.index).toBe(5);
     expect(['R2', 'R3', 'R4', 'R5', 'R6']).toContain(r.stage);

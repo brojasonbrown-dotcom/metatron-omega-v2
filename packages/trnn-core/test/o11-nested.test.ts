@@ -9,14 +9,30 @@ import { describe, it, expect } from 'vitest';
 import type { CField } from '../src/core/complex';
 import { bandLimit, resample } from '../src/operator/resample';
 import {
-  ascend, ascendAll, closureDefect, descend, descendTo, evaluateAt,
-  levelEnergies, nestBandLimit,
+  ascend,
+  ascendAll,
+  closureDefect,
+  descend,
+  descendTo,
+  evaluateAt,
+  levelEnergies,
+  nestBandLimit,
 } from '../src/operator/nestedField';
 import { FIB_SPINE, SPINE_MATERIALISED, buildWindow, rungAt, spineUpTo } from '../src/core/window';
-import { buildHierarchy, hierCleanup, hierCapacity, DEFAULT_BRANCH } from '../src/substrate/hierBundle';
+import {
+  buildHierarchy,
+  hierCleanup,
+  hierCapacity,
+  DEFAULT_BRANCH,
+} from '../src/substrate/hierBundle';
 import { randomHv, bundle, similarity, chanceSigma } from '../src/substrate/vsa';
 import {
-  compensatedSum, compensatedDot, compensatedEnergy, twoSum, twoProduct, ddToNumber,
+  compensatedSum,
+  compensatedDot,
+  compensatedEnergy,
+  twoSum,
+  twoProduct,
+  ddToNumber,
 } from '../src/spectral/exact';
 
 /** A ring field carrying an explicit set of wavenumbers. */
@@ -169,7 +185,6 @@ describe('Ω-UNBOUND P3 — hierarchical association', () => {
     const sigma = chanceSigma(D);
     const vs = Array.from({ length: 200 }, (_, i) => randomHv(D, `flat-${i}`));
     const b = bundle(vs).vector;
-
   });
 
   it('routes far past the flat ceiling', () => {

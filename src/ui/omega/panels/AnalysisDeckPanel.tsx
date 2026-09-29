@@ -7,24 +7,24 @@
  * abstention with the reason printed. There is no third state, and no cell
  * ever shows a confident 0 for something that was never measured.
  */
-import { useCallback } from "react";
-import { getAnalysisRuntime } from "../analysisRuntime";
-import { useAnalysisState } from "../useAnalysisRuntime";
-import type { PairFinding } from "@/core/analysis/analysisSpine";
+import { useCallback } from 'react';
+import { getAnalysisRuntime } from '../analysisRuntime';
+import { useAnalysisState } from '../useAnalysisRuntime';
+import type { PairFinding } from '@/core/analysis/analysisSpine';
 
 const n4 = (v: number | null | undefined) =>
-  v === null || v === undefined || !Number.isFinite(v) ? "—" : v.toFixed(4);
+  v === null || v === undefined || !Number.isFinite(v) ? '—' : v.toFixed(4);
 
-const n1 = (v: number) => (Number.isFinite(v) ? v.toFixed(1) : "—");
+const n1 = (v: number) => (Number.isFinite(v) ? v.toFixed(1) : '—');
 
 function DirectionCell({ f }: { f: PairFinding }) {
-  if (f.direction === null || f.directionVerdict === null || f.directionVerdict === "none") {
+  if (f.direction === null || f.directionVerdict === null || f.directionVerdict === 'none') {
     return <span className="text-muted-foreground">no directed evidence</span>;
   }
   const d = f.direction;
-  const arrow = d > 0.05 ? `${f.a} → ${f.b}` : d < -0.05 ? `${f.b} → ${f.a}` : "symmetric";
+  const arrow = d > 0.05 ? `${f.a} → ${f.b}` : d < -0.05 ? `${f.b} → ${f.a}` : 'symmetric';
   return (
-    <span className={d > 0.05 || d < -0.05 ? "text-primary" : "text-foreground"}>
+    <span className={d > 0.05 || d < -0.05 ? 'text-primary' : 'text-foreground'}>
       {arrow} <span className="text-muted-foreground">({n4(d)})</span>
     </span>
   );
@@ -33,26 +33,40 @@ function DirectionCell({ f }: { f: PairFinding }) {
 export default function AnalysisDeckPanel() {
   const s = useAnalysisState();
   const rt = getAnalysisRuntime();
-  const runNow = useCallback(() => { rt.analyse(); }, [rt]);
-  const reset = useCallback(() => { rt.reset(); }, [rt]);
+  const runNow = useCallback(() => {
+    rt.analyse();
+  }, [rt]);
+  const reset = useCallback(() => {
+    rt.reset();
+  }, [rt]);
 
   const rep = s.report;
 
   return (
     <div className="h-full overflow-auto p-2 space-y-2">
       <div className="rounded-md border border-border/40 bg-background/40 px-2.5 py-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-[10px] font-mono">
-        <span className={s.running ? "text-primary" : "text-muted-foreground"}>
-          {s.running ? "● sampling 16 Hz" : "○ idle"}
+        <span className={s.running ? 'text-primary' : 'text-muted-foreground'}>
+          {s.running ? '● sampling 16 Hz' : '○ idle'}
         </span>
-        <span>frames <span className="text-foreground">{s.frames}</span></span>
-        <span>passes <span className="text-foreground">{s.passes}</span></span>
-        <span>pass cost <span className="text-foreground">{n1(s.lastPassMs)} ms</span></span>
+        <span>
+          frames <span className="text-foreground">{s.frames}</span>
+        </span>
+        <span>
+          passes <span className="text-foreground">{s.passes}</span>
+        </span>
+        <span>
+          pass cost <span className="text-foreground">{n1(s.lastPassMs)} ms</span>
+        </span>
         <span>
           reported <span className="text-primary">{rep?.reported ?? 0}</span>
-          {" / abstained "}
+          {' / abstained '}
           <span className="text-muted-foreground">{rep?.abstained ?? 0}</span>
           {rep && rep.skipped > 0 ? (
-            <> {" / over budget "}<span className="text-muted-foreground">{rep.skipped}</span></>
+            <>
+              {' '}
+              {' / over budget '}
+              <span className="text-muted-foreground">{rep.skipped}</span>
+            </>
           ) : null}
         </span>
         <button
@@ -76,18 +90,19 @@ export default function AnalysisDeckPanel() {
         </div>
         {s.channels.length === 0 ? (
           <div className="text-[10px] font-mono text-muted-foreground">
-            No channel has produced a sample yet. Build the engine, enable memory drive,
-            or open a sense channel — the spine only reads what is genuinely measured.
+            No channel has produced a sample yet. Build the engine, enable memory drive, or open a
+            sense channel — the spine only reads what is genuinely measured.
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-0.5 text-[10px] font-mono">
             {s.channels.map((c) => (
               <div key={c.id} className="flex justify-between gap-2">
                 <span className="text-muted-foreground truncate">{c.id}</span>
-                <span className={c.count > 0 ? "text-foreground" : "text-muted-foreground"}>
+                <span className={c.count > 0 ? 'text-foreground' : 'text-muted-foreground'}>
                   {c.count}
                   <span className="text-muted-foreground">
-                    {" "}@ {Number.isFinite(c.hz) ? `${c.hz.toFixed(1)} Hz` : "— Hz"}
+                    {' '}
+                    @ {Number.isFinite(c.hz) ? `${c.hz.toFixed(1)} Hz` : '— Hz'}
                   </span>
                 </span>
               </div>
@@ -109,8 +124,8 @@ export default function AnalysisDeckPanel() {
         </div>
         {s.calibration.length === 0 ? (
           <div className="px-2.5 py-3 text-[10px] font-mono text-muted-foreground">
-            No channel has enough residuals for a finite-sample guarantee yet. Bands appear
-            once a channel has produced 20+ measured transitions — never before.
+            No channel has enough residuals for a finite-sample guarantee yet. Bands appear once a
+            channel has produced 20+ measured transitions — never before.
           </div>
         ) : (
           <div className="divide-y divide-border/20">
@@ -127,9 +142,9 @@ export default function AnalysisDeckPanel() {
                 <span className="text-muted-foreground tabular-nums">
                   [{n4(c.lower)}, {n4(c.upper)}]
                 </span>
-                <span className={c.stale ? "text-destructive" : "text-muted-foreground"}>
+                <span className={c.stale ? 'text-destructive' : 'text-muted-foreground'}>
                   {Number.isFinite(c.coverage)
-                    ? `cov ${(c.coverage * 100).toFixed(0)}%${c.stale ? " STALE" : ""}`
+                    ? `cov ${(c.coverage * 100).toFixed(0)}%${c.stale ? ' STALE' : ''}`
                     : `n=${c.samples}`}
                 </span>
               </div>
@@ -146,7 +161,7 @@ export default function AnalysisDeckPanel() {
             TIERED RETENTION
           </span>
           <span className="text-[9px] font-mono text-muted-foreground">
-            admitted {s.retention.admitted} · rejected {s.retention.rejected} · evicted{" "}
+            admitted {s.retention.admitted} · rejected {s.retention.rejected} · evicted{' '}
             {s.retention.evicted}
           </span>
         </div>
@@ -170,7 +185,7 @@ export default function AnalysisDeckPanel() {
             </div>
           ))}
           <div className="px-2.5 py-1 text-[10px] font-mono text-muted-foreground">
-            held {s.retention.numbers.toLocaleString()} of{" "}
+            held {s.retention.numbers.toLocaleString()} of{' '}
             {s.retention.capacityNumbers.toLocaleString()} numbers this policy can ever hold
           </div>
         </div>
@@ -184,19 +199,19 @@ export default function AnalysisDeckPanel() {
         <div className="px-2.5 py-1.5 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-0.5 text-[10px] font-mono">
           <div className="flex justify-between gap-2">
             <span className="text-muted-foreground">cores</span>
-            <span>{s.throughput.cores ?? "—"}</span>
+            <span>{s.throughput.cores ?? '—'}</span>
           </div>
           <div className="flex justify-between gap-2">
             <span className="text-muted-foreground">workers</span>
-            <span>{s.throughput.workers ? "yes" : "no"}</span>
+            <span>{s.throughput.workers ? 'yes' : 'no'}</span>
           </div>
           <div className="flex justify-between gap-2">
             <span className="text-muted-foreground">webgpu api</span>
-            <span>{s.throughput.webgpuApi ? "yes" : "no"}</span>
+            <span>{s.throughput.webgpuApi ? 'yes' : 'no'}</span>
           </div>
           <div className="flex justify-between gap-2">
             <span className="text-muted-foreground">shared mem</span>
-            <span>{s.throughput.sharedMemory ? "yes" : "no"}</span>
+            <span>{s.throughput.sharedMemory ? 'yes' : 'no'}</span>
           </div>
           <div className="flex justify-between gap-2">
             <span className="text-muted-foreground">planned</span>
@@ -212,13 +227,12 @@ export default function AnalysisDeckPanel() {
           </div>
           <div className="flex justify-between gap-2">
             <span className="text-muted-foreground">worth it</span>
-            <span className={s.throughput.worthwhile ? "text-foreground" : "text-muted-foreground"}>
-              {s.throughput.worthwhile ? "yes" : "no"}
+            <span className={s.throughput.worthwhile ? 'text-foreground' : 'text-muted-foreground'}>
+              {s.throughput.worthwhile ? 'yes' : 'no'}
             </span>
           </div>
         </div>
       </div>
-
 
       {/* findings */}
       <div className="rounded-md border border-border/40 bg-background/40">
@@ -244,7 +258,7 @@ export default function AnalysisDeckPanel() {
             </thead>
             <tbody>
               {rep.findings.map((f) => {
-                const abstain = f.verdict === "abstain";
+                const abstain = f.verdict === 'abstain';
                 return (
                   <tr key={`${f.a}|${f.b}`} className="border-b border-border/10">
                     <td className="px-2.5 py-1 truncate">
@@ -253,7 +267,7 @@ export default function AnalysisDeckPanel() {
                     <td className="px-2 py-1 text-right text-muted-foreground">{f.n}</td>
                     <td
                       className={`px-2 py-1 text-right ${
-                        abstain ? "text-muted-foreground" : "text-primary"
+                        abstain ? 'text-muted-foreground' : 'text-primary'
                       }`}
                     >
                       {n4(f.association)}
@@ -283,23 +297,25 @@ export default function AnalysisDeckPanel() {
           <span className="text-[9px] font-display tracking-[0.25em] text-muted-foreground">
             EVIDENCE LEDGER
           </span>
-          <span>sealed <span className="text-foreground">{s.ledger.size}</span></span>
+          <span>
+            sealed <span className="text-foreground">{s.ledger.size}</span>
+          </span>
           <span className="truncate">
-            root <span className="text-foreground">{s.ledger.rootHex.slice(0, 16) || "—"}</span>
+            root <span className="text-foreground">{s.ledger.rootHex.slice(0, 16) || '—'}</span>
           </span>
           <span
             className={
               s.ledger.size === 0
-                ? "text-muted-foreground"
+                ? 'text-muted-foreground'
                 : s.ledger.verified
-                  ? "text-primary"
-                  : "text-destructive"
+                  ? 'text-primary'
+                  : 'text-destructive'
             }
           >
             {s.ledger.size === 0
-              ? "nothing sealed yet"
+              ? 'nothing sealed yet'
               : s.ledger.verified
-                ? "✓ inclusion + signature verified"
+                ? '✓ inclusion + signature verified'
                 : `✗ ${s.ledger.verifyReason}`}
           </span>
         </div>
@@ -328,14 +344,28 @@ export default function AnalysisDeckPanel() {
           <span className="text-[9px] font-display tracking-[0.25em] text-muted-foreground">
             CONSOLIDATION
           </span>
-          <span>cycles <span className="text-foreground">{s.consolidation.cycles}</span></span>
-          <span>atoms <span className="text-foreground">{s.consolidation.atoms}</span></span>
-          <span>open <span className="text-foreground">{s.consolidation.open}</span></span>
-          <span>prototypes <span className="text-foreground">{s.consolidation.prototypes}</span></span>
-          <span>superseded <span className="text-foreground">{s.consolidation.superseded}</span></span>
           <span>
-            contradictions{" "}
-            <span className={s.consolidation.contradictions > 0 ? "text-destructive" : "text-foreground"}>
+            cycles <span className="text-foreground">{s.consolidation.cycles}</span>
+          </span>
+          <span>
+            atoms <span className="text-foreground">{s.consolidation.atoms}</span>
+          </span>
+          <span>
+            open <span className="text-foreground">{s.consolidation.open}</span>
+          </span>
+          <span>
+            prototypes <span className="text-foreground">{s.consolidation.prototypes}</span>
+          </span>
+          <span>
+            superseded <span className="text-foreground">{s.consolidation.superseded}</span>
+          </span>
+          <span>
+            contradictions{' '}
+            <span
+              className={
+                s.consolidation.contradictions > 0 ? 'text-destructive' : 'text-foreground'
+              }
+            >
               {s.consolidation.contradictions}
             </span>
           </span>
@@ -351,8 +381,8 @@ export default function AnalysisDeckPanel() {
               <div key={w.n} className="flex gap-2 text-muted-foreground">
                 <span className="w-5 text-right">{w.n}</span>
                 <span className="text-foreground truncate">{w.name}</span>
-                <span className={w.ok ? "ml-auto text-primary" : "ml-auto text-destructive"}>
-                  {w.ok ? "ok" : w.reason ?? "failed"}
+                <span className={w.ok ? 'ml-auto text-primary' : 'ml-auto text-destructive'}>
+                  {w.ok ? 'ok' : (w.reason ?? 'failed')}
                 </span>
               </div>
             ))}
@@ -366,14 +396,15 @@ export default function AnalysisDeckPanel() {
 
       {rep?.strongest ? (
         <div className="rounded-md border border-primary/30 bg-primary/5 px-2.5 py-2 text-[10px] font-mono">
-          strongest measured coupling:{" "}
+          strongest measured coupling:{' '}
           <span className="text-primary">
             {rep.strongest.a} · {rep.strongest.b}
-          </span>{" "}
+          </span>{' '}
           at {n4(rep.strongest.association)} over {rep.strongest.n} paired samples
           {rep.strongest.bus?.vetoId ? (
             <span className="text-muted-foreground">
-              {" "}· held down by {rep.strongest.bus.vetoId} ({n4(rep.strongest.bus.vetoValue)})
+              {' '}
+              · held down by {rep.strongest.bus.vetoId} ({n4(rep.strongest.bus.vetoValue)})
             </span>
           ) : null}
         </div>

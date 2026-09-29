@@ -52,7 +52,7 @@ export function fieldContextFrom(
     coherence: Number.isFinite(snap.coherenceWarm) ? snap.coherenceWarm : NaN,
     closure: Number.isFinite(rung.closure) ? rung.closure : NaN,
     rung: rung.n,
-    vector: null,   // field↔corpus vector bridge lives in VisionFieldIndex
+    vector: null, // field↔corpus vector bridge lives in VisionFieldIndex
     now,
   };
 }

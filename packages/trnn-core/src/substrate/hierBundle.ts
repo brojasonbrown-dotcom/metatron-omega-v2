@@ -32,13 +32,7 @@
  */
 
 import { dpowi } from '../core/dmath';
-import {
-  bundle,
-  similarity,
-  chanceSigma,
-  CLEANUP_Z_FLOOR,
-  type Hypervector,
-} from './vsa';
+import { bundle, similarity, chanceSigma, CLEANUP_Z_FLOOR, type Hypervector } from './vsa';
 
 /** Default branch factor — the measured flat 5σ fan-in, on the Fibonacci spine. */
 export const DEFAULT_BRANCH = 34;
@@ -184,7 +178,10 @@ export function hierCleanup(
 
   // Descend through internal nodes.
   for (let depth = 0; node.children.length > 0; depth++) {
-    const { i, best, runnerUp } = pickBest(query, node.children.map((c) => c.vector));
+    const { i, best, runnerUp } = pickBest(
+      query,
+      node.children.map((c) => c.vector),
+    );
     const z = sigma > 0 ? best / sigma : 0;
     stages.push({ best, runnerUp, z });
     if (z < zFloor) {
@@ -211,7 +208,10 @@ export function hierCleanup(
 export function hierRoute(h: Hierarchy, query: Hypervector): readonly number[] {
   let node = h.root;
   while (node.children.length > 0) {
-    const { i } = pickBest(query, node.children.map((c) => c.vector));
+    const { i } = pickBest(
+      query,
+      node.children.map((c) => c.vector),
+    );
     node = node.children[i];
   }
   return node.leaves;

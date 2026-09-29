@@ -95,10 +95,22 @@ export class SensoryPlane {
       channels: 0,
       loopGain: this.loopGain,
       fusion: {
-        channels: [], count: 0, weight: 0, rawPeak: 0, peak: 0, scale: 1, energy: 0, withinBound: true,
+        channels: [],
+        count: 0,
+        weight: 0,
+        rawPeak: 0,
+        peak: 0,
+        scale: 1,
+        energy: 0,
+        withinBound: true,
       },
       rungs: this.nodes.map((n, rank) => ({
-        rank, nodes: n, peak: 0, energy: 0, transportRatio: 1, falloff: this.falloff(rank),
+        rank,
+        nodes: n,
+        peak: 0,
+        energy: 0,
+        transportRatio: 1,
+        falloff: this.falloff(rank),
       })),
       maxPeak: 0,
       withinBound: true,
@@ -112,9 +124,12 @@ export class SensoryPlane {
 
   /** Set the actuator loop gain. Values above φ⁻² are rejected (Law L-S2). */
   setLoopGain(g: number): number {
-    if (!Number.isFinite(g) || g < 0) throw new Error('SensoryPlane: loop gain must be finite and ≥ 0');
+    if (!Number.isFinite(g) || g < 0)
+      throw new Error('SensoryPlane: loop gain must be finite and ≥ 0');
     if (g > MAX_LOOP_GAIN + 1e-15) {
-      throw new Error(`SensoryPlane: loop gain ${g} exceeds the certified bound φ⁻² = ${MAX_LOOP_GAIN}`);
+      throw new Error(
+        `SensoryPlane: loop gain ${g} exceeds the certified bound φ⁻² = ${MAX_LOOP_GAIN}`,
+      );
     }
     this.loopGain = g;
     this.revision++;
@@ -204,7 +219,14 @@ export class SensoryPlane {
       if (fusion.count === 0) {
         zeroField(dst);
         this.transportRatio[rank] = 1;
-        rungs.push({ rank, nodes: dst.n, peak: 0, energy: 0, transportRatio: 1, falloff: this.falloff(rank) });
+        rungs.push({
+          rank,
+          nodes: dst.n,
+          peak: 0,
+          energy: 0,
+          transportRatio: 1,
+          falloff: this.falloff(rank),
+        });
         continue;
       }
       const rep = octaveTransport(this.fused, dst);
@@ -241,7 +263,8 @@ export class SensoryPlane {
       fusion,
       rungs,
       maxPeak,
-      withinBound: maxPeak <= SENSE_BOUND + 1e-12 && rungs.every((r) => r.peak <= SENSE_BOUND + 1e-12),
+      withinBound:
+        maxPeak <= SENSE_BOUND + 1e-12 && rungs.every((r) => r.peak <= SENSE_BOUND + 1e-12),
     };
     return { fields: this.staged, report: this.lastReport };
   }

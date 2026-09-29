@@ -70,7 +70,8 @@ export class SimplexGain implements Parametrization {
 
   constructor(size: number, total: number, raw?: ArrayLike<number>) {
     if (!(size > 0)) throw new Error('SimplexGain: size must be positive');
-    if (!(total >= 0) || !Number.isFinite(total)) throw new Error('SimplexGain: total must be finite ≥ 0');
+    if (!(total >= 0) || !Number.isFinite(total))
+      throw new Error('SimplexGain: total must be finite ≥ 0');
     this.size = size;
     this.total = total;
     this.raw = new Float64Array(size);
@@ -125,7 +126,8 @@ export class InputGain implements Parametrization {
   private readonly out = new Float64Array(1);
 
   constructor(limit: number, raw = 0) {
-    if (!(limit > 0) || !Number.isFinite(limit)) throw new Error('InputGain: limit must be finite > 0');
+    if (!(limit > 0) || !Number.isFinite(limit))
+      throw new Error('InputGain: limit must be finite > 0');
     this.limit = limit;
     this.raw[0] = raw;
   }

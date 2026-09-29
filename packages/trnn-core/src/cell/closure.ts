@@ -88,4 +88,3 @@ export function closureTarget(z: CField, pi: CField, turn: number, shift: number
 
   return { obstruction: Math.sqrt(obs), residualFlux: flux, turn, defect, closure: gamma };
 }
-

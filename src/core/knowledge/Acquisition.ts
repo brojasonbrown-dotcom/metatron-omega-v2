@@ -19,11 +19,20 @@ import { runOcr } from '@/core/ocr/ocrLadder';
 /** Raster formats the OCR ladder can read. */
 const IMAGE_URL = /\.(png|jpe?g|webp|bmp|tiff?|gif)($|\?)/i;
 
-export type ToolCall = (name: string, args: Record<string, unknown>) => Promise<
-  { ok: true; data: unknown } | { ok: false; reason: string }
->;
+export type ToolCall = (
+  name: string,
+  args: Record<string, unknown>,
+) => Promise<{ ok: true; data: unknown } | { ok: false; reason: string }>;
 
-export type RunPhase = 'idle' | 'plan' | 'search' | 'fetch' | 'distil' | 'consolidate' | 'stopped' | 'error';
+export type RunPhase =
+  | 'idle'
+  | 'plan'
+  | 'search'
+  | 'fetch'
+  | 'distil'
+  | 'consolidate'
+  | 'stopped'
+  | 'error';
 
 export interface RunEvent {
   t: number;
@@ -42,7 +51,7 @@ export interface RunState {
   fetched: number;
   failed: number;
   newChunks: number;
-  novelty: number;          // rolling fraction of chunks that were new
+  novelty: number; // rolling fraction of chunks that were new
   frontier: number;
   events: RunEvent[];
 }
@@ -50,7 +59,11 @@ export interface RunState {
 const MAX_EVENTS = 120;
 
 /** Search channels, in priority order. All keyless. */
-const SEARCH_PLAN: Array<{ tool: string; args: (q: string) => Record<string, unknown>; urls: (d: any) => Array<{ url: string; title: string }> }> = [
+const SEARCH_PLAN: Array<{
+  tool: string;
+  args: (q: string) => Record<string, unknown>;
+  urls: (d: unknown) => Array<{ url: string; title: string }>;
+}> = [
   {
     tool: 'wikidata',
     args: (q) => ({ query: q }),
@@ -60,7 +73,10 @@ const SEARCH_PLAN: Array<{ tool: string; args: (q: string) => Record<string, unk
   {
     tool: 'gdelt',
     args: (q) => ({ query: q, mode: 'artlist', maxrecords: 25, timespan: '3m' }),
-    urls: (d) => (d?.articles ?? []).map((a: any) => ({ url: a.url, title: a.title || a.url })),
+    urls: (d) =>
+      ((d as { articles?: Array<{ url: string; title?: string }> } | null)?.articles ?? []).map(
+        (a) => ({ url: a.url, title: a.title || a.url }),
+      ),
   },
   {
     tool: 'google_news',
@@ -100,13 +116,21 @@ const SEARCH_PLAN: Array<{ tool: string; args: (q: string) => Record<string, unk
 ];
 
 /** Walk any JSON payload and harvest http(s) URLs with the nearest title. */
-function extractUrls(node: unknown, out: Array<{ url: string; title: string }> = [], title = ''): Array<{ url: string; title: string }> {
+function extractUrls(
+  node: unknown,
+  out: Array<{ url: string; title: string }> = [],
+  title = '',
+): Array<{ url: string; title: string }> {
   if (!node) return out;
   if (typeof node === 'string') {
-    if (/^https?:\/\//i.test(node) && out.length < 60) out.push({ url: node, title: title || node });
+    if (/^https?:\/\//i.test(node) && out.length < 60)
+      out.push({ url: node, title: title || node });
     return out;
   }
-  if (Array.isArray(node)) { for (const n of node) extractUrls(n, out, title); return out; }
+  if (Array.isArray(node)) {
+    for (const n of node) extractUrls(n, out, title);
+    return out;
+  }
   if (typeof node === 'object') {
     const rec = node as Record<string, unknown>;
     const localTitle = String(rec.title ?? rec.name ?? rec.headline ?? title ?? '');
@@ -133,7 +157,8 @@ export function planQueries(field: string): string[] {
 }
 
 const BAD_EXT = /\.(png|jpe?g|gif|svg|webp|mp4|mp3|zip|gz|exe|dmg|woff2?)($|\?)/i;
-const BAD_HOST = /(doubleclick|googletagmanager|facebook\.com|twitter\.com|x\.com|instagram\.com|linkedin\.com\/login)/i;
+const BAD_HOST =
+  /(doubleclick|googletagmanager|facebook\.com|twitter\.com|x\.com|instagram\.com|linkedin\.com\/login)/i;
 
 export function usableUrl(u: string): boolean {
   if (!/^https?:\/\//i.test(u)) return false;
@@ -158,7 +183,6 @@ export interface RunnerOptions {
   rungAt?: () => number;
 }
 
-
 export class AcquisitionRunner {
   private opts: Required<RunnerOptions>;
   private frontier: Array<{ url: string; title: string }> = [];
@@ -171,14 +195,26 @@ export class AcquisitionRunner {
   constructor(opts: RunnerOptions) {
     this.opts = { batch: 6, delayMs: 400, rungAt: () => -1, ...opts } as Required<RunnerOptions>;
     this.state = {
-      field: opts.field, active: false, phase: 'idle', cycle: 0,
-      fetched: 0, failed: 0, newChunks: 0, novelty: 1, frontier: 0, events: [],
+      field: opts.field,
+      active: false,
+      phase: 'idle',
+      cycle: 0,
+      fetched: 0,
+      failed: 0,
+      newChunks: 0,
+      novelty: 1,
+      frontier: 0,
+      events: [],
     };
   }
 
-  snapshot(): RunState { return { ...this.state, events: [...this.state.events] }; }
+  snapshot(): RunState {
+    return { ...this.state, events: [...this.state.events] };
+  }
 
-  stop(): void { this.stopFlag = true; }
+  stop(): void {
+    this.stopFlag = true;
+  }
 
   private emit(phase: RunPhase, tool: string, target: string, ok: boolean, detail: string): void {
     this.state.phase = phase;
@@ -188,12 +224,20 @@ export class AcquisitionRunner {
     this.opts.onUpdate(this.snapshot());
   }
 
-  private async sleep(ms: number) { await new Promise((r) => setTimeout(r, ms)); }
+  private async sleep(ms: number) {
+    await new Promise((r) => setTimeout(r, ms));
+  }
 
   async run(): Promise<void> {
     this.stopFlag = false;
     this.state.active = true;
-    this.emit('plan', 'planner', this.opts.field, true, `${planQueries(this.opts.field).length} seed queries`);
+    this.emit(
+      'plan',
+      'planner',
+      this.opts.field,
+      true,
+      `${planQueries(this.opts.field).length} seed queries`,
+    );
 
     // Deterministic encyclopedic seed — a real URL, fetched like any other.
     const wiki = `https://en.wikipedia.org/wiki/${encodeURIComponent(this.opts.field.trim().replace(/\s+/g, '_'))}`;
@@ -202,18 +246,25 @@ export class AcquisitionRunner {
       this.frontier.unshift({ url: wiki, title: this.opts.field });
     }
 
-
     while (!this.stopFlag) {
       this.state.cycle++;
       if (this.frontier.length < this.opts.batch) await this.searchCycle();
       if (this.stopFlag) break;
       await this.fetchCycle();
       if (this.stopFlag) break;
-      this.emit('consolidate', 'kb', this.opts.field,
-        true, `${this.opts.kb.stats().chunks} chunks · ${this.opts.kb.stats().concepts} concepts`);
+      this.emit(
+        'consolidate',
+        'kb',
+        this.opts.field,
+        true,
+        `${this.opts.kb.stats().chunks} chunks · ${this.opts.kb.stats().concepts} concepts`,
+      );
       await this.sleep(this.opts.delayMs);
       // Exhausted every channel with an empty frontier: idle rather than spin.
-      if (this.frontier.length === 0 && this.queryIdx >= SEARCH_PLAN.length * planQueries(this.opts.field).length) {
+      if (
+        this.frontier.length === 0 &&
+        this.queryIdx >= SEARCH_PLAN.length * planQueries(this.opts.field).length
+      ) {
         this.emit('idle', 'planner', this.opts.field, true, 'frontier exhausted — restarting plan');
         this.queryIdx = 0;
         await this.sleep(2000);
@@ -256,22 +307,40 @@ export class AcquisitionRunner {
    */
   private async acquire(item: { url: string; title: string }): Promise<
     | { ok: false; tool: string; reason: string }
-    | { ok: true; tool: string; title: string; text: string; links: string[];
-        descriptor?: Float64Array; modality: 'text' | 'geometry' | 'image'; detail: string }
+    | {
+        ok: true;
+        tool: string;
+        title: string;
+        text: string;
+        links: string[];
+        descriptor?: Float64Array;
+        modality: 'text' | 'geometry' | 'image';
+        detail: string;
+      }
   > {
     // ── geometry (DXF/SVG/OBJ/STL/IFC/STEP) ─────────────────────────────
     if (isGeometryUrl(item.url)) {
       const res = await this.opts.call('cad_fetch', { url: item.url, max_chars: 400_000 });
       if (!res.ok) return { ok: false, tool: 'cad_fetch', reason: res.reason };
-      const d = res.data as { text?: string; contentType?: string; error?: string; binary?: boolean };
+      const d = res.data as {
+        text?: string;
+        contentType?: string;
+        error?: string;
+        binary?: boolean;
+      };
       if (d?.error) return { ok: false, tool: 'cad_fetch', reason: d.error };
       const asset = describeAsset(d.text ?? '', item.url, d.contentType ?? '', item.title);
       if (!asset.ok || !asset.text || !asset.descriptor) {
         return { ok: false, tool: 'cad_fetch', reason: asset.reason ?? 'no geometry measured' };
       }
       return {
-        ok: true, tool: 'cad_fetch', title: item.title || item.url.split('/').pop() || item.url,
-        text: asset.text, links: [], descriptor: asset.descriptor.vector, modality: 'geometry',
+        ok: true,
+        tool: 'cad_fetch',
+        title: item.title || item.url.split('/').pop() || item.url,
+        text: asset.text,
+        links: [],
+        descriptor: asset.descriptor.vector,
+        modality: 'geometry',
         detail: `${asset.kind} · ${asset.descriptor.segments} segments · ${asset.descriptor.topology.loops} loops`,
       };
     }
@@ -281,19 +350,36 @@ export class AcquisitionRunner {
       const r = await runOcr(item.url);
       if (!r.ok) return { ok: false, tool: 'ocr', reason: r.reason ?? 'no tier produced text' };
       return {
-        ok: true, tool: `ocr:${r.tier}`, title: item.title || item.url,
-        text: r.text, links: [], modality: 'image',
+        ok: true,
+        tool: `ocr:${r.tier}`,
+        title: item.title || item.url,
+        text: r.text,
+        links: [],
+        modality: 'image',
         detail: `${r.chars} chars via ${r.tier} in ${r.ms}ms`,
       };
     }
 
     // ── default: HTML/text ───────────────────────────────────────────────
-    const res = await this.opts.call('web_fetch', { url: item.url, max_chars: 40000, include_links: true });
+    const res = await this.opts.call('web_fetch', {
+      url: item.url,
+      max_chars: 40000,
+      include_links: true,
+    });
     if (!res.ok) return { ok: false, tool: 'web_fetch', reason: res.reason };
-    const d = res.data as { title?: string; text?: string; links?: Array<string | { url?: string; href?: string; text?: string }>; error?: string };
+    const d = res.data as {
+      title?: string;
+      text?: string;
+      links?: Array<string | { url?: string; href?: string; text?: string }>;
+      error?: string;
+    };
     const text = (d?.text ?? '').trim();
     if (d?.error || text.length < 400) {
-      return { ok: false, tool: 'web_fetch', reason: d?.error ?? `thin content (${text.length} chars)` };
+      return {
+        ok: false,
+        tool: 'web_fetch',
+        reason: d?.error ?? `thin content (${text.length} chars)`,
+      };
     }
     const links: string[] = [];
     for (const l of d.links ?? []) {
@@ -301,8 +387,13 @@ export class AcquisitionRunner {
       if (u) links.push(u);
     }
     return {
-      ok: true, tool: 'web_fetch', title: d.title || item.title, text, links,
-      modality: 'text', detail: `${text.length} chars`,
+      ok: true,
+      tool: 'web_fetch',
+      title: d.title || item.title,
+      text,
+      links,
+      modality: 'text',
+      detail: `${text.length} chars`,
     };
   }
 
@@ -321,8 +412,11 @@ export class AcquisitionRunner {
       const d = { links: got.links } as { links: string[] };
 
       const out = this.opts.kb.ingest({
-        field: this.opts.field, url: item.url,
-        title: got.title || item.title, source: got.tool, text,
+        field: this.opts.field,
+        url: item.url,
+        title: got.title || item.title,
+        source: got.tool,
+        text,
         descriptor: got.descriptor,
         modality: got.modality,
         // Scale binding: stamp the rung that was dominant when this material
@@ -334,7 +428,8 @@ export class AcquisitionRunner {
       const nov = out.chunks > 0 ? out.newChunks / out.chunks : 0;
       this.noveltyWindow.push(nov);
       if (this.noveltyWindow.length > 20) this.noveltyWindow.shift();
-      this.state.novelty = this.noveltyWindow.reduce((a, b) => a + b, 0) / this.noveltyWindow.length;
+      this.state.novelty =
+        this.noveltyWindow.reduce((a, b) => a + b, 0) / this.noveltyWindow.length;
 
       // Expand the frontier from real outbound links only.
       for (const u of d.links) {
@@ -343,8 +438,13 @@ export class AcquisitionRunner {
         if (this.frontier.length < 400) this.frontier.push({ url: u, title: u });
       }
 
-      this.emit('distil', got.tool, item.url, true,
-        `${out.newChunks}/${out.chunks} new chunks · ${got.detail}`);
+      this.emit(
+        'distil',
+        got.tool,
+        item.url,
+        true,
+        `${out.newChunks}/${out.chunks} new chunks · ${got.detail}`,
+      );
 
       // Novelty throttle: a dry field crawls slower instead of hammering.
       const throttle = this.opts.delayMs * (this.state.novelty < 0.15 ? 4 : 1);

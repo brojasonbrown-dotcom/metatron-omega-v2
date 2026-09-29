@@ -30,7 +30,16 @@
  * (INDEX_DIM), so cosine values are directly comparable across queries.
  */
 
-import { getProjectionBasis, projectInto, densifyTopK, quantizeInt8, dequantizeInt8, cosine, l2NormalizeInPlace, type QuantizedVector } from '@/core/sensory/VisionProjection';
+import {
+  getProjectionBasis,
+  projectInto,
+  densifyTopK,
+  quantizeInt8,
+  dequantizeInt8,
+  cosine,
+  l2NormalizeInPlace,
+  type QuantizedVector,
+} from '@/core/sensory/VisionProjection';
 
 /** F16. Cap sized to Fibonacci for aesthetic parity with the rest of the
  *  memory stack; drop-oldest eviction. */
@@ -44,7 +53,7 @@ export interface VisionFieldEntry {
   tick: number;
   cosine: number;
   visionEmbedQ: QuantizedVector;
-  psiProj: Float32Array;         // length INDEX_DIM, unit-norm
+  psiProj: Float32Array; // length INDEX_DIM, unit-norm
   episodeHash?: string;
 }
 
@@ -59,9 +68,15 @@ export class VisionFieldIndex {
     this.cap = Math.max(16, cap | 0);
   }
 
-  size(): number { return this.ring.length; }
-  capacity(): number { return this.cap; }
-  total(): number { return this.totalAppends; }
+  size(): number {
+    return this.ring.length;
+  }
+  capacity(): number {
+    return this.cap;
+  }
+  total(): number {
+    return this.totalAppends;
+  }
 
   /**
    * Append one co-occurrence. `visionEmbed` is L2-normalised (the frontend
@@ -112,7 +127,10 @@ export class VisionFieldIndex {
    * Recall entries whose stored vision embed is most similar to `query`.
    * Returns top-k by cosine similarity, descending.
    */
-  recallByImage(query: Float32Array, k: number): Array<{ entry: VisionFieldEntry; similarity: number }> {
+  recallByImage(
+    query: Float32Array,
+    k: number,
+  ): Array<{ entry: VisionFieldEntry; similarity: number }> {
     if (this.ring.length === 0 || query.length === 0) return [];
     let qn = 0;
     for (let i = 0; i < query.length; i++) qn += query[i] * query[i];
@@ -123,7 +141,8 @@ export class VisionFieldIndex {
     for (const e of this.ring) {
       if (e.visionEmbedQ.q.length !== query.length) continue;
       const dq = dequantizeInt8(e.visionEmbedQ, scratch);
-      let dot = 0, en = 0;
+      let dot = 0,
+        en = 0;
       for (let i = 0; i < query.length; i++) {
         dot += query[i] * dq[i];
         en += dq[i] * dq[i];
@@ -141,7 +160,11 @@ export class VisionFieldIndex {
    * densified projection of `psiIndices/psiAmps`. Answers "what was I
    * looking at when the field state resembled the current one?"
    */
-  recallByFieldState(psiIndices: Int32Array | ArrayLike<number>, psiAmps: Float64Array | Float32Array | ArrayLike<number>, k: number): Array<{ entry: VisionFieldEntry; similarity: number }> {
+  recallByFieldState(
+    psiIndices: Int32Array | ArrayLike<number>,
+    psiAmps: Float64Array | Float32Array | ArrayLike<number>,
+    k: number,
+  ): Array<{ entry: VisionFieldEntry; similarity: number }> {
     if (this.ring.length === 0) return [];
     const query = densifyTopK(psiIndices, psiAmps, INDEX_DIM);
     l2NormalizeInPlace(query);

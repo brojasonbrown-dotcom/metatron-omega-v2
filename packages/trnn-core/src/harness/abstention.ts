@@ -86,8 +86,13 @@ export function scoreAbstention(cases: readonly AbstentionCase[]): AbstentionRep
       else falseSilent.push(c.id);
     }
     outcomes.push({
-      id: c.id, expected: c.expected, actual, correct, value,
-      rationale: c.rationale, threw: err,
+      id: c.id,
+      expected: c.expected,
+      actual,
+      correct,
+      value,
+      rationale: c.rationale,
+      threw: err,
     });
   }
 
@@ -96,7 +101,10 @@ export function scoreAbstention(cases: readonly AbstentionCase[]): AbstentionRep
     total: cases.length,
     correct,
     rate: cases.length > 0 ? correct / cases.length : null,
-    falseConfident, falseSilent, threw, outcomes,
+    falseConfident,
+    falseSilent,
+    threw,
+    outcomes,
   };
 }
 
@@ -110,10 +118,7 @@ export interface AbstentionGate {
 }
 
 /** Gate: rate ≥ target AND zero false-confident AND zero throws. */
-export function abstentionGate(
-  r: AbstentionReport,
-  target = ABSTENTION_TARGET,
-): AbstentionGate {
+export function abstentionGate(r: AbstentionReport, target = ABSTENTION_TARGET): AbstentionGate {
   const reasons: string[] = [];
   if (r.rate === null) reasons.push('empty battery: an unrun gate is not a passed gate');
   else if (r.rate < target) reasons.push(`rate ${r.rate.toFixed(4)} < target ${target}`);

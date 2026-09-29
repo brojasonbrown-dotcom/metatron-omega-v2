@@ -85,8 +85,15 @@ export interface ResonanceReport {
 }
 
 const BLANK: ResonanceReport = {
-  value: NaN, channels: [], counted: 0, abstained: 0,
-  vetoId: null, vetoValue: NaN, subFloor: false, gamma: NaN, gated: false,
+  value: NaN,
+  channels: [],
+  counted: 0,
+  abstained: 0,
+  vetoId: null,
+  vetoValue: NaN,
+  subFloor: false,
+  gamma: NaN,
+  gated: false,
 };
 
 function clamp01(x: number): number {
@@ -98,8 +105,14 @@ function clamp01(x: number): number {
 export function cosineDense(a: Float64Array, b: Float64Array): number {
   const n = Math.min(a.length, b.length);
   if (n === 0) return NaN;
-  let dot = 0, na = 0, nb = 0;
-  for (let i = 0; i < n; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  let dot = 0,
+    na = 0,
+    nb = 0;
+  for (let i = 0; i < n; i++) {
+    dot += a[i] * b[i];
+    na += a[i] * a[i];
+    nb += b[i] * b[i];
+  }
   if (na <= 1e-300 || nb <= 1e-300) return NaN;
   return dot / Math.sqrt(na * nb);
 }
@@ -119,7 +132,9 @@ export function crossScaleAffinity(a: number, b: number): number {
 }
 
 /** Fibonacci age bands: 1, 2, 3, 5, 8, 13… minutes since capture. */
-export const AGE_BAND_MINUTES = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987] as const;
+export const AGE_BAND_MINUTES = [
+  1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987,
+] as const;
 
 /** Index of the age band a timestamp falls into (0 = freshest). */
 export function ageBand(capturedAt: number, now: number): number {
@@ -154,7 +169,10 @@ export interface ResonanceInput {
  */
 export function measureResonance(mem: ResonanceInput, ctx: FieldContext): ResonanceReport {
   const channels: ResonanceChannel[] = [
-    { id: 'fieldCos', value: mem.vector && ctx.vector ? clamp01(cosineDense(mem.vector, ctx.vector)) : NaN },
+    {
+      id: 'fieldCos',
+      value: mem.vector && ctx.vector ? clamp01(cosineDense(mem.vector, ctx.vector)) : NaN,
+    },
     { id: 'coherence', value: clamp01(ctx.coherence) },
     { id: 'closure', value: clamp01(ctx.closure) },
     { id: 'recency', value: clamp01(recencyScore(mem.capturedAt ?? NaN, ctx.now)) },
@@ -183,7 +201,6 @@ export function measureResonance(mem: ResonanceInput, ctx: FieldContext): Resona
     gated: fused.gated,
   };
 }
-
 
 /**
  * Decay multiplier driven by resonance.

@@ -108,7 +108,12 @@ describe('Ω-CAPACITY C3 · layering', () => {
 
 describe('Ω-CAPACITY C4 · residency', () => {
   it('c4.1 · sealed bytes cost about four bytes per retained number', async () => {
-    const r = await measureResidency({ frames: 178, width: 233, shardFrames: 89, segmentShards: 2 });
+    const r = await measureResidency({
+      frames: 178,
+      width: 233,
+      shardFrames: 89,
+      segmentShards: 2,
+    });
     expect(r.storeKind).toBe('memory');
     expect(r.bytesPerNumber).toBeGreaterThan(3.5);
     expect(r.bytesPerNumber).toBeLessThan(6);

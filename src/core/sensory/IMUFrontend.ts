@@ -37,16 +37,23 @@ export class IMUFrontend {
   private cadenceEMA = 0;
   private lastIntervalMs = 0;
 
-  isRunning() { return this.running; }
-  setTickRef(ref: { v: number }) { this.tickRef = ref; }
-  recentFeatures() { return { cadence: this.cadenceEMA, threshold: this.stepThresh }; }
+  isRunning() {
+    return this.running;
+  }
+  setTickRef(ref: { v: number }) {
+    this.tickRef = ref;
+  }
+  recentFeatures() {
+    return { cadence: this.cadenceEMA, threshold: this.stepThresh };
+  }
 
   async enable(gateway: SensoryGateway): Promise<void> {
     if (this.running) return;
     if (typeof window === 'undefined' || typeof DeviceMotionEvent === 'undefined') {
       throw new Error('imu: DeviceMotionEvent unavailable');
     }
-    const reqPerm = (DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> }).requestPermission;
+    const reqPerm = (DeviceMotionEvent as unknown as { requestPermission?: () => Promise<string> })
+      .requestPermission;
     if (typeof reqPerm === 'function') {
       const res = await reqPerm();
       if (res !== 'granted') throw new Error('imu: permission denied');
@@ -54,8 +61,16 @@ export class IMUFrontend {
     this.handler = (e: DeviceMotionEvent) => {
       const a = e.acceleration ?? e.accelerationIncludingGravity;
       const g = e.rotationRate;
-      if (a) { this.latest.ax = a.x ?? 0; this.latest.ay = a.y ?? 0; this.latest.az = a.z ?? 0; }
-      if (g) { this.latest.gx = g.alpha ?? 0; this.latest.gy = g.beta ?? 0; this.latest.gz = g.gamma ?? 0; }
+      if (a) {
+        this.latest.ax = a.x ?? 0;
+        this.latest.ay = a.y ?? 0;
+        this.latest.az = a.z ?? 0;
+      }
+      if (g) {
+        this.latest.gx = g.alpha ?? 0;
+        this.latest.gy = g.beta ?? 0;
+        this.latest.gz = g.gamma ?? 0;
+      }
     };
     window.addEventListener('devicemotion', this.handler);
     this.running = true;
@@ -66,7 +81,9 @@ export class IMUFrontend {
       const { ax, ay, az, gx, gy, gz } = this.latest;
       const aMag = Math.hypot(ax, ay, az);
       const gMag = Math.hypot(gx, gy, gz);
-      const jx = ax - this.prevAcc[0], jy = ay - this.prevAcc[1], jz = az - this.prevAcc[2];
+      const jx = ax - this.prevAcc[0],
+        jy = ay - this.prevAcc[1],
+        jz = az - this.prevAcc[2];
       this.prevAcc = [ax, ay, az];
       const tilt = Math.atan2(Math.hypot(ax, ay), az || 1e-9);
 
@@ -74,12 +91,15 @@ export class IMUFrontend {
       this.aMagHp = STEP_HP * (this.aMagHp + aMag - this.aMagPrev);
       this.aMagPrev = aMag;
       let step = 0;
-      const nowMs = (typeof performance !== 'undefined') ? performance.now() : Date.now();
+      const nowMs = typeof performance !== 'undefined' ? performance.now() : Date.now();
       // adaptive threshold: 0.6 × EMA of recent |hp|
-      this.stepThresh = 0.997 * this.stepThresh + 0.003 * Math.max(STEP_THRESH_MIN, Math.abs(this.aMagHp) * 0.6);
-      if (this.aMagHpPrev > this.aMagHp &&            // local max (previous was the peak)
-          this.aMagHpPrev > this.stepThresh &&
-          (nowMs - this.lastStepTs) > STEP_REFRACTORY_MS) {
+      this.stepThresh =
+        0.997 * this.stepThresh + 0.003 * Math.max(STEP_THRESH_MIN, Math.abs(this.aMagHp) * 0.6);
+      if (
+        this.aMagHpPrev > this.aMagHp && // local max (previous was the peak)
+        this.aMagHpPrev > this.stepThresh &&
+        nowMs - this.lastStepTs > STEP_REFRACTORY_MS
+      ) {
         step = 1;
         const intervalMs = nowMs - this.lastStepTs;
         if (this.lastStepTs > 0 && intervalMs < 2000) {
@@ -93,10 +113,17 @@ export class IMUFrontend {
       void this.lastIntervalMs;
 
       const f = this.feature;
-      f[0] = ax * 0.1; f[1] = ay * 0.1; f[2] = az * 0.1;
-      f[3] = gx * 0.01; f[4] = gy * 0.01; f[5] = gz * 0.01;
-      f[6] = Math.min(1, aMag * 0.05); f[7] = Math.min(1, gMag * 0.005);
-      f[8] = jx * 0.1; f[9] = jy * 0.1; f[10] = jz * 0.1;
+      f[0] = ax * 0.1;
+      f[1] = ay * 0.1;
+      f[2] = az * 0.1;
+      f[3] = gx * 0.01;
+      f[4] = gy * 0.01;
+      f[5] = gz * 0.01;
+      f[6] = Math.min(1, aMag * 0.05);
+      f[7] = Math.min(1, gMag * 0.005);
+      f[8] = jx * 0.1;
+      f[9] = jy * 0.1;
+      f[10] = jz * 0.1;
       f[11] = tilt / Math.PI;
       f[12] = step;
       f[13] = Math.min(1, this.cadenceEMA / 4); // ~4 Hz = sprint
@@ -108,7 +135,13 @@ export class IMUFrontend {
 
   stop(): void {
     this.running = false;
-    if (this.timer) { clearTimeout(this.timer); this.timer = null; }
-    if (this.handler) { window.removeEventListener('devicemotion', this.handler); this.handler = null; }
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    if (this.handler) {
+      window.removeEventListener('devicemotion', this.handler);
+      this.handler = null;
+    }
   }
 }

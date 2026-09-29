@@ -26,7 +26,9 @@ const B = 'eighteen toroidal layers propagate a closed golden field through its 
 const C = 'quarterly revenue increased on strong retail demand in the fourth quarter';
 
 describe('G0 — measured eigenbasis', () => {
-  beforeAll(() => { enc.prepare(); });
+  beforeAll(() => {
+    enc.prepare();
+  });
 
   it('reports a real residual, not an assumption', () => {
     const r = enc.report()!;
@@ -53,7 +55,9 @@ describe('G0 — measured eigenbasis', () => {
 });
 
 describe('G1 — signature determinism', () => {
-  beforeAll(() => { enc.prepare(); });
+  beforeAll(() => {
+    enc.prepare();
+  });
 
   it('the same text produces bit-identical coefficients', () => {
     const a = enc.encode(A)!;
@@ -83,7 +87,9 @@ describe('G1 — signature determinism', () => {
 });
 
 describe('G2 — phase-aligned similarity', () => {
-  beforeAll(() => { enc.prepare(); });
+  beforeAll(() => {
+    enc.prepare();
+  });
 
   it('is 1 against itself, symmetric, and bounded', () => {
     const a = enc.encode(A)!;
@@ -97,7 +103,8 @@ describe('G2 — phase-aligned similarity', () => {
   it('is invariant under a global phase rotation (gauge)', () => {
     const a = enc.encode(A)!;
     const rot = new Float64Array(a.length);
-    const c = Math.cos(0.7), s = Math.sin(0.7);
+    const c = Math.cos(0.7),
+      s = Math.sin(0.7);
     for (let i = 0; i < a.length; i += 2) {
       rot[i] = a[i] * c - a[i + 1] * s;
       rot[i + 1] = a[i] * s + a[i + 1] * c;
@@ -122,9 +129,18 @@ describe('G2 — phase-aligned similarity', () => {
 describe('G3 — corpus bridge', () => {
   const kb = new KnowledgeBase();
   const docs = [
-    ['torus', 'Each toroidal rung closes on itself; the field circulates through Fibonacci chords and returns in phase.'],
-    ['torus', 'Eighteen closed layers stack on the golden ladder, each carrying its own eigenmode band.'],
-    ['finance', 'Quarterly revenue rose on retail demand while operating margin narrowed slightly.'],
+    [
+      'torus',
+      'Each toroidal rung closes on itself; the field circulates through Fibonacci chords and returns in phase.',
+    ],
+    [
+      'torus',
+      'Eighteen closed layers stack on the golden ladder, each carrying its own eigenmode band.',
+    ],
+    [
+      'finance',
+      'Quarterly revenue rose on retail demand while operating margin narrowed slightly.',
+    ],
     ['finance', 'The board approved a dividend after the fourth quarter earnings release.'],
     ['optics', 'Refraction bends the wavefront as the medium changes its propagation velocity.'],
   ];
@@ -145,12 +161,18 @@ describe('G3 — corpus bridge', () => {
   });
 
   it('rescoring with signatures never drops candidates', () => {
-    const before = kb.recall('toroidal rung field', 8).map((h) => h.chunk.id).sort();
+    const before = kb
+      .recall('toroidal rung field', 8)
+      .map((h) => h.chunk.id)
+      .sort();
     kb.prepareSignatures(TIER.id);
     const sweep = kb.buildSignatures(1000);
     expect(sweep.covered).toBe(sweep.total);
     expect(kb.signatureCoverage()).toBe(1);
-    const after = kb.recall('toroidal rung field', 8).map((h) => h.chunk.id).sort();
+    const after = kb
+      .recall('toroidal rung field', 8)
+      .map((h) => h.chunk.id)
+      .sort();
     // Field signatures are a rescore-only channel: the candidate SET is
     // identical, only the ordering may move.
     expect(after).toEqual(before);
