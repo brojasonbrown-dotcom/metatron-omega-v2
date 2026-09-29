@@ -62,7 +62,7 @@ const MAX_EVENTS = 120;
 const SEARCH_PLAN: Array<{
   tool: string;
   args: (q: string) => Record<string, unknown>;
-  urls: (d: any) => Array<{ url: string; title: string }>;
+  urls: (d: unknown) => Array<{ url: string; title: string }>;
 }> = [
   {
     tool: 'wikidata',
@@ -73,7 +73,10 @@ const SEARCH_PLAN: Array<{
   {
     tool: 'gdelt',
     args: (q) => ({ query: q, mode: 'artlist', maxrecords: 25, timespan: '3m' }),
-    urls: (d) => (d?.articles ?? []).map((a: any) => ({ url: a.url, title: a.title || a.url })),
+    urls: (d) =>
+      ((d as { articles?: Array<{ url: string; title?: string }> } | null)?.articles ?? []).map(
+        (a) => ({ url: a.url, title: a.title || a.url }),
+      ),
   },
   {
     tool: 'google_news',

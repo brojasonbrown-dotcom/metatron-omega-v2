@@ -485,7 +485,8 @@ export function computeF4(input: F4Input): F4Output {
   );
   const surfaceAreaRatio = GC.SURFACE_DODECA / GC.SURFACE_ICOSA;
 
-  const starEulerValid = 12 - 30 + 20 === 2 ? 1.0 : 0.0;
+  // V − E + F = 12 − 30 + 20 = 2 is a compile-time identity, not a measurement (P1.1 review).
+  const starEulerValid = 1;
   const starPhiResonance = coherence * PHI_INV;
   const starPolyhedraResonance = Math.min(
     1,

@@ -65,14 +65,17 @@ export function setPreferredOrder(order: OcrTierId[]): void {
 }
 
 // ── browser tier (Tesseract WASM, dynamically imported) ───────────────────
-let tesseractMod: unknown = null;
+interface TesseractModule {
+  recognize?: (image: string, lang: string) => Promise<{ data: { text: string; confidence: number } }>;
+}
+let tesseractMod: TesseractModule | null = null;
 let tesseractTried = false;
 
-async function loadTesseract(): Promise<any | null> {
+async function loadTesseract(): Promise<TesseractModule | null> {
   if (tesseractTried) return tesseractMod;
   tesseractTried = true;
   try {
-    tesseractMod = await import(/* @vite-ignore */ 'tesseract.js');
+    tesseractMod = (await import(/* @vite-ignore */ 'tesseract.js')) as TesseractModule;
   } catch {
     tesseractMod = null;
   }
@@ -81,7 +84,7 @@ async function loadTesseract(): Promise<any | null> {
 
 async function browserOcr(image: string): Promise<OcrResult> {
   const t0 = Date.now();
-  const mod: any = await loadTesseract();
+  const mod = await loadTesseract();
   if (!mod?.recognize)
     return {
       ok: false,
@@ -215,9 +218,9 @@ export async function probeTiers(): Promise<OcrTierState[]> {
   out.push({
     id: 'browser',
     label: 'Browser · Tesseract WASM',
-    available: Boolean((mod as any)?.recognize),
+    available: Boolean(mod?.recognize),
     probed: true,
-    detail: (mod as any)?.recognize
+    detail: mod?.recognize
       ? 'on-device, nothing uploaded'
       : 'tesseract.js not resolvable in this build',
     ms: Date.now() - t0,

@@ -343,11 +343,12 @@ describe('P7/S7 — cross-level re-scoring reports null, not zero, when unmeasur
 });
 
 describe('P7/S8 — red team verifies the way an outside auditor would', () => {
+  type LedgerHeader = NonNullable<ReturnType<GenomeLedger['get']>>['header'];
   function forge(
     ledger: GenomeLedger,
     id: string,
     label: string,
-    mutate: (h: any, s: string) => { header: any; sealed: string },
+    mutate: (h: LedgerHeader, s: string) => { header: LedgerHeader; sealed: string },
   ): Forgery {
     const rec = ledger.get(id)!;
     const m = mutate({ ...rec.header }, rec.sealed);
