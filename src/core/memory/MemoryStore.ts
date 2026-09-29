@@ -43,6 +43,8 @@ export interface MemoryRecall {
   trajectory: TrajectorySummary;
 }
 
+import { LexiconMemory } from '@/core/knowledge/lexicon';
+
 export interface MemorySnapshot {
   hebbian: HebbianSnapshot;
   patterns: PatternSignature[];

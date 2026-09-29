@@ -23,7 +23,8 @@ import { isFibonacciTick } from './FibonacciPatterns';
 import { computeQualiaCorrelate, type QualiaCorrelateMeasurement } from '@/core/field/QualiaCorrelate';
 import { qualiaScalar as reflectQualiaScalar } from '@/core/field/Reflect';
 import { PHI, PHI_INV } from '@/core/constants/WolframVerified';
-import { injectTextPsi, type TextInjection } from '@/core/gematria/lexeme';
+import { injectTextPsi, lexemeTokens, type TextInjection } from '@/core/gematria/lexeme';
+import { describeField } from '@/core/knowledge/lexicon';
 
 /**
  * Legacy flat 18-vector projection. Kept for parity tests / external callers.
@@ -254,13 +255,24 @@ export function tickMemory(
     I: correlate.Q,                  // integration ≈ overall Q
   });
 
+  // Ω-LEXICON L6: the grounded predicates read the witness-coherence path;
+  // when one fires, the field's state is transcribed back into words and
+  // those words are learned too — algorithm → word closes the loop.
+  store.coherencePath.push(witnessC);
+  if (store.coherencePath.length > 21) store.coherencePath.shift();
+  const recalledWord = store.lexicon.size > 0 && utterances.length > 0
+    ? lexemeTokens(utterances[utterances.length - 1]).at(-1) ?? null
+    : null;
+  const desc = describeField({ x: store.coherencePath }, recalledWord ? [recalledWord] : []);
+  store.lastDescription = desc ? desc.text : null;
+
   const m = store.capture({
     tick,
     psi,
     qualiaScalar: q,
     coherence: witnessC,
     energy: out.torusClosure,
-    text,
+    text: allText,
     forceReason: isFibonacciTick(tick) ? 'fibonacci' : undefined,
   });
   return {
