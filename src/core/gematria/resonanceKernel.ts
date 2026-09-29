@@ -45,9 +45,26 @@ export function resonanceSparse(
   return c > 1 ? 1 : c;
 }
 
-/** β = φ/√d — the verified inverse-temperature for the Hopfield update. */
+/**
+ * β = φ/√d — the SOFT inverse-temperature. Used by the admission gate where
+ * basin geometry, not a crisp pick, is the question. At d = 1597 it is
+ * 0.0405, far too cold to separate a large lexicon (see calibratedBeta).
+ */
 export function hopfieldBeta(d: number): number {
   return d > 0 ? PHI / Math.sqrt(d) : PHI;
+}
+
+/**
+ * Retrieval inverse-temperature for a crisp pick among N patterns whose
+ * best/second-best similarity gap is Δ: the softmax mass on the winner is
+ * ≥ 1/(1 + (N−1)e^{−βΔ}), so β = 2·ln N / Δ puts ≥ N/(N+1) of the mass on
+ * it. Δ is clamped to [φ⁻⁵, 2] (cosine range) so a near-tie cannot drive β
+ * to infinity; β never drops below the soft value φ.
+ */
+export function calibratedBeta(n: number, gap: number): number {
+  if (!(n > 1)) return PHI;
+  const g = Math.min(2, Math.max(0.09016994374947424, Number.isFinite(gap) ? gap : 0));
+  return Math.max(PHI, (2 * Math.log(n)) / g);
 }
 
 /**
