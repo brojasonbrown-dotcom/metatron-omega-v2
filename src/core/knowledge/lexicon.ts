@@ -23,6 +23,30 @@
 import catalogRaw from './lexiconCatalog.json';
 import { fnv1a } from './tokenize';
 import { calibratedBeta } from '@/core/gematria/resonanceKernel';
+import { lexeme, lexemeTorus, type LexemeTorus } from '@/core/gematria/lexeme';
+
+/** Everything the field holds about one word — its unique, inspectable pattern. */
+export interface WordInspection {
+  readonly token: string;
+  /** Exact base-27 integer code. */
+  readonly value: number;
+  /** False when the word exceeds the injective 11-letter bound. */
+  readonly exact: boolean;
+  /** Zeckendorf address — the unique key of the code. */
+  readonly address: string;
+  /** 22-symbol bucket channel (bucketing only). */
+  readonly residue: number;
+  readonly torus: LexemeTorus;
+  /** 32 sign bits of the meaning vector's real part, hex — a visible fingerprint. */
+  readonly fingerprint: string;
+  /** Times the lexicon has learned this word. */
+  readonly count: number;
+  /** Nearest other known words by meaning. */
+  readonly neighbours: readonly Recall[];
+  readonly crisp: boolean;
+  /** Catalog entries for this word: grounded ones carry a live predicate. */
+  readonly catalog: readonly CatalogEntry[];
+}
 
 /** Working width of the phasor space (F17). */
 export const LEX_DIM = 1597;
@@ -257,6 +281,29 @@ export class LexiconMemory {
     for (const s of scored) z += Math.exp(beta * (s.score - top));
     const topMass = 1 / z;
     return { hits: scored.slice(0, k), beta, topMass, crisp: topMass >= 0.6180339887498949 };
+  }
+
+  /** The word's full field pattern: exact code, address, torus spot, meaning, grounding. */
+  inspect(word: string, rungs = 9): WordInspection {
+    const t = normToken(word);
+    const lx = lexeme(t);
+    const sig = this.signature(t);
+    let bits = 0;
+    for (let i = 0; i < 32 && i < sig.re.length; i++) if (sig.re[i] >= 0) bits |= 1 << i;
+    const r = this.recall(sig, 6);
+    return {
+      token: lx.token,
+      value: lx.value,
+      exact: lx.exact,
+      address: lx.address,
+      residue: lx.residue,
+      torus: lexemeTorus(lx, rungs),
+      fingerprint: (bits >>> 0).toString(16).padStart(8, '0'),
+      count: this.count(t),
+      neighbours: r.hits.filter((h) => h.word !== t).slice(0, 5),
+      crisp: r.crisp,
+      catalog: lexiconCatalog().filter((e) => e.word.toLowerCase() === t),
+    };
   }
 
   /**
