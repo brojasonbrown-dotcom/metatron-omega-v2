@@ -107,7 +107,8 @@ Notebook 4 what turns a rung off.
 - [ ] Live-speech trial by the user (needs a real listening session)
 
 ## P0 — Foundation & governance (task arc: .lovable/plan/00-task-arc.md)
-- [x] P0.1 Baseline captured (docs/BASELINE.md) — lint red, decision pending
+- [x] P0.1 Baseline captured and all four gates green (docs/BASELINE.md)
+- [ ] Follow-up: zod schemas per intel tool, then drop the intel.server.ts `any` exemption
 - [ ] P0.2 Gate script
 - [ ] P0.3 Determinism freeze
 - [ ] P0.4 Branch/versioning policy
