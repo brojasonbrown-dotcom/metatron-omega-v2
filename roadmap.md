@@ -94,3 +94,5 @@ Anything that cannot be is deleted, not documented.
 
 Notebook 2 governs the admission test, Notebook 3 the sensor→rung binding,
 Notebook 4 what turns a rung off.
+
+- [ ] Ω-LEXICON plan: full memory/recall/learning wiring review (store, recall, save, word↔pattern↔function binding)
