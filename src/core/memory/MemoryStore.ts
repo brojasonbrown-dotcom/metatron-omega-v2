@@ -114,8 +114,7 @@ export class MemoryStore {
    */
   hearWithSound(text: string, descriptor: ArrayLike<number> | null, at = Date.now()) {
     const trial = descriptor ? this.soundWords.observe(descriptor, text, this.lexicon) : null;
-    // Words must be known before the next chunk can be guessed; learning
-    // them here (not only at the next tick) keeps the guess set current.
+    // The words themselves enter the lexicon at the next memory tick.
     this.hear(text, at);
     return trial;
   }
