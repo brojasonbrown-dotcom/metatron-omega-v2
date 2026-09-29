@@ -89,7 +89,7 @@ export interface ScaleBinding {
   readonly nyquistOk: boolean;
 }
 
-const LN_PHI_BAND = Math.log(1.6180339887498948482045868343656381);
+const LN_PHI_BAND = Math.log(1.618033988749895); // exact: 1.6180339887498948482045868343656381
 
 /** Band width in octaves. NaN for a null/degenerate band. */
 export function bandOctaves(band: ScaleBand | null): number {
@@ -190,7 +190,7 @@ export function bindScaleSensors(
 // two-dimensional scale of spacetime, and `plateauDim` measures exactly how
 // far short they fall.
 
-const PHI_SM = 1.6180339887498948482045868343656381;
+const PHI_SM = 1.618033988749895; // exact: 1.6180339887498948482045868343656381
 const LN_PHI_SM = Math.log(PHI_SM);
 
 /** p × q periodic discretisation of the (R, r) torus. */

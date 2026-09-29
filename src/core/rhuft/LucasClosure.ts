@@ -35,8 +35,8 @@ export const CLOSURE_MODULUS = 13;
 export const LUCAS_MOD13_PERIOD = 28;
 
 /** φ and its conjugate ψ, to full float64 precision. */
-export const PHI_EXACT = 1.61803398874989484820458683436563811772;
-export const PSI_EXACT = -0.61803398874989484820458683436563811772;
+export const PHI_EXACT = 1.618033988749895; // exact: 1.61803398874989484820458683436563811772
+export const PSI_EXACT = -0.6180339887498949; // exact: 0.61803398874989484820458683436563811772
 
 // ───────────────────────── exact integer sequences ─────────────────────────
 

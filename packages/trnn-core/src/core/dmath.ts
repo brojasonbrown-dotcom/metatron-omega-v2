@@ -31,7 +31,7 @@ const HALF_PI = 1.5707963267948966;
 const PIO2_1 = 1.5707963267341256;
 const PIO2_2 = 6.077100506303966e-11;
 const PIO2_3 = 2.0222662487116645e-21;
-const PIO2_3T = 8.478427660368899e-32;
+const PIO2_3T = 8.478427660368898e-32;
 
 const LN2_HI = 0.6931471803691238; // upper 32 bits of ln2
 const LN2_LO = 1.9082149292705877e-10; // ln2 − LN2_HI
@@ -280,7 +280,7 @@ export function datan(x: number): number {
     t = 1 / t;
     offset = HALF_PI;
   }
-  let flip = offset !== 0 ? -1 : 1;
+  const flip = offset !== 0 ? -1 : 1;
   if (t > 0.2679491924311227) {
     // tan(π/12): fold with atan(t) = π/6 + atan((t·√3 − 1)/(t + √3))
     const SQ3 = 1.7320508075688772;

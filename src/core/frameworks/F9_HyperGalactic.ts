@@ -106,7 +106,7 @@ const COSMIC_CONSTANTS = {
   FILAMENT_BARYON_FRACTION: 0.5, // ~50% baryons in WHIM
   // φ in cosmology
   DARK_MATTER_RATIO: 2.2374, // Ω_dark/Ω_matter ≈ √5 = 2.2360 (0.06% dev!)
-  SQRT5: wave2('SQRT5', 2.2360679774997896), // √5 — flag-gated 50-dp uplift
+  SQRT5: wave2('SQRT5', 2.23606797749979), // √5 — flag-gated 50-dp uplift
   DARK_RATIO_SQRT5_DEV: 0.0006, // |2.2374 - 2.2360|/2.2360 deviation
   // AdS/CFT
   ADS_CFT_PSI_SQ: 5.82842712474619, // ψ² = (1+√2)² (Wolfram exact)

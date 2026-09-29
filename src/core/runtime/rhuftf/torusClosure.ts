@@ -84,7 +84,7 @@ export interface RingReport {
 }
 
 /** |ψ| = φ⁻¹, the Pisot conjugate magnitude. */
-const PSI_ABS = 0.6180339887498948482045868343656381;
+const PSI_ABS = 0.6180339887498949; // exact: 0.6180339887498948482045868343656381
 const LN_PHI = Math.log(1 / PSI_ABS);
 
 /** Irreducible closure defect at rung n, floored at machine epsilon. */

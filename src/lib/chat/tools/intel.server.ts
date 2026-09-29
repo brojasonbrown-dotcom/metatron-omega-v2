@@ -406,7 +406,7 @@ async function nasaFirms(p: { area?: string; days?: number; map_key?: string }) 
 }
 
 async function jplHorizons(p: { body?: string; observer?: string; days?: number }) {
-  let body = String(p.body || '499').trim();
+  const body = String(p.body || '499').trim();
   let observer = String(p.observer || '500@399').trim();
   const obsBody = observer.includes('@') ? observer.split('@')[1] : observer;
   if (obsBody === body || observer === body) observer = body === '399' ? '500@499' : '500@399';
@@ -1197,7 +1197,7 @@ async function webFetch(p: { url: string; max_chars?: number; include_links?: bo
     .replace(/^[ \t]+|[ \t]+$/gm, '')
     .trim();
   const truncated = text.length > cap;
-  let links: { href: string; text: string }[] = [];
+  const links: { href: string; text: string }[] = [];
   if (p.include_links !== false) {
     const seen = new Set<string>();
     const re = /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;

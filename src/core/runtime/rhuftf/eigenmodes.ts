@@ -100,7 +100,7 @@ export function powerIteration(
   opts: { maxIters: number; tol: number; seed?: number },
 ): EigenResult {
   const t0 = nowMs();
-  let v = seedVector(n, opts.seed ?? 0x5eed_1);
+  const v = seedVector(n, opts.seed ?? 0x5eed_1);
   const w = new Float64Array(n);
   const r = new Float64Array(n);
   let lambda = 0;

@@ -834,7 +834,7 @@ function computeHebrew(
   // Wolfram-verified: digital roots cycle 1-9 perfectly across all 22 letters
   // First 9 letters: roots 1-9, next 9: roots 2-9+1, final 4: roots 1-4
   const rootCycle = HC.DIGITAL_ROOT_CYCLE;
-  let rootCycleAlignment = 0;
+  const rootCycleAlignment = 0;
   // Group by digital root (1-9) and check if letters with same root resonate similarly
   const rootGroups: number[][] = Array.from({ length: 9 }, () => []);
   for (let i = 0; i < 22 && i < allLetters.length; i++) {

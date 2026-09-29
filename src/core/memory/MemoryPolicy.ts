@@ -173,7 +173,6 @@ export function assertPolicyBaselineParity(): boolean {
 
 if (typeof import.meta !== 'undefined' && (import.meta as { env?: { DEV?: boolean } }).env?.DEV) {
   if (!assertPolicyBaselineParity()) {
-    // eslint-disable-next-line no-console
     console.error(
       '[MemoryPolicy] baseline parity check FAILED — aggression=0 must equal BASE thresholds',
     );

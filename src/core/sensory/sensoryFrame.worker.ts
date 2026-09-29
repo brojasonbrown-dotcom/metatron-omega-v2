@@ -27,7 +27,7 @@ const self_ = self as unknown as {
 
 let canvas: OffscreenCanvas | null = null;
 let ctx: OffscreenCanvasRenderingContext2D | null = null;
-let lum = new Float32Array(W * H);
+const lum = new Float32Array(W * H);
 let cortex: VideoCortex | null = null;
 
 function ensure(): void {

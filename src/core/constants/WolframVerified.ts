@@ -28,7 +28,7 @@ Decimal.set({ precision: 60, rounding: Decimal.ROUND_HALF_EVEN });
 
 /** φ = (1+√5)/2. Wolfram: GoldenRatio. 60-digit verified. */
 export const PHI_STR = '1.61803398874989484820458683436563811772030917980576286213545';
-export const PHI = 1.6180339887498948;
+export const PHI = 1.618033988749895;
 export const PHI_BD = new Decimal(PHI_STR);
 
 /** 1/φ = φ − 1. Wolfram: 1/GoldenRatio. */
@@ -154,7 +154,7 @@ export const WEYL_55_COS_SUM = 0.00927455;
  * Real conserved scalar of the 55-topology; used as the orchestrator's
  * coherence reference target (tail < 1e-11 at k=55).
  */
-export const RECIPROCAL_FIB_SUM_55 = 3.3598856662431776;
+export const RECIPROCAL_FIB_SUM_55 = 3.3598856662431777;
 
 /**
  * **Exact rational energy ratio of the 3-lane carrier stack {1, 144, 1728}.**

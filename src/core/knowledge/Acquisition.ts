@@ -302,10 +302,7 @@ export class AcquisitionRunner {
    * the HTML path. Each branch returns real text or an honest failure — the
    * loop never substitutes one modality's content for another's.
    */
-  private async acquire(item: {
-    url: string;
-    title: string;
-  }): Promise<
+  private async acquire(item: { url: string; title: string }): Promise<
     | { ok: false; tool: string; reason: string }
     | {
         ok: true;
