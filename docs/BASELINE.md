@@ -34,3 +34,9 @@ Test count may only drop when a task's plan states the expected drop.
 - **no-constant-condition (2):** dmd.ts has a QR sweep that exits via deflation breaks, so the loop condition is documented inline. F4 `12 − 30 + 20 === 2` was a compile-time identity posing as a check; it is now a literal `1` with a note, same value, and is flagged for P1.1.
 - **exhaustive-deps (7):** the `version` dependencies deliberately invalidate mutable-store reads, and removing them would show stale data, so they are documented inline. Two useless memos over arrays rebuilt every render were removed. The missing `setInput` dependency was added.
 - **only-export-components (2):** the hooks stay next to their provider, documented inline.
+
+## Gate marker (P0.2)
+
+`bun run gate` fails if fewer tests pass than this number. Lower it only with a written reason on the line below it.
+
+gate-expected-tests: 1055
