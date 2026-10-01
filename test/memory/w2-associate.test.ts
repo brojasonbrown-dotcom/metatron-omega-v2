@@ -41,14 +41,15 @@ describe('Ω-UNDERSTAND W2 — related-pattern recall', () => {
   });
 
   it('co-occurrence is normalised and spreading reaches 2-hop words only via neighbours', () => {
-    const a = corpus().associate('cat');
+    const a = corpus().associate('cat', 50);
     const w = a.together.find((t) => t.word === 'milk')!;
     // c(cat,milk)=1, f(cat)=3, f(milk)=1 → 1/√3
     expect(w.assoc).toBeCloseTo(1 / Math.sqrt(3), 12);
-    const water = a.spread.find((x) => x.word === 'water');
+    const water = a.spread.find((x) => x.word === 'water')!;
     // water never co-occurs with cat but co-occurs with drinks/dog/the
     expect(a.together.some((t) => t.word === 'water')).toBe(false);
-    if (water) expect(water.hop).toBe(2);
+    expect(water.hop).toBe(2);
+    expect(water.activation).toBeGreaterThan(0);
     expect(a.spread.every((x) => x.word !== 'cat')).toBe(true);
     const lex = new LexiconMemory(64);
     for (let i = 0; i < 20; i++) lex.learn(['x', 'y', 'z', 'q', 'r', 'w'], 0);
