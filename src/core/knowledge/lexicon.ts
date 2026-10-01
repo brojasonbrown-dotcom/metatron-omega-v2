@@ -246,8 +246,6 @@ export interface Recall {
 
 /** φ⁻¹ — crispness threshold shared with `recall`. */
 const PHI_INV_LEX = 0.6180339887498949;
-/** φ⁻² — a readout pick must explain ≥ this share of the REMAINING energy. */
-const READ_STOP = 0.3819660112501051;
 /** φ⁻⁵ — minimum first-pick cosine margin (calibratedBeta's own floor). */
 const READ_MARGIN = 0.09016994374947424;
 /** Relative residual energy treated as fully explained (float64 round-off scale). */
