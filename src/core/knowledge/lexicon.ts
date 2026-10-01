@@ -22,13 +22,14 @@
 
 import catalogRaw from './lexiconCatalog.json';
 import { fnv1a } from './tokenize';
-import { dlog, dpow } from '@metatron/trnn-core/core/dmath';
+import { dlog, dpow, dpowi } from '@metatron/trnn-core/core/dmath';
 import { calibratedBeta } from '@/core/gematria/resonanceKernel';
 import {
   lexeme,
   lexemePattern,
   lexemeRungs,
   lexemeTorus,
+  LEXEME_MAX_POS,
   type LexemeTorus,
 } from '@/core/gematria/lexeme';
 
@@ -245,14 +246,17 @@ export interface Recall {
 
 /** φ⁻¹ — crispness threshold shared with `recall`. */
 const PHI_INV_LEX = 0.6180339887498949;
-/** φ⁻² — a readout pick must explain ≥ this share of the REMAINING energy. */
-const READ_STOP = 0.3819660112501051;
 /** φ⁻⁵ — minimum first-pick cosine margin (calibratedBeta's own floor). */
 const READ_MARGIN = 0.09016994374947424;
+/** Relative residual energy treated as fully explained (float64 round-off scale). */
+const READ_FLOOR = 1e-20;
 
 export interface FieldReadout {
   /** Words read from the field in pick order, with summed projection weight. */
-  readonly words: readonly { word: string; weight: number; share: number }[];
+  /** Words in pick (strength) order; `pos` = rank of the word's strongest pick (W4). */
+  readonly words: readonly { word: string; weight: number; share: number; pos: number }[];
+  /** W4: the read words ordered by position — the field's reading of word order. */
+  readonly sequence: readonly string[];
   /** Fraction of field energy the picked words explain, ∈ [0,1]. */
   readonly explained: number;
   /** Cosine margin of the first pick over the runner-up. */
@@ -283,6 +287,7 @@ export class LexiconMemory {
   private total = 0;
   /** Unit field templates keyed `rungs:word`; derived from the word only. */
   private readonly templates = new Map<string, Float64Array | null>();
+  private readonly norms = new Map<string, number>();
   /** Ω-UNDERSTAND W2: symmetric co-occurrence counts within ±LEX_WINDOW. */
   private readonly cooc = new Map<string, Map<string, number>>();
   /** Ω-UNDERSTAND W2: word → next-word counts (and the reverse). */
@@ -593,11 +598,25 @@ export class LexiconMemory {
   }
 
   /** Unit-norm field template of a word for a given rung count (cached). */
-  private template(word: string, rungs: number): Float64Array | null {
+  /** ‖lexemePattern(word, rungs)‖ — position-independent (rotation preserves norm). */
+  private rawNorm(word: string, rungs: number): number {
     const key = rungs + ':' + word;
+    let n = this.norms.get(key);
+    if (n === undefined) {
+      const p = lexemePattern(word, rungs);
+      n = 0;
+      if (p) for (let i = 0; i < p.length; i++) n += p[i] * p[i];
+      n = Math.sqrt(n);
+      this.norms.set(key, n);
+    }
+    return n;
+  }
+
+  private template(word: string, rungs: number, pos = 0): Float64Array | null {
+    const key = rungs + ':' + pos + ':' + word;
     const hit = this.templates.get(key);
     if (hit !== undefined) return hit;
-    const p = lexemePattern(word, rungs);
+    const p = lexemePattern(word, rungs, pos);
     let t: Float64Array | null = null;
     if (p) {
       let n = 0;
@@ -621,7 +640,10 @@ export class LexiconMemory {
    * records it, and subtracts it ("explain away"), so a word whose energy is
    * already accounted for cannot win again by crosstalk — the failure raw
    * cosine ranking showed (moon .40 > drinks .33). Stops at `maxWords`, or
-   * when a pick explains < φ⁻² of the energy still unexplained.
+   * when a pick explains less of the remaining energy than the extreme-value
+   * noise floor 2·ln N / dim (N templates). W4: atoms are (word, position),
+   * fitted by orthogonal least squares, one word per position, positions
+   * gapless from 0, amplitude-consistent with one gain per utterance.
    *
    * `margin` is the first pick's cosine lead over the runner-up (a softmax
    * mass would be tautological here: calibratedBeta is built to make it ≥
@@ -629,7 +651,14 @@ export class LexiconMemory {
    * Reads only the per-rung slots; the four global invariant slots are ignored.
    */
   readPsi(field: ArrayLike<number>, maxWords = 8): FieldReadout {
-    const empty: FieldReadout = { words: [], explained: 0, margin: 0, crisp: false, energy: 0 };
+    const empty: FieldReadout = {
+      words: [],
+      sequence: [],
+      explained: 0,
+      margin: 0,
+      crisp: false,
+      energy: 0,
+    };
     const rungs = lexemeRungs(field.length);
     if (rungs <= 0 || this.freq.size === 0) return empty;
     const dim = rungs * 4;
@@ -641,52 +670,161 @@ export class LexiconMemory {
       e0 += res[i] * res[i];
     }
     if (!(e0 > 0)) return empty;
-    const vocab: { word: string; t: Float64Array }[] = [];
+    // W4: one template per (word, position); positions beyond maxWords are
+    // not searched (their φ⁻ʳ amplitude is below what the stop rule keeps).
+    const P = Math.min(Math.max(1, maxWords), LEXEME_MAX_POS + 1);
+    const vocab: { word: string; t: Float64Array; pos: number }[] = [];
     for (const w of [...this.freq.keys()].sort()) {
-      const t = this.template(w, rungs);
-      if (t) vocab.push({ word: w, t });
+      for (let p = 0; p < P; p++) {
+        const t = this.template(w, rungs, p);
+        if (t) vocab.push({ word: w, t, pos: p });
+      }
     }
     if (vocab.length === 0) return empty;
 
-    const weight = new Map<string, number>();
-    const order: string[] = [];
+    // W4: orthogonal matching pursuit over (word, position) atoms. After each
+    // pick all coefficients are re-fitted by least squares on the picked set
+    // (removes the greedy bias plain MP leaves when templates overlap); atoms
+    // whose coefficient turns non-positive are dropped (injection only adds).
+    const x = res.slice();
+    const S: number[] = [];
+    let coef: number[] = [];
+    const refit = () => {
+      for (;;) {
+        coef = leastSquares(
+          S.map((j) => vocab[j].t),
+          x,
+        );
+        const bad = coef.findIndex((c) => !(c > 0));
+        if (bad < 0) break;
+        S.splice(bad, 1);
+      }
+      e = 0;
+      for (let i = 0; i < dim; i++) {
+        let r = x[i];
+        for (let k = 0; k < S.length; k++) r -= coef[k] * vocab[S[k]].t[i];
+        res[i] = r;
+        e += r * r;
+      }
+    };
+    // Injection writes positions 0..L−1 with no gaps. While a gap g exists,
+    // first try moving an atom beyond g (same word) into g — a near-repeat
+    // phase (e.g. offset 5, cos 5ω ≈ 0.84) can mislocate a correct word — and
+    // keep the move only if it strictly lowers the residual; otherwise the
+    // furthest atom is crosstalk and is dropped.
+    const atomAt = new Map<string, number>();
+    vocab.forEach((v, j) => atomAt.set(v.word + '@' + v.pos, j));
+    const closeGaps = () => {
+      for (;;) {
+        const has = new Set(S.map((j) => vocab[j].pos));
+        let gap = 0;
+        while (has.has(gap)) gap++;
+        const keep = S.slice();
+        const beyond = keep.map((_, k) => k).filter((k) => vocab[keep[k]].pos > gap);
+        if (beyond.length === 0) return;
+        const eFit = e;
+        let bestS: number[] | null = null;
+        let bestE = eFit;
+        for (const k of beyond) {
+          const m = atomAt.get(vocab[keep[k]].word + '@' + gap);
+          if (m === undefined) continue;
+          S.splice(0, S.length, ...keep);
+          S[k] = m;
+          refit();
+          if (S.includes(m) && e < bestE) {
+            bestE = e;
+            bestS = S.slice();
+          }
+        }
+        S.splice(0, S.length, ...(bestS ?? keep));
+        if (!bestS) {
+          let far = beyond[0];
+          for (const k of beyond) if (vocab[S[k]].pos > vocab[S[far]].pos) far = k;
+          S.splice(far, 1);
+        }
+        refit();
+      }
+    };
+    // Detection threshold = extreme-value noise floor: for a residual with no
+    // structure, the largest of N unit-template cos² in `dim` dimensions is
+    // ≈ 2·ln N / dim. A pick must explain more than that share of what is left.
+    const floor = Math.min(1, (2 * dlog(vocab.length)) / dim);
     let margin = 0;
     let e = e0;
-    for (let step = 0; step < Math.max(1, maxWords) * 2 && order.length < maxWords; step++) {
+    for (let step = 0; step < Math.max(1, maxWords) * 2 && S.length < maxWords; step++) {
+      // One token per position per utterance: a position already read is closed.
+      const taken = new Set(S.map((j) => vocab[j].pos));
       let best = -1;
       let bestC = 0;
       let second = 0;
       for (let j = 0; j < vocab.length; j++) {
+        if (taken.has(vocab[j].pos)) continue;
         const t = vocab[j].t;
         let c = 0;
         for (let i = 0; i < dim; i++) c += res[i] * t[i];
         if (c > bestC) {
-          second = bestC;
+          // runner-up = best of a DIFFERENT word (same word at another
+          // position is not a rival identity)
+          if (best < 0 || vocab[best].word !== vocab[j].word) second = bestC;
           bestC = c;
           best = j;
-        } else if (c > second) second = c;
+        } else if (c > second && vocab[best].word !== vocab[j].word) second = c;
       }
-      if (best < 0 || bestC * bestC < e * READ_STOP) break;
+      // Second clause: residual is at float round-off — nothing left to read
+      // (without it, more templates means more noise-level picks; measured W4).
+      if (best < 0 || bestC * bestC < e * floor || e <= e0 * READ_FLOOR) break;
       if (step === 0) margin = (bestC - second) / Math.sqrt(e0);
-      const t = vocab[best].t;
-      e = 0;
-      for (let i = 0; i < dim; i++) {
-        res[i] -= bestC * t[i];
-        e += res[i] * res[i];
-      }
-      const w = vocab[best].word;
-      if (!weight.has(w)) order.push(w);
-      weight.set(w, (weight.get(w) ?? 0) + bestC);
+      S.push(best);
+      const n = S.length;
+      refit();
+      if (S.length < n && !S.includes(best)) break; // pick rejected by the fit: stop
     }
+    // Injection writes positions 0..L−1 with no gaps: an atom beyond the first
+    // unread position cannot belong to the utterance (crosstalk) — drop, refit.
+    closeGaps();
+    // Amplitude consistency: injection gives the atom at rank p the coefficient
+    // G·φ⁻ᵖ·‖pattern‖ with ONE G per utterance. Estimate G from the rank-0
+    // atom; an atom whose implied G is below φ⁻¹·G is crosstalk — drop, refit.
+    const gainOf = (k: number) =>
+      coef[k] / (dpowi(PHI_INV_LEX, vocab[S[k]].pos) * this.rawNorm(vocab[S[k]].word, rungs));
+    const k0 = S.findIndex((j) => vocab[j].pos === 0);
+    if (k0 >= 0) {
+      const G = gainOf(k0);
+      let changed = false;
+      for (let k = S.length - 1; k >= 0; k--)
+        if (gainOf(k) < PHI_INV_LEX * G) {
+          S.splice(k, 1);
+          changed = true;
+        }
+      if (changed) {
+        refit();
+        closeGaps();
+      }
+    }
+    const weight = new Map<string, number>();
+    const posOf = new Map<string, { pos: number; c: number }>();
+    const order: string[] = [];
+    S.forEach((j, k) => {
+      const w = vocab[j].word;
+      if (!weight.has(w)) order.push(w);
+      weight.set(w, (weight.get(w) ?? 0) + coef[k]);
+      const cur = posOf.get(w);
+      if (!cur || coef[k] > cur.c) posOf.set(w, { pos: vocab[j].pos, c: coef[k] });
+    });
     const explained = Math.max(0, Math.min(1, 1 - e / e0));
     const total = order.reduce((s, w) => s + (weight.get(w) ?? 0), 0);
     const words = order.map((w) => ({
       word: w,
       weight: weight.get(w) ?? 0,
       share: total > 0 ? (weight.get(w) ?? 0) / total : 0,
+      pos: posOf.get(w)!.pos,
     }));
+    const sequence = [...words]
+      .sort((a, b) => a.pos - b.pos || b.weight - a.weight)
+      .map((w) => w.word);
     return {
       words,
+      sequence,
       explained,
       margin,
       crisp: margin >= READ_MARGIN && explained >= PHI_INV_LEX,
@@ -822,6 +960,51 @@ export interface Association {
   readonly together: readonly { word: string; count: number; assoc: number }[];
   readonly spread: readonly { word: string; activation: number; hop: number }[];
   readonly sentences: readonly { text: string; tick: number }[];
+}
+
+/**
+ * Least-squares coefficients of `x` on the columns `A` (k ≤ ~13): solves the
+ * Gram system by Gaussian elimination with partial pivoting. Deterministic.
+ */
+function leastSquares(A: readonly Float64Array[], x: Float64Array): number[] {
+  const k = A.length;
+  if (k === 0) return [];
+  const G: number[][] = [];
+  for (let a = 0; a < k; a++) {
+    const row: number[] = [];
+    for (let b = 0; b < k; b++) {
+      let d = 0;
+      for (let i = 0; i < x.length; i++) d += A[a][i] * A[b][i];
+      row.push(d);
+    }
+    let r = 0;
+    for (let i = 0; i < x.length; i++) r += A[a][i] * x[i];
+    row.push(r);
+    G.push(row);
+  }
+  for (let c = 0; c < k; c++) {
+    let piv = c;
+    for (let r = c + 1; r < k; r++) if (Math.abs(G[r][c]) > Math.abs(G[piv][c])) piv = r;
+    [G[c], G[piv]] = [G[piv], G[c]];
+    const d = G[c][c];
+    if (Math.abs(d) < 1e-14) {
+      G[c][k] = 0; // singular direction: duplicate atom carries nothing
+      G[c][c] = 1;
+      for (let r = c + 1; r < k; r++) G[c][r] = 0;
+      continue;
+    }
+    for (let r = c + 1; r < k; r++) {
+      const f = G[r][c] / d;
+      for (let q = c; q <= k; q++) G[r][q] -= f * G[c][q];
+    }
+  }
+  const out = new Array<number>(k).fill(0);
+  for (let c = k - 1; c >= 0; c--) {
+    let v = G[c][k];
+    for (let q = c + 1; q < k; q++) v -= G[c][q] * out[q];
+    out[c] = v / G[c][c];
+  }
+  return out;
 }
 
 /** Increment m[a][b] by c. */

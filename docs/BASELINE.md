@@ -39,7 +39,7 @@ Test count may only drop when a task's plan states the expected drop.
 
 `bun run gate` fails if fewer tests pass than this number. Lower it only with a written reason on the line below it.
 
-gate-expected-tests: 1106
+gate-expected-tests: 1111
 
 P0.3: +24 tests (11 digest + 1 count + 12 parity); marker 1055 → 1079.
 
@@ -82,3 +82,14 @@ Measured phenomena:
 Measured: 5-sentence corpus cat~dog 0.298 vs cat~moon 0.117 (old `context` channel 0.130 vs 0.085);
 on that corpus 'a' still outranks 'dog' (too little data). Two-category corpus (6 animals, 6 objects):
 precision@3 PPMI 1.00 vs `context` 0.11; ~0.14 ms per `similar` call at 37 words.
+
+### Ω-UNDERSTAND W4 — word order (+5 tests, `test/memory/w4-order.test.ts`)
+Injection: rank r rotates each rung's (x,y) by r·2π/φ² (rank 0 unchanged). Readout: orthogonal LS pursuit
+over (word, position) atoms, one word per position, gapless positions, amplitude consistency, extreme-value
+stop 2·ln N/dim (replaces fixed φ⁻²). Role-swap Ψ cosine at 55 rungs 0.842→0.630, 0.834→0.582, 0.809→0.280.
+Sweep (1,092 words, 100 sentences/len) P/R/order-exact, before → after:
+55 rungs L3 .993/.983/.59 → .977/.993/.96; L6 1.0/.797/.10 → .992/.988/.92.
+21 rungs L6 .867/.512/.01 → .961/.903/.77. 9 rungs (live) L2 .788/.780/.56 → .838/.750/.65; L4 .439/.297 → .718/.305.
+W1 precision floor L3/L6 lowered 0.98→0.97 (near-identical templates, e.g. observed/updatevelocity: same rung set,
+residue, minor phase within 0.006 rad — a W0 encoding limit). Readout ~10–20 ms/call at 55 rungs (was ~2 ms).
+Limit: several utterances drained in one tick share positions 0..; the readout favours the strongest.
