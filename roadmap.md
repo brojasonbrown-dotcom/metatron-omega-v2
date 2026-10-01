@@ -115,4 +115,5 @@ Notebook 4 what turns a rung off.
 - [x] Ω-UNDERSTAND W0 Full-token sparse word placement — gate 1083/1083
 - [x] W1 Ψ→word readout — gate 1089/1089
 - [ ] Field width: live Ψ has 9 rungs, holds ~2 words at once (needs its own task; engine size is frozen)
-- [ ] W2 related-pattern recall · W3 meaning · W4 order · W5 prediction/habituation · W6 endogenous proposal · W7 phenomenon log
+- [x] W2 related-pattern recall — gate 1099/1099
+- [ ] W3 meaning · W4 order · W5 prediction/habituation · W6 endogenous proposal · W7 phenomenon log
