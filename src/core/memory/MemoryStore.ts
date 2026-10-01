@@ -306,7 +306,7 @@ export class MemoryStore {
     const all = this.journal.all();
     const byHash = new Map<string, JournalRecord>();
     for (const r of all) byHash.set(r.signatureHash, r);
-    const episodes: WordAssociation['episodes'] = [];
+    const episodes: WordAssociation['episodes'][number][] = [];
     for (let i = all.length - 1; i >= 0 && episodes.length < k; i--) {
       const r = all[i];
       if (
