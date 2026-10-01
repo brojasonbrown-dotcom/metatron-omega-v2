@@ -39,7 +39,7 @@ Test count may only drop when a task's plan states the expected drop.
 
 `bun run gate` fails if fewer tests pass than this number. Lower it only with a written reason on the line below it.
 
-gate-expected-tests: 1099
+gate-expected-tests: 1106
 
 P0.3: +24 tests (11 digest + 1 count + 12 parity); marker 1055 → 1079.
 
@@ -76,3 +76,9 @@ Measured phenomena:
 - No per-word sound prototype exists (SoundWordMap is one linear map); sound association needs
   word-aligned audio first.
 +10 tests `test/memory/w2-associate.test.ts` (incl. capture-label exclusion and spelling noise floor 3/√d).
+
+### Ω-UNDERSTAND W3 — second-order meaning (+7 tests, `test/memory/w3-meaning.test.ts`)
+`LexiconMemory.meaning/similar`: cosine of PPMI (α=¾) rows over the W2 co-occurrence counts; derived, not persisted.
+Measured: 5-sentence corpus cat~dog 0.298 vs cat~moon 0.117 (old `context` channel 0.130 vs 0.085);
+on that corpus 'a' still outranks 'dog' (too little data). Two-category corpus (6 animals, 6 objects):
+precision@3 PPMI 1.00 vs `context` 0.11; ~0.14 ms per `similar` call at 37 words.

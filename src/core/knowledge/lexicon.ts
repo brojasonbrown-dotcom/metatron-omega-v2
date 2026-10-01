@@ -22,6 +22,7 @@
 
 import catalogRaw from './lexiconCatalog.json';
 import { fnv1a } from './tokenize';
+import { dlog, dpow } from '@metatron/trnn-core/core/dmath';
 import { calibratedBeta } from '@/core/gematria/resonanceKernel';
 import {
   lexeme,
@@ -231,6 +232,9 @@ export function decodeSentence(
 export const LEX_ETA = 0.2360679774997897;
 /** Co-occurrence window: ±φ³ ≈ 4.236 tokens → 4. */
 export const LEX_WINDOW = 4;
+/** PPMI context-distribution smoothing exponent (Levy–Goldberg–Dagan 2015). */
+export const LEX_PPMI_ALPHA = 0.75;
+
 /** Utterances kept in the association ring (F17). */
 export const LEX_UTTER_CAP = 1597;
 
@@ -289,6 +293,8 @@ export class LexiconMemory {
   /** word → ids of ring utterances containing it, ascending. */
   private readonly postings = new Map<string, number[]>();
   private nextId = 0;
+  /** Ω-UNDERSTAND W3: unit PPMI rows derived from `cooc`; null = stale. */
+  private ppmi: Map<string, Map<string, number>> | null = null;
 
   constructor(d = LEX_DIM) {
     this.d = d;
@@ -361,6 +367,7 @@ export class LexiconMemory {
   /** Record co-occurrence, succession and postings for one utterance. */
   private index(toks: readonly string[], tick: number): void {
     if (toks.length === 0) return;
+    this.ppmi = null;
     for (let i = 0; i < toks.length; i++) {
       for (let k = i + 1; k <= Math.min(toks.length - 1, i + LEX_WINDOW); k++) {
         if (toks[k] === toks[i]) continue;
@@ -390,6 +397,89 @@ export class LexiconMemory {
         if (p.length === 0) this.postings.delete(t);
       }
     }
+  }
+
+  /**
+   * Ω-UNDERSTAND W3 — unit-normalised PPMI rows over `cooc`.
+   * PPMI(w,c) = max(0, ln(n(w,c)·D / (S_w·D·P_α(c)))), S_w = Σ_c n(w,c),
+   * D = Σ S, P_α(c) = S_c^α/Σ S^α with α = ¾ (context-distribution smoothing,
+   * Levy–Goldberg–Dagan 2015). Pure function of `cooc`; rebuilt lazily.
+   */
+  private ppmiRows(): Map<string, Map<string, number>> {
+    if (this.ppmi) return this.ppmi;
+    const S = new Map<string, number>();
+    let D = 0;
+    let Za = 0;
+    for (const [w, row] of this.cooc) {
+      let s = 0;
+      for (const c of row.values()) s += c;
+      S.set(w, s);
+      D += s;
+      Za += dpow(s, LEX_PPMI_ALPHA);
+    }
+    const rows = new Map<string, Map<string, number>>();
+    for (const [w, row] of this.cooc) {
+      const sw = S.get(w)!;
+      const out = new Map<string, number>();
+      let n2 = 0;
+      for (const [c, n] of row) {
+        const pc = dpow(S.get(c)!, LEX_PPMI_ALPHA) / Za;
+        const v = dlog((n * D) / (sw * D * pc));
+        if (v > 0) {
+          out.set(c, v);
+          n2 += v * v;
+        }
+      }
+      if (n2 === 0) continue;
+      const inv = 1 / Math.sqrt(n2);
+      for (const [c, v] of out) out.set(c, v * inv);
+      rows.set(w, out);
+    }
+    this.ppmi = rows;
+    return rows;
+  }
+
+  /** Ω-UNDERSTAND W3 — cosine of PPMI context rows ∈ [0,1]; 0 if either is unknown. */
+  meaning(a: string, b: string): number {
+    const rows = this.ppmiRows();
+    const ra = rows.get(normToken(a));
+    const rb = rows.get(normToken(b));
+    if (!ra || !rb) return 0;
+    const [small, big] = ra.size <= rb.size ? [ra, rb] : [rb, ra];
+    let dot = 0;
+    for (const [c, v] of small) dot += v * (big.get(c) ?? 0);
+    return Math.min(1, dot);
+  }
+
+  /**
+   * Ω-UNDERSTAND W3 — words used like `word`: ranked by `meaning`, over
+   * candidates that share at least one positive-PPMI context. `shared` is the
+   * evidence count (number of shared contexts).
+   */
+  similar(word: string, k = 8): { word: string; score: number; shared: number }[] {
+    const t = normToken(word);
+    const rows = this.ppmiRows();
+    const r = rows.get(t);
+    if (!r) return [];
+    const acc = new Map<string, { score: number; shared: number }>();
+    for (const [c, v] of r) {
+      // contexts are symmetric: words having c as a context are cooc(c)'s keys
+      const holders = this.cooc.get(c);
+      if (!holders) continue;
+      for (const w of holders.keys()) {
+        if (w === t) continue;
+        const u = rows.get(w)?.get(c);
+        if (!u) continue;
+        const e = acc.get(w) ?? { score: 0, shared: 0 };
+        e.score += v * u;
+        e.shared++;
+        acc.set(w, e);
+      }
+    }
+    return [...acc]
+      .map(([w, e]) => ({ word: w, score: Math.min(1, e.score), shared: e.shared }))
+      .sort((a, b) => b.score - a.score || (a.word < b.word ? -1 : 1))
+      .slice(0, k);
   }
 
   /** Normalised association c(a,b)/√(f(a)·f(b)) ∈ [0, ~2·LEX_WINDOW]. */
@@ -475,6 +565,7 @@ export class LexiconMemory {
       occurrences: ids.length,
       spelling,
       context,
+      meaning: this.similar(t, k),
       follows: seq(this.nextW.get(t)),
       precedes: seq(this.prevW.get(t)),
       together,
@@ -657,6 +748,7 @@ export class LexiconMemory {
 
   /** Replace this memory's contents in place (the store holds a readonly ref). */
   load(s: LexiconSnapshot): void {
+    this.ppmi = null;
     this.freq.clear();
     this.delta.clear();
     this.total = 0;
@@ -723,6 +815,8 @@ export interface Association {
   readonly occurrences: number;
   readonly spelling: readonly Recall[];
   readonly context: readonly Recall[];
+  /** Ω-UNDERSTAND W3: words used in the same contexts (PPMI cosine). */
+  readonly meaning: readonly { word: string; score: number; shared: number }[];
   readonly follows: readonly { word: string; count: number; p: number }[];
   readonly precedes: readonly { word: string; count: number; p: number }[];
   readonly together: readonly { word: string; count: number; assoc: number }[];
