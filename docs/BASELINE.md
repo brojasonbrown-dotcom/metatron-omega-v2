@@ -39,7 +39,7 @@ Test count may only drop when a task's plan states the expected drop.
 
 `bun run gate` fails if fewer tests pass than this number. Lower it only with a written reason on the line below it.
 
-gate-expected-tests: 1097
+gate-expected-tests: 1099
 
 P0.3: +24 tests (11 digest + 1 count + 12 parity); marker 1055 → 1079.
 
@@ -75,4 +75,4 @@ Measured phenomena:
   record arrives, not every tick.
 - No per-word sound prototype exists (SoundWordMap is one linear map); sound association needs
   word-aligned audio first.
-+8 tests `test/memory/w2-associate.test.ts`.
++10 tests `test/memory/w2-associate.test.ts` (incl. capture-label exclusion and spelling noise floor 3/√d).

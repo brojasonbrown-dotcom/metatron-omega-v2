@@ -420,6 +420,9 @@ export class LexiconMemory {
     const sp = spellingSignature(t, this.d);
     const spelling = known
       .map((w) => ({ word: w, score: similarity(sp, spellingSignature(w, this.d)) }))
+      // Unrelated atoms correlate at ~1/√d; keep only words above 3σ of that
+      // noise floor, i.e. words that actually share trigrams.
+      .filter((x) => x.score > 3 / Math.sqrt(this.d))
       .sort(byScore)
       .slice(0, k);
     const context =

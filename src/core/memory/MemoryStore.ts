@@ -25,7 +25,12 @@ import { ReflectiveIndex } from './ReflectiveIndex';
 import { SensoryGateway } from '@/core/sensory/SensoryGateway';
 import { PerceptRegistry } from './PerceptRegistry';
 import { VisionFieldIndex } from './VisionFieldIndex';
-import { MemoryCaptureKernel, type CaptureInput, type CaptureMetrics } from './MemoryCaptureKernel';
+import {
+  MemoryCaptureKernel,
+  isCaptureLabel,
+  type CaptureInput,
+  type CaptureMetrics,
+} from './MemoryCaptureKernel';
 
 export interface MemoryIngest {
   tick: number;
@@ -51,6 +56,11 @@ import {
   type LexiconSnapshot,
   type SoundWordSnapshot,
 } from '@/core/knowledge/lexicon';
+
+/** Journal text when it is an utterance; null for capture labels or absent text. */
+function utteranceText(t: string | undefined): string | null {
+  return t && !isCaptureLabel(t) ? t : null;
+}
 
 /** Lexicon association joined with episode-level memory (Ω-UNDERSTAND W2). */
 export interface WordAssociation extends Association {
@@ -311,6 +321,7 @@ export class MemoryStore {
       const r = all[i];
       if (
         !r.text ||
+        isCaptureLabel(r.text) ||
         !r.text
           .toLowerCase()
           .split(/[^a-z0-9]+/)
@@ -325,7 +336,7 @@ export class MemoryStore {
         next: this.pathway.successors(r.signatureHash, 3).map((e) => ({
           hash: e.to,
           count: e.count,
-          text: byHash.get(e.to)?.text ?? null,
+          text: utteranceText(byHash.get(e.to)?.text),
         })),
       });
     }

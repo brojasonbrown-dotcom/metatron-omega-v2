@@ -111,3 +111,25 @@ describe('Ω-UNDERSTAND W2 — related-pattern recall', () => {
     expect(corpus().associate('the')).toEqual(corpus().associate('the'));
   });
 });
+
+describe('Ω-UNDERSTAND W2 — capture labels are not sentences', () => {
+  it('label records never match a word and successor labels show as null', () => {
+    const st = new MemoryStore();
+    st.journal.append({ tick: 1, qualiaScalar: 0.5, signatureHash: 'h1', text: 'the cat drinks' });
+    st.journal.append({
+      tick: 2,
+      qualiaScalar: 0.4,
+      signatureHash: 'h2',
+      text: 'fibonacci · sal=0.59',
+    });
+    st.pathway.observe('h1', 'h2', 2);
+    expect(st.associate('cat').episodes[0].next[0].text).toBeNull();
+    expect(st.associate('fibonacci').episodes).toHaveLength(0);
+  });
+
+  it('spelling family drops words with no shared trigrams', () => {
+    const lex = new LexiconMemory(1597);
+    lex.learn(['cats', 'water', 'moon'], 0);
+    expect(lex.associate('cat').spelling.map((x) => x.word)).toEqual(['cats']);
+  });
+});
