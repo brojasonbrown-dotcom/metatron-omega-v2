@@ -697,6 +697,44 @@ export class LexiconMemory {
         e += r * r;
       }
     };
+    // Injection writes positions 0..L−1 with no gaps. While a gap g exists,
+    // first try moving an atom beyond g (same word) into g — a near-repeat
+    // phase (e.g. offset 5, cos 5ω ≈ 0.84) can mislocate a correct word — and
+    // keep the move only if it strictly lowers the residual; otherwise the
+    // furthest atom is crosstalk and is dropped.
+    const atomAt = new Map<string, number>();
+    vocab.forEach((v, j) => atomAt.set(v.word + '@' + v.pos, j));
+    const closeGaps = () => {
+      for (;;) {
+        const has = new Set(S.map((j) => vocab[j].pos));
+        let gap = 0;
+        while (has.has(gap)) gap++;
+        const keep = S.slice();
+        const beyond = keep.map((_, k) => k).filter((k) => vocab[keep[k]].pos > gap);
+        if (beyond.length === 0) return;
+        const eFit = e;
+        let bestS: number[] | null = null;
+        let bestE = eFit;
+        for (const k of beyond) {
+          const m = atomAt.get(vocab[keep[k]].word + '@' + gap);
+          if (m === undefined) continue;
+          S.splice(0, S.length, ...keep);
+          S[k] = m;
+          refit();
+          if (S.includes(m) && e < bestE) {
+            bestE = e;
+            bestS = S.slice();
+          }
+        }
+        S.splice(0, S.length, ...(bestS ?? keep));
+        if (!bestS) {
+          let far = beyond[0];
+          for (const k of beyond) if (vocab[S[k]].pos > vocab[S[far]].pos) far = k;
+          S.splice(far, 1);
+        }
+        refit();
+      }
+    };
     // Detection threshold = extreme-value noise floor: for a residual with no
     // structure, the largest of N unit-template cos² in `dim` dimensions is
     // ≈ 2·ln N / dim. A pick must explain more than that share of what is left.
@@ -733,15 +771,7 @@ export class LexiconMemory {
     }
     // Injection writes positions 0..L−1 with no gaps: an atom beyond the first
     // unread position cannot belong to the utterance (crosstalk) — drop, refit.
-    for (;;) {
-      const has = new Set(S.map((j) => vocab[j].pos));
-      let gap = 0;
-      while (has.has(gap)) gap++;
-      const k = S.findIndex((j) => vocab[j].pos > gap);
-      if (k < 0) break;
-      S.splice(k, 1);
-      refit();
-    }
+    closeGaps();
     // Amplitude consistency: injection gives the atom at rank p the coefficient
     // G·φ⁻ᵖ·‖pattern‖ with ONE G per utterance. Estimate G from the rank-0
     // atom; an atom whose implied G is below φ⁻¹·G is crosstalk — drop, refit.
@@ -758,15 +788,7 @@ export class LexiconMemory {
         }
       if (changed) {
         refit();
-        for (;;) {
-          const has = new Set(S.map((j) => vocab[j].pos));
-          let gap = 0;
-          while (has.has(gap)) gap++;
-          const k = S.findIndex((j) => vocab[j].pos > gap);
-          if (k < 0) break;
-          S.splice(k, 1);
-          refit();
-        }
+        closeGaps();
       }
     }
     const weight = new Map<string, number>();
