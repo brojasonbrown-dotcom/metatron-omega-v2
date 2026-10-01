@@ -640,7 +640,10 @@ export class LexiconMemory {
    * records it, and subtracts it ("explain away"), so a word whose energy is
    * already accounted for cannot win again by crosstalk — the failure raw
    * cosine ranking showed (moon .40 > drinks .33). Stops at `maxWords`, or
-   * when a pick explains < φ⁻² of the energy still unexplained.
+   * when a pick explains less of the remaining energy than the extreme-value
+   * noise floor 2·ln N / dim (N templates). W4: atoms are (word, position),
+   * fitted by orthogonal least squares, one word per position, positions
+   * gapless from 0, amplitude-consistent with one gain per utterance.
    *
    * `margin` is the first pick's cosine lead over the runner-up (a softmax
    * mass would be tautological here: calibratedBeta is built to make it ≥
@@ -648,7 +651,14 @@ export class LexiconMemory {
    * Reads only the per-rung slots; the four global invariant slots are ignored.
    */
   readPsi(field: ArrayLike<number>, maxWords = 8): FieldReadout {
-    const empty: FieldReadout = { words: [], sequence: [], explained: 0, margin: 0, crisp: false, energy: 0 };
+    const empty: FieldReadout = {
+      words: [],
+      sequence: [],
+      explained: 0,
+      margin: 0,
+      crisp: false,
+      energy: 0,
+    };
     const rungs = lexemeRungs(field.length);
     if (rungs <= 0 || this.freq.size === 0) return empty;
     const dim = rungs * 4;
@@ -809,7 +819,9 @@ export class LexiconMemory {
       share: total > 0 ? (weight.get(w) ?? 0) / total : 0,
       pos: posOf.get(w)!.pos,
     }));
-    const sequence = [...words].sort((a, b) => a.pos - b.pos || b.weight - a.weight).map((w) => w.word);
+    const sequence = [...words]
+      .sort((a, b) => a.pos - b.pos || b.weight - a.weight)
+      .map((w) => w.word);
     return {
       words,
       sequence,
