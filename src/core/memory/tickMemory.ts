@@ -252,7 +252,7 @@ export function tickMemory(
     const toks = lexemeTokens(u);
     let unfamiliar = 0;
     for (const t of toks) if (store.lexicon.count(t) === 0) unfamiliar++;
-    store.lexicon.learn(toks, toks.length ? 0.25 + 0.75 * (unfamiliar / toks.length) : 0);
+    store.lexicon.learn(toks, toks.length ? 0.25 + 0.75 * (unfamiliar / toks.length) : 0, tick);
     textInjection = textInjection
       ? {
           tokens: textInjection.tokens + inj.tokens,
