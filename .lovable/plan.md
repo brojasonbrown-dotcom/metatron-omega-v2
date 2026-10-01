@@ -1,56 +1,74 @@
-# P0 — Foundation & governance
+# Ω-UNDERSTAND — synthesis review: full associative word recall, what LLMs/perceptrons exploit, and the field's best use
 
-## New standing rule (added first, applies to every future plan)
+Status: REVIEW + TASK SEQUENCE. Planning only. Each W-task below is one prompt, one gate. Supersedes the order of R1–R5 in `ω-respond-…-2026-10-01.md` (R-items are folded in, not duplicated).
 
-Every plan must include an **Information-flow review** before any solution is chosen:
+## 1. What we have learned (measured, not assumed)
 
-1. Where does this information come from? (source, sensor, rate, provenance: measured / derived / free)
-2. Where should it go? (consumers, memory tier, persistence)
-3. What does it indicate? (the measurable quantity it stands for, and its units)
-4. Is the storage layering correct and accurate? (fast vs slow memory, snapshot schema, loss or duplication)
-5. Can it serve pattern recognition or the field / RHUFT computation, and how exactly?
-6. What methods could improve it for real use?
+| Finding | Source | Consequence |
+|---|---|---|
+| Lone word → Ψ is uniquely decodable (17/17) | Ω-RESPOND sandbox | field can carry identity for small active sets |
+| Sentence → Ψ: false positive (moon .40) beats true word (drinks .33) | Ω-RESPOND | superposition crosstalk; readout needs cleanup, not raw cosine |
+| Role swap cosine 0.852 | Ω-RESPOND | order/roles are lost in injection |
+| 1,191 tokens on 51/55 positions, max 151 per position, length-driven | field test | placement is the main capacity bottleneck |
+| Words >11 letters collide (base-27 truncation) | Ω-HEAR | identity loss for long words |
+| Repeating a word doubles energy (0.227→0.454); no habituation in field | field test | repetition is not yet a learning signal in Ψ |
+| Propagation retains low 1.00 / mid 0.45 / high 0.29 per step | field test | field is a low-pass context integrator; fine detail must live in memory |
+| Lexicon recall and Ψ never meet; `recalledWord` is last typed token | Ω-RESPOND | fake readout must be replaced |
+| cat~dog 0.075 vs cat~moon 0.025; neighbours of cat = a, sleeps, chases | Ω-RESPOND | first-order co-occurrence only; no "what it is like" |
+| Sound map: chunk-averaged, chunk-labelled | Ω-HEAR | no word-level acoustic learning yet |
 
-For each question: list all candidate solutions, then rigorously filter them (measurable, deterministic, testable, minimal diff, no lore). Keep only the best combination and say why the others were dropped.
+Answer to "can it recall all related patterns of a word?": today, no. It recalls the single nearest lexicon vector and its window neighbours. It does not retrieve the set of patterns, pathways, spellings, sounds, and sentences that involve the word.
 
-Saved to project rules (AGENTS.md) and core memory.
+## 2. What LLMs and perceptrons actually exploit (and the field equivalent)
 
-## Verified current state
+| Mechanism | What it does | Honest field/memory equivalent | Keep? |
+|---|---|---|---|
+| Learned embeddings | words with similar contexts get close vectors | second-order (shared-neighbour) context in `LexiconMemory` | yes (W3) |
+| Attention = softmax(q·k) | content-addressed retrieval over many items | modern Hopfield recall is mathematically the same operation; already our calibrated kernel | yes (W1, W2) |
+| Positional encoding | order via phase/rotation | positional phase in `injectTextPsi` | yes (W4) |
+| Residual stream / layers | iterate retrieve → refine | k-step Hopfield cleanup over Ψ readout | yes (W1) |
+| Next-token prediction + loss | learning signal = surprise | L4 successor prediction scored before update | yes (W5) |
+| Backprop over billions of params | gradient training | not reproduced; NLMS/Hebbian local rules only | no, out of scope; stated as a limitation |
+| Perceptron / sparse coding | linear separability via high-dimensional sparse codes | full-token hashed sparse placement (k-of-N) | yes (W0) |
 
-- Last build: OK (29 Sep 14:47 UTC).
-- `package.json` has `build`, `lint`, `format` scripts but **no test or typecheck script**.
-- Test count: the context sheet says about 883, but the last full run reported 1050. P0.1 records the real number, which then replaces both.
-- Frozen-candidate files exist: `packages/trnn-core/src/core/constants.ts`, `dmath.ts`, `determinism.ts`. Neumaier summation appears in `spectral/laplacian.ts` and `web/fluxLedger.ts`, and possibly elsewhere (P0.3 lists all of them).
+The field contributes what LLMs lack: a continuous, measurable dynamical state with closure/coherence diagnostics. Coherence is used as a **gate** (when recall is trusted, when consolidation may happen, when the field may propose), never as a score of meaning.
 
-## Tasks (one per prompt, gate after each)
+## 3. Information-flow review
 
-### P0.1 Baseline capture
-- Info-flow: the source is the test runner, typecheck and build output. The destination is a baseline record. It shows the real health of the code.
-- Run lint, typecheck, the full test suite and a production build, and record the results in `docs/BASELINE.md`: pass counts, failures, lint errors and the date.
-- If anything fails, fix it inside P0.1 before closing it. Lint errors that predate this work get counted and triaged, not silently ignored.
+- **Source:** typed/heard tokens (teacher), Ψ after propagation, stored lexicon/pathway/pattern stores.
+- **Destination:** Ψ (short-lived context), lexicon (identity + meaning), L4 pathways (sequence), phenomenon log (new, see W7), journal/UI.
+- **What it indicates:** Ψ = which words are active and how strongly in context; lexicon = what a word is like; pathways = what follows what; closure/coherence = whether the state is stable enough to trust.
+- **Storage layering:** fast Ψ + L1 Hebbian; slow lexicon, L3 patterns, L4 pathways; all persisted via existing `MemoryPersistence`. Missing: an index from a word to every stored item that involves it.
+- **Pattern use:** every tick becomes a scored recognition event (precision/recall), every prediction a scored surprise event.
 
-### P0.2 Gate script
-- Add the scripts `typecheck` (tsgo), `test` (vitest run) and `gate`.
-- `gate` runs lint, then typecheck, then tests, then build, then checks the build-error log. It stops at the first failure and prints a one-line summary with the test count.
-- It also compares the test count against `docs/BASELINE.md` and fails if the count drops without a note saying why.
-- Chosen over CI or git hooks, which Lovable's sync cannot run reliably.
+## 4. Candidate solutions per bottleneck, filtered
 
-### P0.3 Determinism freeze
-- Info-flow: these constants and kernels feed every value that reaches engine state, so a silent change breaks bit-for-bit reproducibility.
-- List every frozen file in `docs/FROZEN.md`: `constants.ts`, `dmath.ts`, `determinism.ts` and every Neumaier kernel found by search.
-- Add a test that hashes the frozen files (SHA-256 over normalised text) against recorded digests. Pair it with a bit-parity test that pins exact IEEE-754 outputs for dpow, dmath and the Neumaier sums at fixed inputs.
-- Hashes catch edits to the files. Parity values catch changes in behaviour, including changes from dependencies. Both are needed.
-- Scan for `Math.pow`, `Math.random` and `Date.now` on paths that reach engine state. Report them only; removing them is a later task.
+| Bottleneck | Options | Kept |
+|---|---|---|
+| Placement collisions | (a) wider base-27 code; (b) full-token hash to sparse k-of-N positions; (c) learned placement | (b): deterministic, removes length bias, Wolfram-checked load bound |
+| Readout crosstalk | (a) raw cosine; (b) Hopfield softmax over word patterns; (c) iterative cleanup with subtraction (explain-away) | (b)+(c): attention-equivalent, deterministic |
+| Related-pattern recall | (a) nearest neighbours only; (b) inverted index word → {patterns, pathways, sentences, sounds}; (c) spreading activation over that graph with decay | (b)+(c), decay φ⁻¹ per hop, bounded hops |
+| Meaning | (a) window co-occurrence; (b) second-order PPMI-style shared context; (c) external embeddings | (b); (c) violates "the brain computes it" |
+| Order/roles | (a) positional phase; (b) role-bound injection from `encodeSentence` | (a) then (b) |
+| Repetition | (a) energy doubling; (b) habituation via prediction error (repeat = low surprise, strengthen) | (b) |
+| Endogenous response | (a) L4 replay from Ψ readout at φ⁻³ gain; (b) random sampling (forbidden) | (a), gated |
 
-### P0.4 Branch and versioning policy
-- Write the policy in `docs/BRANCHING.md`:
-  - One active branch, `main`, synced with Lovable.
-  - Staging is Lovable's preview build and production is the published build. No second git branch while Lovable syncs, so nothing gets interleaved.
-  - Commits are named by task ID.
-  - Manual edits are committed before the next Lovable prompt so a regeneration never overwrites them.
-- Record the rule in AGENTS.md.
+## 5. Task sequence (one per prompt, full gate each, replacement before deletion)
 
-## Technical notes
-- Files touched across P0: `package.json` (scripts), `docs/BASELINE.md`, `docs/FROZEN.md`, `docs/BRANCHING.md`, one new frozen-integrity test file, and AGENTS.md.
-- No engine math is modified in P0.
-- Git commits are managed by the platform, so "commit per task" means one prompt per task.
+- **W0 Placement.** Full-token hashed sparse placement in `lexeme.ts`, replacing base-27 truncation. Test: max per-position load and positions used on the 1,191-token catalog vs stated bound; long words no longer collide. Re-pin parity.
+- **W1 Ψ→word readout.** Hopfield softmax + explain-away cleanup over Ψ in `lexicon.ts`; replaces fake `recalledWord` in `tickMemory.ts`. Test: held-out sentence precision/recall; moon must not outrank drinks.
+- **W2 Related-pattern recall.** Inverted index in `LexiconMemory` (word → patterns, pathways, sentences, sound prototypes) + bounded spreading activation. UI: word inspector in `HearDeckPanel` lists everything recalled with scores. Test: recall set completeness on a fixed corpus.
+- **W3 Meaning.** Second-order context. Test: cat~dog > cat~moon by stated margin.
+- **W4 Order.** Positional phase in `injectTextPsi`. Test: role-swap cosine below stated target.
+- **W5 Prediction + habituation.** Score L4 successor before update; repetition weighted by surprise, not raw energy.
+- **W6 Endogenous proposal.** Idle replay gated by readout crisp (mass ≥ φ⁻¹), surprise below band, closure stable. Logged "field proposed: …"; shown beside, never merged with, the LLM reply.
+- **W7 Phenomenon log.** Every emergent measured effect from tests (e.g. low-pass retention, crosstalk ranking) recorded in `docs/BRAINMAP.md` under a measured-phenomena section with test reference; tests assert them so they stay true or fail loudly.
+
+Out of scope, stated: word-aligned acoustic learning (needs its own task), backprop-scale training, any claim of physical cognition.
+
+## Technical details
+
+- Files extended only: `src/core/gematria/lexeme.ts`, `src/core/knowledge/lexicon.ts`, `src/core/knowledge/fieldSignature.ts`, `src/core/memory/tickMemory.ts`, `src/core/memory/MemoryStore.ts`, `src/ui/omega/HearDeckPanel.tsx`, `docs/BRAINMAP.md`, `docs/BASELINE.md` (marker raised per task).
+- Determinism: hashing via existing deterministic hash; dmath/dpow only; no Date.now on state paths.
+- Frozen files untouched; parity re-pins only where a task explicitly changes injection (W0, W4), each with reason in BASELINE.
+- Per-task plans saved as `.lovable/plan/ω-<topic>-<date>.md`; first prompt after approval executes W0 only.
