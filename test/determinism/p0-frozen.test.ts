@@ -34,7 +34,7 @@ function bits(x: number): string {
 
 const doc = readFileSync('docs/FROZEN.md', 'utf8');
 const table = doc.slice(doc.indexOf('frozen-table:start'), doc.indexOf('frozen-table:end'));
-const rows = [...table.matchAll(/^\| `([^`]+)` \| `([0-9a-f]{64})` \|/gm)].map((m) => ({
+const rows = [...table.matchAll(/^\| `([^`]+)`\s*\| `([0-9a-f]{64})`\s*\|/gm)].map((m) => ({
   path: m[1],
   sha: m[2],
 }));
