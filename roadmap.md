@@ -113,4 +113,6 @@ Notebook 4 what turns a rung off.
 - [x] P0.3 Determinism freeze — docs/FROZEN.md (11 digests) + bit parity; gate 1079/1079
 - [ ] P0.4 Branch/versioning policy
 - [x] Ω-UNDERSTAND W0 Full-token sparse word placement — gate 1083/1083
-- [ ] W1 Ψ→word readout · W2 related-pattern recall · W3 meaning · W4 order · W5 prediction/habituation · W6 endogenous proposal · W7 phenomenon log
+- [x] W1 Ψ→word readout — gate 1089/1089
+- [ ] Field width: live Ψ has 9 rungs, holds ~2 words at once (needs its own task; engine size is frozen)
+- [ ] W2 related-pattern recall · W3 meaning · W4 order · W5 prediction/habituation · W6 endogenous proposal · W7 phenomenon log
