@@ -35,7 +35,7 @@ function psiNoOrder(text: string, rungs = R): Float64Array {
   const p = new Float64Array(rungs * 4);
   toks.forEach((t, r) => {
     const pat = lexemePattern(t, rungs, 0)!;
-    for (let i = 0; i < pat.length; i++) pat[i] && (p[i] += pat[i] * PHI_INV ** r);
+    for (let i = 0; i < pat.length; i++) p[i] += pat[i] * PHI_INV ** r;
   });
   return p;
 }
