@@ -309,7 +309,14 @@ export class MemoryStore {
     const episodes: WordAssociation['episodes'] = [];
     for (let i = all.length - 1; i >= 0 && episodes.length < k; i--) {
       const r = all[i];
-      if (!r.text || !r.text.toLowerCase().split(/[^a-z0-9]+/).includes(lex.word)) continue;
+      if (
+        !r.text ||
+        !r.text
+          .toLowerCase()
+          .split(/[^a-z0-9]+/)
+          .includes(lex.word)
+      )
+        continue;
       episodes.push({
         tick: r.tick,
         hash: r.signatureHash,

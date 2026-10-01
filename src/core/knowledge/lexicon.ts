@@ -644,7 +644,9 @@ export class LexiconMemory {
       assoc: {
         cooc: pack(this.cooc),
         next: pack(this.nextW),
-        utter: this.utter.map((u) => [u.id, u.tick, u.tokens.join(' ')] as [number, number, string]),
+        utter: this.utter.map(
+          (u) => [u.id, u.tick, u.tokens.join(' ')] as [number, number, string],
+        ),
         nextId: this.nextId,
       },
     };

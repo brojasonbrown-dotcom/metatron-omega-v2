@@ -120,28 +120,15 @@ function Inspector({ word }: { word: string }) {
           seen in {assoc.occurrences} sentence{assoc.occurrences === 1 ? '' : 's'}
           {assoc.episodes.length ? ` · ${assoc.episodes.length} saved moment(s)` : ''}
         </div>
-        <div>
-          spelled like:{' '}
-          {list(assoc.spelling, (x) => `${x.word} ${x.score.toFixed(2)}`)}
-        </div>
-        <div>
-          follows:{' '}
-          {list(assoc.precedes, (x) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}
-        </div>
-        <div>
-          leads to:{' '}
-          {list(assoc.follows, (x) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}
-        </div>
-        <div>
-          appears with:{' '}
-          {list(assoc.together, (x) => `${x.word} ${x.assoc.toFixed(2)}`)}
-        </div>
+        <div>spelled like: {list(assoc.spelling, (x) => `${x.word} ${x.score.toFixed(2)}`)}</div>
+        <div>follows: {list(assoc.precedes, (x) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}</div>
+        <div>leads to: {list(assoc.follows, (x) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}</div>
+        <div>appears with: {list(assoc.together, (x) => `${x.word} ${x.assoc.toFixed(2)}`)}</div>
         <div>
           spreads to:{' '}
           {list(
             assoc.spread,
-            (x) =>
-              `${x.word} ${x.activation.toFixed(2)}${x.hop === 2 ? '²' : ''}`,
+            (x) => `${x.word} ${x.activation.toFixed(2)}${x.hop === 2 ? '²' : ''}`,
           )}
         </div>
         {assoc.sentences.length > 0 && (
