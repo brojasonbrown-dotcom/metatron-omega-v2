@@ -39,6 +39,12 @@ Test count may only drop when a task's plan states the expected drop.
 
 `bun run gate` fails if fewer tests pass than this number. Lower it only with a written reason on the line below it.
 
-gate-expected-tests: 1079
+gate-expected-tests: 1083
 
 P0.3: +24 tests (11 digest + 1 count + 12 parity); marker 1055 → 1079.
+
+## Ω-UNDERSTAND W0 — 2026-10-01 (marker 1079 → 1083)
+Full-token FNV-1a sparse placement (k=3 rungs) in `lexeme.ts` replaced `maxZeckIndex mod rungs`.
+Measured on 1,092 catalog tokens, 55 rungs: before 51/55 rungs used, max 151 on one rung;
+after 55/55 used, primary-rung max 30, k-placement load 42–82 (mean 59.6), 953 distinct rung-sets.
++4 tests in `test/memory/w0-placement.test.ts`.
