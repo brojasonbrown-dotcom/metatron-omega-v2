@@ -560,6 +560,7 @@ aliases were removed with it.
 | Hopfield / HNSW / PQ associative memory | `src/core/knowledge/{LatentSpace,BarcodeIndex,ConceptGraph}.ts`, `trnn-core/substrate/vsa.ts` |
 | concept registry, glossary, lexicon | `trnn-core/cognition/concepts.ts`, `src/core/knowledge/{KnowledgeBase,LexicalIndex}.ts` |
 | word → field placement / field → word readout | `src/core/gematria/lexeme.ts` (`lexemePattern`, hashed k-of-N rungs), `src/core/knowledge/lexicon.ts` (`LexiconMemory.readPsi`) |
+| word associations (W2) / meaning by shared contexts (W3) | `src/core/knowledge/lexicon.ts` (`LexiconMemory.associate`, `meaning`, `similar` — PPMI over co-occurrence); `MemoryStore.associate` joins episodes |
 | cognitive loop, thought, drive arbiter | `trnn-core/cognition/{mind,selfModel}.ts` + `src/ui/omega/omegaRuntime.ts` drive edges |
 | prediction ledger, novelty gate | `src/core/analysis/findingLedger.ts`, `analysisSpine.ts` (with abstention) |
 | language instrument / codec adapters | `src/lib/chat/*` + `src/core/interop/intake.ts` (text → 28-dim field vector) |

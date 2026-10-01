@@ -37,7 +37,10 @@ function categories(): LexiconMemory {
 function precisionAt(rank: (w: string) => string[], k: number): number {
   let hit = 0;
   for (const set of [ANIMALS, OBJECTS])
-    for (const w of set) hit += rank(w).slice(0, k).filter((x) => set.includes(x)).length;
+    for (const w of set)
+      hit += rank(w)
+        .slice(0, k)
+        .filter((x) => set.includes(x)).length;
   return hit / ((ANIMALS.length + OBJECTS.length) * k);
 }
 
