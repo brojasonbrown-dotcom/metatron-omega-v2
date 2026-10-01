@@ -29,6 +29,7 @@ import {
   lexemePattern,
   lexemeRungs,
   lexemeTorus,
+  LEXEME_MAX_POS,
   type LexemeTorus,
 } from '@/core/gematria/lexeme';
 
@@ -249,10 +250,15 @@ const PHI_INV_LEX = 0.6180339887498949;
 const READ_STOP = 0.3819660112501051;
 /** φ⁻⁵ — minimum first-pick cosine margin (calibratedBeta's own floor). */
 const READ_MARGIN = 0.09016994374947424;
+/** Relative residual energy treated as fully explained (float64 round-off scale). */
+const READ_FLOOR = 1e-20;
 
 export interface FieldReadout {
   /** Words read from the field in pick order, with summed projection weight. */
-  readonly words: readonly { word: string; weight: number; share: number }[];
+  /** Words in pick (strength) order; `pos` = rank of the word's strongest pick (W4). */
+  readonly words: readonly { word: string; weight: number; share: number; pos: number }[];
+  /** W4: the read words ordered by position — the field's reading of word order. */
+  readonly sequence: readonly string[];
   /** Fraction of field energy the picked words explain, ∈ [0,1]. */
   readonly explained: number;
   /** Cosine margin of the first pick over the runner-up. */
@@ -593,11 +599,11 @@ export class LexiconMemory {
   }
 
   /** Unit-norm field template of a word for a given rung count (cached). */
-  private template(word: string, rungs: number): Float64Array | null {
-    const key = rungs + ':' + word;
+  private template(word: string, rungs: number, pos = 0): Float64Array | null {
+    const key = rungs + ':' + pos + ':' + word;
     const hit = this.templates.get(key);
     if (hit !== undefined) return hit;
-    const p = lexemePattern(word, rungs);
+    const p = lexemePattern(word, rungs, pos);
     let t: Float64Array | null = null;
     if (p) {
       let n = 0;
@@ -629,7 +635,7 @@ export class LexiconMemory {
    * Reads only the per-rung slots; the four global invariant slots are ignored.
    */
   readPsi(field: ArrayLike<number>, maxWords = 8): FieldReadout {
-    const empty: FieldReadout = { words: [], explained: 0, margin: 0, crisp: false, energy: 0 };
+    const empty: FieldReadout = { words: [], sequence: [], explained: 0, margin: 0, crisp: false, energy: 0 };
     const rungs = lexemeRungs(field.length);
     if (rungs <= 0 || this.freq.size === 0) return empty;
     const dim = rungs * 4;
@@ -641,14 +647,22 @@ export class LexiconMemory {
       e0 += res[i] * res[i];
     }
     if (!(e0 > 0)) return empty;
-    const vocab: { word: string; t: Float64Array }[] = [];
+    // W4: one template per (word, position); positions beyond maxWords are
+    // not searched (their φ⁻ʳ amplitude is below what the stop rule keeps).
+    const P = Math.min(Math.max(1, maxWords), LEXEME_MAX_POS + 1);
+    const vocab: { word: string; t: Float64Array; pos: number }[] = [];
     for (const w of [...this.freq.keys()].sort()) {
-      const t = this.template(w, rungs);
-      if (t) vocab.push({ word: w, t });
+      for (let p = 0; p < P; p++) {
+        const t = this.template(w, rungs, p);
+        if (t) vocab.push({ word: w, t, pos: p });
+      }
     }
     if (vocab.length === 0) return empty;
 
     const weight = new Map<string, number>();
+    const posOf = new Map<string, { pos: number; c: number }>();
+    const posOwner = new Map<number, string>();
+    let maxPos = -1;
     const order: string[] = [];
     let margin = 0;
     let e = e0;
@@ -657,16 +671,27 @@ export class LexiconMemory {
       let bestC = 0;
       let second = 0;
       for (let j = 0; j < vocab.length; j++) {
+        // W4: one token per position per utterance — a position already read
+        // is closed to every other word (structural fact of injection).
+        // Injection writes positions 0..L−1 with no gaps, so the next new
+        // position can only be the one after the furthest already read.
+        if (vocab[j].pos > maxPos + 1) continue;
+        const owner = posOwner.get(vocab[j].pos);
+        if (owner !== undefined && owner !== vocab[j].word) continue;
         const t = vocab[j].t;
         let c = 0;
         for (let i = 0; i < dim; i++) c += res[i] * t[i];
         if (c > bestC) {
-          second = bestC;
+          // runner-up = best of a DIFFERENT word (same word at another
+          // position is not a rival identity)
+          if (best < 0 || vocab[best].word !== vocab[j].word) second = bestC;
           bestC = c;
           best = j;
-        } else if (c > second) second = c;
+        } else if (c > second && vocab[best].word !== vocab[j].word) second = c;
       }
-      if (best < 0 || bestC * bestC < e * READ_STOP) break;
+      // Second clause: residual is at float round-off — nothing left to read
+      // (without it, more templates means more noise-level picks; measured W4).
+      if (best < 0 || bestC * bestC < e * READ_STOP || e <= e0 * READ_FLOOR) break;
       if (step === 0) margin = (bestC - second) / Math.sqrt(e0);
       const t = vocab[best].t;
       e = 0;
@@ -675,7 +700,12 @@ export class LexiconMemory {
         e += res[i] * res[i];
       }
       const w = vocab[best].word;
-      if (!weight.has(w)) order.push(w);
+      posOwner.set(vocab[best].pos, w);
+      if (vocab[best].pos > maxPos) maxPos = vocab[best].pos;
+      if (!weight.has(w)) {
+        order.push(w);
+        posOf.set(w, { pos: vocab[best].pos, c: bestC });
+      } else if (bestC > posOf.get(w)!.c) posOf.set(w, { pos: vocab[best].pos, c: bestC });
       weight.set(w, (weight.get(w) ?? 0) + bestC);
     }
     const explained = Math.max(0, Math.min(1, 1 - e / e0));
@@ -684,9 +714,12 @@ export class LexiconMemory {
       word: w,
       weight: weight.get(w) ?? 0,
       share: total > 0 ? (weight.get(w) ?? 0) / total : 0,
+      pos: posOf.get(w)!.pos,
     }));
+    const sequence = [...words].sort((a, b) => a.pos - b.pos || b.weight - a.weight).map((w) => w.word);
     return {
       words,
+      sequence,
       explained,
       margin,
       crisp: margin >= READ_MARGIN && explained >= PHI_INV_LEX,

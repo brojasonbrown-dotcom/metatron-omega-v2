@@ -138,6 +138,15 @@ export function lexemeAddress(text: string): string {
  */
 export const LEXEME_SPREAD = 3;
 
+/**
+ * Ω-UNDERSTAND W4 — rotary position step: golden angle 2π/φ². Token at rank r
+ * has each rung's (x,y) rotated by r·ω; equidistributed angles (Weyl) keep
+ * positions maximally apart for any sentence length. Position 0 is unrotated.
+ */
+export const LEXEME_POS_ANGLE = 2 * Math.PI * (1 - PHI_INV);
+/** Positions whose amplitude is distinct (rank amplitude saturates at φ⁻¹²). */
+export const LEXEME_MAX_POS = 12;
+
 /** Where a lexeme lands on the (R=φ, r=1) torus with `rungs` major positions. */
 export interface LexemeTorus {
   /** Largest Zeckendorf index of the code (the discrete address class). */
@@ -191,12 +200,12 @@ export function lexemeRungs(psiLength: number): number {
 }
 
 /**
- * The per-rung Ψ delta of ONE token at unit amplitude (rank 0, before the
+ * The per-rung Ψ delta of ONE token at unit amplitude at rank `pos` (before the
  * utterance's 1/√k and φ⁻³ gain). Length rungs·4. This is the single
  * definition of how a word sits in the field: injection writes it, readout
  * (`LexiconMemory.readPsi`) matches against it. Returns null for no letters.
  */
-export function lexemePattern(token: string, rungs: number): Float64Array | null {
+export function lexemePattern(token: string, rungs: number, pos = 0): Float64Array | null {
   const lx = lexeme(token);
   if (lx.value <= 0 || rungs <= 0) return null;
   const out = new Float64Array(rungs * RUNG_STRIDE);
@@ -206,8 +215,10 @@ export function lexemePattern(token: string, rungs: number): Float64Array | null
   const ringR = PHI + Math.cos(minor);
   // Energy split 1/√k across the k rungs so per-token ‖ΔΨ‖ is unchanged.
   const amp = 1 / Math.sqrt(ns.length);
+  // W4: rotary position phase (norm-preserving, z/m untouched).
+  const rot = LEXEME_POS_ANGLE * Math.min(Math.max(0, Math.floor(pos)), LEXEME_MAX_POS);
   for (const n of ns) {
-    const theta = (2 * Math.PI * n) / rungs;
+    const theta = (2 * Math.PI * n) / rungs + rot;
     const base = RUNG_STRIDE * n;
     out[base + 0] += ringR * Math.cos(theta) * amp;
     out[base + 1] += ringR * Math.sin(theta) * amp;
@@ -237,10 +248,10 @@ export function injectTextPsi(psi: Float64Array, text: string): TextInjection {
   const delta = new Float64Array(rungs * RUNG_STRIDE);
   let inexact = 0;
   for (let r = 0; r < tokens.length; r++) {
-    const pat = lexemePattern(tokens[r], rungs);
+    const pat = lexemePattern(tokens[r], rungs, r);
     if (!pat) continue;
     if (tokens[r].length > LEXEME_EXACT_LEN) inexact++;
-    const amp = PHI_INV ** Math.min(r, 12);
+    const amp = PHI_INV ** Math.min(r, LEXEME_MAX_POS);
     for (let i = 0; i < pat.length; i++) delta[i] += pat[i] * amp;
   }
 

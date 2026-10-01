@@ -362,9 +362,8 @@ export default function HearDeckPanel() {
           label="field reads"
           value={
             st.readout && st.readout.words.length > 0
-              ? `${st.readout.words
-                  .slice(0, 4)
-                  .map((w) => w.word)
+              ? `${st.readout.sequence
+                  .slice(0, 6)
                   .join(
                     ' ',
                   )} · ${(st.readout.explained * 100).toFixed(0)}%${st.readout.crisp ? ' · crisp' : ''}`
