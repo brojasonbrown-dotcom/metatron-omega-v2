@@ -39,7 +39,7 @@ Test count may only drop when a task's plan states the expected drop.
 
 `bun run gate` fails if fewer tests pass than this number. Lower it only with a written reason on the line below it.
 
-gate-expected-tests: 1089
+gate-expected-tests: 1099
 
 P0.3: +24 tests (11 digest + 1 count + 12 parity); marker 1055 → 1079.
 
@@ -61,3 +61,18 @@ Measured phenomena (kept as tests):
 - A softmax "mass" under calibratedBeta is ≥ N/(N+1) by construction, so it was rejected as a
   confidence measure; readout reports the cosine margin instead (crisp: margin ≥ φ⁻⁵, explained ≥ φ⁻¹).
 +5 tests `test/memory/w1-field-readout.test.ts`, +1 in `test/wake/w1-drive-edges.test.ts`.
+
+## Ω-UNDERSTAND W2 — 2026-10-01 (marker 1089 → 1097)
+Related-pattern recall: `LexiconMemory.associate` (spelling family, context neighbours, follows/
+precedes with conditional p, co-occurrence c/√(f·f), 2-hop spread at φ⁻¹, sentences from a 1,597-
+utterance ring with postings) and `MemoryStore.associate` (joins journal episodes + L4 successors).
+Lexicon snapshot gains optional `assoc`; pre-W2 snapshots load with an empty index.
+Measured phenomena:
+- Journal records only NEW salient episodes; a repeated (reinforced) episode returns before
+  journaling, so the journal is a lossy sentence store. The lexicon ring records every utterance.
+- One lookup at 1,092 words costs ~106 ms, ~100 ms of it the full-vocabulary meaning recall
+  (O(V·d), d = 1,597). The HEAR inspector now recomputes only when words are learned or a journal
+  record arrives, not every tick.
+- No per-word sound prototype exists (SoundWordMap is one linear map); sound association needs
+  word-aligned audio first.
++10 tests `test/memory/w2-associate.test.ts` (incl. capture-label exclusion and spelling noise floor 3/√d).

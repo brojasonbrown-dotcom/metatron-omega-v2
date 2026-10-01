@@ -25,7 +25,12 @@ import { ReflectiveIndex } from './ReflectiveIndex';
 import { SensoryGateway } from '@/core/sensory/SensoryGateway';
 import { PerceptRegistry } from './PerceptRegistry';
 import { VisionFieldIndex } from './VisionFieldIndex';
-import { MemoryCaptureKernel, type CaptureInput, type CaptureMetrics } from './MemoryCaptureKernel';
+import {
+  MemoryCaptureKernel,
+  isCaptureLabel,
+  type CaptureInput,
+  type CaptureMetrics,
+} from './MemoryCaptureKernel';
 
 export interface MemoryIngest {
   tick: number;
@@ -46,10 +51,27 @@ export interface MemoryRecall {
 import {
   LexiconMemory,
   SoundWordMap,
+  type Association,
   type FieldReadout,
   type LexiconSnapshot,
   type SoundWordSnapshot,
 } from '@/core/knowledge/lexicon';
+
+/** Journal text when it is an utterance; null for capture labels or absent text. */
+function utteranceText(t: string | undefined): string | null {
+  return t && !isCaptureLabel(t) ? t : null;
+}
+
+/** Lexicon association joined with episode-level memory (Ω-UNDERSTAND W2). */
+export interface WordAssociation extends Association {
+  readonly episodes: readonly {
+    tick: number;
+    hash: string;
+    text: string;
+    qualia: number;
+    next: readonly { hash: string; count: number; text: string | null }[];
+  }[];
+}
 
 export interface MemorySnapshot {
   hebbian: HebbianSnapshot;
@@ -280,6 +302,45 @@ export class MemoryStore {
   ): PendingUtterance | null {
     const g = descriptor ? this.soundWords.guess(descriptor, this.lexicon, 1) : null;
     return this.pending.push(text, source, descriptor, g?.hits[0]?.word ?? null, at);
+  }
+
+  /**
+   * Ω-UNDERSTAND W2 — every stored pattern that involves `word`: the
+   * lexicon's word-level index (all utterances) joined with episode-level
+   * memory — journal records whose text contains the word, and, from each,
+   * the L4 pathway successors (what the field moved to next) with the text
+   * of the record that carries that successor hash, when one exists.
+   */
+  associate(word: string, k = 8): WordAssociation {
+    const lex = this.lexicon.associate(word, k);
+    const all = this.journal.all();
+    const byHash = new Map<string, JournalRecord>();
+    for (const r of all) byHash.set(r.signatureHash, r);
+    const episodes: WordAssociation['episodes'][number][] = [];
+    for (let i = all.length - 1; i >= 0 && episodes.length < k; i--) {
+      const r = all[i];
+      if (
+        !r.text ||
+        isCaptureLabel(r.text) ||
+        !r.text
+          .toLowerCase()
+          .split(/[^a-z0-9]+/)
+          .includes(lex.word)
+      )
+        continue;
+      episodes.push({
+        tick: r.tick,
+        hash: r.signatureHash,
+        text: r.text,
+        qualia: r.qualiaScalar,
+        next: this.pathway.successors(r.signatureHash, 3).map((e) => ({
+          hash: e.to,
+          count: e.count,
+          text: utteranceText(byHash.get(e.to)?.text),
+        })),
+      });
+    }
+    return { ...lex, episodes };
   }
 
   /**
