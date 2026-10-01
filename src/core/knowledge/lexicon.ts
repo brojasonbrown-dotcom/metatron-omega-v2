@@ -662,7 +662,6 @@ export class LexiconMemory {
     const weight = new Map<string, number>();
     const posOf = new Map<string, { pos: number; c: number }>();
     const posOwner = new Map<number, string>();
-    let maxPos = -1;
     const order: string[] = [];
     let margin = 0;
     let e = e0;
@@ -673,9 +672,6 @@ export class LexiconMemory {
       for (let j = 0; j < vocab.length; j++) {
         // W4: one token per position per utterance — a position already read
         // is closed to every other word (structural fact of injection).
-        // Injection writes positions 0..L−1 with no gaps, so the next new
-        // position can only be the one after the furthest already read.
-        if (vocab[j].pos > maxPos + 1) continue;
         const owner = posOwner.get(vocab[j].pos);
         if (owner !== undefined && owner !== vocab[j].word) continue;
         const t = vocab[j].t;
@@ -701,12 +697,29 @@ export class LexiconMemory {
       }
       const w = vocab[best].word;
       posOwner.set(vocab[best].pos, w);
-      if (vocab[best].pos > maxPos) maxPos = vocab[best].pos;
       if (!weight.has(w)) {
         order.push(w);
         posOf.set(w, { pos: vocab[best].pos, c: bestC });
       } else if (bestC > posOf.get(w)!.c) posOf.set(w, { pos: vocab[best].pos, c: bestC });
       weight.set(w, (weight.get(w) ?? 0) + bestC);
+    }
+    // Injection writes positions 0..L−1 with no gaps: a word read beyond the
+    // first unread position cannot belong to the utterance — drop it and
+    // return its energy to the residual (it was a crosstalk pick).
+    let prefix = 0;
+    while (posOwner.has(prefix)) prefix++;
+    for (let k = order.length - 1; k >= 0; k--) {
+      const w = order[k];
+      if (posOf.get(w)!.pos < prefix) continue;
+      order.splice(k, 1);
+      const c = weight.get(w)!;
+      weight.delete(w);
+      const t = this.template(w, rungs, posOf.get(w)!.pos)!;
+      e = 0;
+      for (let i = 0; i < dim; i++) {
+        res[i] += c * t[i];
+        e += res[i] * res[i];
+      }
     }
     const explained = Math.max(0, Math.min(1, 1 - e / e0));
     const total = order.reduce((s, w) => s + (weight.get(w) ?? 0), 0);
