@@ -72,6 +72,10 @@ export function ActivityMap() {
   );
 }
 
+function list<T>(xs: readonly T[], fmt: (x: T) => string): string {
+  return xs.length ? xs.map(fmt).join(' · ') : '—';
+}
+
 function Inspector({ word }: { word: string }) {
   const rt = getMemoryRuntime();
   const v = useMemoryVersion();
@@ -79,8 +83,6 @@ function Inspector({ word }: { word: string }) {
   const info = useMemo(() => rt.inspectWord(word), [rt, word, v]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- version invalidates the mutable-store read
   const assoc = useMemo(() => rt.associateWord(word), [rt, word, v]);
-  const list = (xs: readonly { word: string }[], fmt: (x: never) => string) =>
-    xs.length ? xs.map((x) => fmt(x as never)).join(' · ') : '—';
   return (
     <section className="rounded border border-primary/40 p-2 space-y-1">
       <div className="flex items-baseline gap-2">
@@ -114,25 +116,25 @@ function Inspector({ word }: { word: string }) {
         </div>
         <div>
           spelled like:{' '}
-          {list(assoc.spelling, (x: { word: string; score: number }) => `${x.word} ${x.score.toFixed(2)}`)}
+          {list(assoc.spelling, (x) => `${x.word} ${x.score.toFixed(2)}`)}
         </div>
         <div>
           follows:{' '}
-          {list(assoc.precedes, (x: { word: string; p: number }) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}
+          {list(assoc.precedes, (x) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}
         </div>
         <div>
           leads to:{' '}
-          {list(assoc.follows, (x: { word: string; p: number }) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}
+          {list(assoc.follows, (x) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}
         </div>
         <div>
           appears with:{' '}
-          {list(assoc.together, (x: { word: string; assoc: number }) => `${x.word} ${x.assoc.toFixed(2)}`)}
+          {list(assoc.together, (x) => `${x.word} ${x.assoc.toFixed(2)}`)}
         </div>
         <div>
           spreads to:{' '}
           {list(
             assoc.spread,
-            (x: { word: string; activation: number; hop: number }) =>
+            (x) =>
               `${x.word} ${x.activation.toFixed(2)}${x.hop === 2 ? '²' : ''}`,
           )}
         </div>
