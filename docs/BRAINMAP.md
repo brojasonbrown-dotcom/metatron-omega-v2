@@ -559,6 +559,7 @@ aliases were removed with it.
 | coherence-gated JEPA plasticity | `trnn-core/learn/tiers.ts` + `substrate/plasticity.ts` (memristive) |
 | Hopfield / HNSW / PQ associative memory | `src/core/knowledge/{LatentSpace,BarcodeIndex,ConceptGraph}.ts`, `trnn-core/substrate/vsa.ts` |
 | concept registry, glossary, lexicon | `trnn-core/cognition/concepts.ts`, `src/core/knowledge/{KnowledgeBase,LexicalIndex}.ts` |
+| word → field placement / field → word readout | `src/core/gematria/lexeme.ts` (`lexemePattern`, hashed k-of-N rungs), `src/core/knowledge/lexicon.ts` (`LexiconMemory.readPsi`) |
 | cognitive loop, thought, drive arbiter | `trnn-core/cognition/{mind,selfModel}.ts` + `src/ui/omega/omegaRuntime.ts` drive edges |
 | prediction ledger, novelty gate | `src/core/analysis/findingLedger.ts`, `analysisSpine.ts` (with abstention) |
 | language instrument / codec adapters | `src/lib/chat/*` + `src/core/interop/intake.ts` (text → 28-dim field vector) |

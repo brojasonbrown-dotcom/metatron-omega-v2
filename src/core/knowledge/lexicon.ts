@@ -23,7 +23,13 @@
 import catalogRaw from './lexiconCatalog.json';
 import { fnv1a } from './tokenize';
 import { calibratedBeta } from '@/core/gematria/resonanceKernel';
-import { lexeme, lexemeTorus, type LexemeTorus } from '@/core/gematria/lexeme';
+import {
+  lexeme,
+  lexemePattern,
+  lexemeRungs,
+  lexemeTorus,
+  type LexemeTorus,
+} from '@/core/gematria/lexeme';
 
 /** Everything the field holds about one word — its unique, inspectable pattern. */
 export interface WordInspection {
@@ -231,6 +237,26 @@ export interface Recall {
   readonly score: number;
 }
 
+/** φ⁻¹ — crispness threshold shared with `recall`. */
+const PHI_INV_LEX = 0.6180339887498949;
+/** φ⁻² — a readout pick must explain ≥ this share of the REMAINING energy. */
+const READ_STOP = 0.3819660112501051;
+/** φ⁻⁵ — minimum first-pick cosine margin (calibratedBeta's own floor). */
+const READ_MARGIN = 0.09016994374947424;
+
+export interface FieldReadout {
+  /** Words read from the field in pick order, with summed projection weight. */
+  readonly words: readonly { word: string; weight: number; share: number }[];
+  /** Fraction of field energy the picked words explain, ∈ [0,1]. */
+  readonly explained: number;
+  /** Cosine margin of the first pick over the runner-up. */
+  readonly margin: number;
+  /** margin ≥ φ⁻⁵ and explained ≥ φ⁻¹. */
+  readonly crisp: boolean;
+  /** ‖field‖₂ over the per-rung slots that were read. */
+  readonly energy: number;
+}
+
 export interface RecallResult {
   readonly hits: readonly Recall[];
   readonly beta: number;
@@ -249,6 +275,8 @@ export class LexiconMemory {
   private readonly delta = new Map<string, { re: Float32Array; im: Float32Array; n: number }>();
   private readonly freq = new Map<string, number>();
   private total = 0;
+  /** Unit field templates keyed `rungs:word`; derived from the word only. */
+  private readonly templates = new Map<string, Float64Array | null>();
 
   constructor(d = LEX_DIM) {
     this.d = d;
@@ -328,6 +356,108 @@ export class LexiconMemory {
     for (const s of scored) z += Math.exp(beta * (s.score - top));
     const topMass = 1 / z;
     return { hits: scored.slice(0, k), beta, topMass, crisp: topMass >= 0.6180339887498949 };
+  }
+
+  /** Unit-norm field template of a word for a given rung count (cached). */
+  private template(word: string, rungs: number): Float64Array | null {
+    const key = rungs + ':' + word;
+    const hit = this.templates.get(key);
+    if (hit !== undefined) return hit;
+    const p = lexemePattern(word, rungs);
+    let t: Float64Array | null = null;
+    if (p) {
+      let n = 0;
+      for (let i = 0; i < p.length; i++) n += p[i] * p[i];
+      n = Math.sqrt(n);
+      if (n > 0) {
+        for (let i = 0; i < p.length; i++) p[i] /= n;
+        t = p;
+      }
+    }
+    this.templates.set(key, t);
+    return t;
+  }
+
+  /**
+   * Ω-UNDERSTAND W1 — read words OUT of the field.
+   *
+   * Non-negative matching pursuit over the unit field templates of every
+   * known word (the same `lexemePattern` injection writes). Each step picks
+   * the template with the largest positive projection onto the residual,
+   * records it, and subtracts it ("explain away"), so a word whose energy is
+   * already accounted for cannot win again by crosstalk — the failure raw
+   * cosine ranking showed (moon .40 > drinks .33). Stops at `maxWords`, or
+   * when a pick explains < φ⁻² of the energy still unexplained.
+   *
+   * `margin` is the first pick's cosine lead over the runner-up (a softmax
+   * mass would be tautological here: calibratedBeta is built to make it ≥
+   * N/(N+1)). `explained` = 1 − ‖r‖²/‖r₀‖². crisp: margin ≥ φ⁻⁵, explained ≥ φ⁻¹.
+   * Reads only the per-rung slots; the four global invariant slots are ignored.
+   */
+  readPsi(field: ArrayLike<number>, maxWords = 8): FieldReadout {
+    const empty: FieldReadout = { words: [], explained: 0, margin: 0, crisp: false, energy: 0 };
+    const rungs = lexemeRungs(field.length);
+    if (rungs <= 0 || this.freq.size === 0) return empty;
+    const dim = rungs * 4;
+    const res = new Float64Array(dim);
+    let e0 = 0;
+    for (let i = 0; i < dim; i++) {
+      const v = field[i];
+      res[i] = Number.isFinite(v) ? v : 0;
+      e0 += res[i] * res[i];
+    }
+    if (!(e0 > 0)) return empty;
+    const vocab: { word: string; t: Float64Array }[] = [];
+    for (const w of [...this.freq.keys()].sort()) {
+      const t = this.template(w, rungs);
+      if (t) vocab.push({ word: w, t });
+    }
+    if (vocab.length === 0) return empty;
+
+    const weight = new Map<string, number>();
+    const order: string[] = [];
+    let margin = 0;
+    let e = e0;
+    for (let step = 0; step < Math.max(1, maxWords) * 2 && order.length < maxWords; step++) {
+      let best = -1;
+      let bestC = 0;
+      let second = 0;
+      for (let j = 0; j < vocab.length; j++) {
+        const t = vocab[j].t;
+        let c = 0;
+        for (let i = 0; i < dim; i++) c += res[i] * t[i];
+        if (c > bestC) {
+          second = bestC;
+          bestC = c;
+          best = j;
+        } else if (c > second) second = c;
+      }
+      if (best < 0 || bestC * bestC < e * READ_STOP) break;
+      if (step === 0) margin = (bestC - second) / Math.sqrt(e0);
+      const t = vocab[best].t;
+      e = 0;
+      for (let i = 0; i < dim; i++) {
+        res[i] -= bestC * t[i];
+        e += res[i] * res[i];
+      }
+      const w = vocab[best].word;
+      if (!weight.has(w)) order.push(w);
+      weight.set(w, (weight.get(w) ?? 0) + bestC);
+    }
+    const explained = Math.max(0, Math.min(1, 1 - e / e0));
+    const total = order.reduce((s, w) => s + (weight.get(w) ?? 0), 0);
+    const words = order.map((w) => ({
+      word: w,
+      weight: weight.get(w) ?? 0,
+      share: total > 0 ? (weight.get(w) ?? 0) / total : 0,
+    }));
+    return {
+      words,
+      explained,
+      margin,
+      crisp: margin >= READ_MARGIN && explained >= PHI_INV_LEX,
+      energy: Math.sqrt(e0),
+    };
   }
 
   /** The word's full field pattern: exact code, address, torus spot, meaning, grounding. */
