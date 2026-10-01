@@ -84,7 +84,7 @@ function Inspector({ word }: { word: string }) {
   // journal record — not on every memory tick.
   void v;
   const learned = rt.store.lexicon.tokens;
-  const journaled = rt.store.journal.size();
+  const journaled = rt.store.journal.tail(1)[0]?.tick ?? -1;
   // eslint-disable-next-line react-hooks/exhaustive-deps -- counters invalidate the mutable-store read
   const info = useMemo(() => rt.inspectWord(word), [rt, word, learned]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- counters invalidate the mutable-store read
