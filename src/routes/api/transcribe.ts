@@ -38,12 +38,23 @@ export const Route = createFileRoute('/api/transcribe')({
         out.append('model', MODEL);
         out.append('file', file, file.name || 'chunk.webm');
         out.append('response_format', 'json');
-        const res = await fetch(GATEWAY, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${key}`, 'X-Lovable-AIG-SDK': 'fetch' },
-          body: out,
-          signal: request.signal,
-        });
+        let res: Response;
+        try {
+          res = await fetch(GATEWAY, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${key}`, 'X-Lovable-AIG-SDK': 'fetch' },
+            body: out,
+            signal: request.signal,
+          });
+        } catch (err) {
+          // The browser cancelled this chunk (mic stopped, page left): nobody is
+          // waiting for the answer, so end quietly instead of throwing.
+          if (request.signal.aborted || (err instanceof Error && err.name === 'AbortError')) {
+            return new Response(null, { status: 499 });
+          }
+          console.error('transcribe network error:', err);
+          return Response.json({ error: 'Speech service unreachable.' }, { status: 502 });
+        }
         if (!res.ok) {
           const body = await res.text();
           console.error(`transcribe failed [${res.status}]: ${body}`);
