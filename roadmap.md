@@ -112,3 +112,5 @@ Notebook 4 what turns a rung off.
 - [x] P0.2 Gate script — `bun run gate` green: lint 0 · tsgo 0 · 1055/1055 · build OK
 - [x] P0.3 Determinism freeze — docs/FROZEN.md (11 digests) + bit parity; gate 1079/1079
 - [ ] P0.4 Branch/versioning policy
+- [x] Ω-UNDERSTAND W0 Full-token sparse word placement — gate 1083/1083
+- [ ] W1 Ψ→word readout · W2 related-pattern recall · W3 meaning · W4 order · W5 prediction/habituation · W6 endogenous proposal · W7 phenomenon log
