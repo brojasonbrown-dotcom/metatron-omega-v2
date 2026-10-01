@@ -231,6 +231,8 @@ export function decodeSentence(
 export const LEX_ETA = 0.2360679774997897;
 /** Co-occurrence window: ±φ³ ≈ 4.236 tokens → 4. */
 export const LEX_WINDOW = 4;
+/** Utterances kept in the association ring (F17). */
+export const LEX_UTTER_CAP = 1597;
 
 export interface Recall {
   readonly word: string;
@@ -277,6 +279,16 @@ export class LexiconMemory {
   private total = 0;
   /** Unit field templates keyed `rungs:word`; derived from the word only. */
   private readonly templates = new Map<string, Float64Array | null>();
+  /** Ω-UNDERSTAND W2: symmetric co-occurrence counts within ±LEX_WINDOW. */
+  private readonly cooc = new Map<string, Map<string, number>>();
+  /** Ω-UNDERSTAND W2: word → next-word counts (and the reverse). */
+  private readonly nextW = new Map<string, Map<string, number>>();
+  private readonly prevW = new Map<string, Map<string, number>>();
+  /** Bounded ring of every learned utterance (not salience-gated). */
+  private readonly utter: { id: number; tokens: string[]; tick: number }[] = [];
+  /** word → ids of ring utterances containing it, ascending. */
+  private readonly postings = new Map<string, number[]>();
+  private nextId = 0;
 
   constructor(d = LEX_DIM) {
     this.d = d;
@@ -306,10 +318,16 @@ export class LexiconMemory {
     return toUnit(acc);
   }
 
-  /** Learn from one token sequence. `gain` ∈ [0,1] is surprise-weighted rate. */
-  learn(tokens: readonly string[], gain = 1): void {
+  /**
+   * Learn from one token sequence. `gain` ∈ [0,1] is surprise-weighted rate;
+   * `tick` stamps the utterance in the association index (−1 = unknown).
+   * Counts (frequency, co-occurrence, succession, postings) are observations
+   * and are recorded at any gain; only the meaning delta is gain-weighted.
+   */
+  learn(tokens: readonly string[], gain = 1, tick = -1): void {
     const toks = tokens.map(normToken).filter((t) => t.length > 0);
     const g = Math.max(0, Math.min(1, gain));
+    this.index(toks, tick);
     for (let i = 0; i < toks.length; i++) {
       const t = toks[i];
       this.freq.set(t, (this.freq.get(t) ?? 0) + 1);
@@ -338,6 +356,128 @@ export class LexiconMemory {
       }
       dl.n++;
     }
+  }
+
+  /** Record co-occurrence, succession and postings for one utterance. */
+  private index(toks: readonly string[], tick: number): void {
+    if (toks.length === 0) return;
+    for (let i = 0; i < toks.length; i++) {
+      for (let k = i + 1; k <= Math.min(toks.length - 1, i + LEX_WINDOW); k++) {
+        if (toks[k] === toks[i]) continue;
+        bump(this.cooc, toks[i], toks[k]);
+        bump(this.cooc, toks[k], toks[i]);
+      }
+      if (i + 1 < toks.length) {
+        bump(this.nextW, toks[i], toks[i + 1]);
+        bump(this.prevW, toks[i + 1], toks[i]);
+      }
+    }
+    const id = this.nextId++;
+    this.utter.push({ id, tokens: [...toks], tick });
+    for (const t of new Set(toks)) {
+      const p = this.postings.get(t);
+      if (p) p.push(id);
+      else this.postings.set(t, [id]);
+    }
+    while (this.utter.length > LEX_UTTER_CAP) {
+      const old = this.utter.shift()!;
+      for (const t of new Set(old.tokens)) {
+        const p = this.postings.get(t);
+        if (!p) continue;
+        // ids are ascending and the ring evicts oldest first, so the evicted
+        // id is always the head of every posting list that holds it.
+        if (p[0] === old.id) p.shift();
+        if (p.length === 0) this.postings.delete(t);
+      }
+    }
+  }
+
+  /** Normalised association c(a,b)/√(f(a)·f(b)) ∈ [0, ~2·LEX_WINDOW]. */
+  private assoc(a: string, b: string, c: number): number {
+    const fa = this.freq.get(a) ?? 0;
+    const fb = this.freq.get(b) ?? 0;
+    return fa > 0 && fb > 0 ? c / Math.sqrt(fa * fb) : 0;
+  }
+
+  /**
+   * Ω-UNDERSTAND W2 — everything the lexicon holds that involves `word`.
+   *
+   * spelling: nearest known words by spelling signature alone;
+   * context:  nearest by learned meaning signature (spelling ⊕ context);
+   * follows/precedes: succession counts with conditional probability;
+   * together: co-occurrence within ±LEX_WINDOW, normalised c/√(f·f);
+   * sentences: latest utterances containing the word (from the full ring);
+   * spread: bounded spreading activation over the co-occurrence graph —
+   *   hop 1 = assoc(seed,b), hop 2 = φ⁻¹·Σ_b act₁(b)·assoc(b,c); seed and
+   *   hop-1 words are not re-scored at hop 2. Deterministic (ties by word).
+   */
+  associate(word: string, k = 8): Association {
+    const t = normToken(word);
+    const count = this.freq.get(t) ?? 0;
+    const byScore = (a: { word: string; score: number }, b: { word: string; score: number }) =>
+      b.score - a.score || (a.word < b.word ? -1 : 1);
+    const known = [...this.freq.keys()].filter((w) => w !== t);
+    const sp = spellingSignature(t, this.d);
+    const spelling = known
+      .map((w) => ({ word: w, score: similarity(sp, spellingSignature(w, this.d)) }))
+      .sort(byScore)
+      .slice(0, k);
+    const context =
+      count > 0
+        ? this.recall(this.signature(t), k + 1)
+            .hits.filter((h) => h.word !== t)
+            .slice(0, k)
+        : [];
+    const seq = (m: Map<string, number> | undefined) => {
+      if (!m) return [];
+      let tot = 0;
+      for (const c of m.values()) tot += c;
+      return [...m]
+        .map(([w, c]) => ({ word: w, count: c, p: c / tot }))
+        .sort((a, b) => b.count - a.count || (a.word < b.word ? -1 : 1))
+        .slice(0, k);
+    };
+    const nb = this.cooc.get(t);
+    const hop1 = new Map<string, number>();
+    if (nb) for (const [w, c] of nb) hop1.set(w, this.assoc(t, w, c));
+    const together = [...(nb ?? [])]
+      .map(([w, c]) => ({ word: w, count: c, assoc: hop1.get(w) ?? 0 }))
+      .sort((a, b) => b.assoc - a.assoc || (a.word < b.word ? -1 : 1))
+      .slice(0, k);
+    const hop2 = new Map<string, number>();
+    for (const [b, a1] of hop1) {
+      const nb2 = this.cooc.get(b);
+      if (!nb2) continue;
+      for (const [c, cnt] of nb2) {
+        if (c === t || hop1.has(c)) continue;
+        hop2.set(c, (hop2.get(c) ?? 0) + PHI_INV_LEX * a1 * this.assoc(b, c, cnt));
+      }
+    }
+    const spread = [
+      ...[...hop1].map(([w, a]) => ({ word: w, activation: a, hop: 1 })),
+      ...[...hop2].map(([w, a]) => ({ word: w, activation: a, hop: 2 })),
+    ]
+      .sort((a, b) => b.activation - a.activation || (a.word < b.word ? -1 : 1))
+      .slice(0, k);
+    const ids = this.postings.get(t) ?? [];
+    const sentences: { text: string; tick: number }[] = [];
+    const base = this.utter.length > 0 ? this.utter[0].id : 0;
+    for (let i = ids.length - 1; i >= 0 && sentences.length < k; i--) {
+      const u = this.utter[ids[i] - base];
+      if (u && u.id === ids[i]) sentences.push({ text: u.tokens.join(' '), tick: u.tick });
+    }
+    return {
+      word: t,
+      count,
+      occurrences: ids.length,
+      spelling,
+      context,
+      follows: seq(this.nextW.get(t)),
+      precedes: seq(this.prevW.get(t)),
+      together,
+      spread,
+      sentences,
+    };
   }
 
   /**
@@ -495,7 +635,19 @@ export class LexiconMemory {
       const dl = this.delta.get(w);
       words.push([w, f, dl ? dl.re.slice() : null, dl ? dl.im.slice() : null]);
     }
-    return { d: this.d, total: this.total, words };
+    const pack = (m: Map<string, Map<string, number>>) =>
+      [...m].map(([w, inner]) => [w, [...inner]] as [string, [string, number][]]);
+    return {
+      d: this.d,
+      total: this.total,
+      words,
+      assoc: {
+        cooc: pack(this.cooc),
+        next: pack(this.nextW),
+        utter: this.utter.map((u) => [u.id, u.tick, u.tokens.join(' ')] as [number, number, string]),
+        nextId: this.nextId,
+      },
+    };
   }
 
   /** Replace this memory's contents in place (the store holds a readonly ref). */
@@ -503,7 +655,32 @@ export class LexiconMemory {
     this.freq.clear();
     this.delta.clear();
     this.total = 0;
+    this.cooc.clear();
+    this.nextW.clear();
+    this.prevW.clear();
+    this.utter.length = 0;
+    this.postings.clear();
+    this.nextId = 0;
     if (!s || s.d !== this.d || !Array.isArray(s.words)) return;
+    // Association index (absent in pre-W2 snapshots → starts empty).
+    const a = s.assoc;
+    if (a) {
+      for (const [w, inner] of a.cooc ?? []) this.cooc.set(w, new Map(inner));
+      for (const [w, inner] of a.next ?? []) {
+        this.nextW.set(w, new Map(inner));
+        for (const [n, c] of inner) bump(this.prevW, n, w, c);
+      }
+      for (const [id, tick, text] of a.utter ?? []) {
+        const tokens = text.length > 0 ? text.split(' ') : [];
+        this.utter.push({ id, tokens, tick });
+        for (const t of new Set(tokens)) {
+          const p = this.postings.get(t);
+          if (p) p.push(id);
+          else this.postings.set(t, [id]);
+        }
+      }
+      this.nextId = Number.isFinite(a.nextId) ? a.nextId : this.utter.length;
+    }
     this.total = Number.isFinite(s.total) ? s.total : 0;
     for (const [w, f, re, im] of s.words) {
       this.freq.set(w, f);
@@ -524,6 +701,38 @@ export interface LexiconSnapshot {
   d: number;
   total: number;
   words: [string, number, ArrayLike<number> | null, ArrayLike<number> | null][];
+  /** Ω-UNDERSTAND W2 association index; optional so older snapshots load. */
+  assoc?: {
+    cooc: [string, [string, number][]][];
+    next: [string, [string, number][]][];
+    utter: [number, number, string][];
+    nextId: number;
+  };
+}
+
+/** Everything the lexicon holds that involves one word (Ω-UNDERSTAND W2). */
+export interface Association {
+  readonly word: string;
+  readonly count: number;
+  /** Utterances in the bounded ring that contain the word. */
+  readonly occurrences: number;
+  readonly spelling: readonly Recall[];
+  readonly context: readonly Recall[];
+  readonly follows: readonly { word: string; count: number; p: number }[];
+  readonly precedes: readonly { word: string; count: number; p: number }[];
+  readonly together: readonly { word: string; count: number; assoc: number }[];
+  readonly spread: readonly { word: string; activation: number; hop: number }[];
+  readonly sentences: readonly { text: string; tick: number }[];
+}
+
+/** Increment m[a][b] by c. */
+function bump(m: Map<string, Map<string, number>>, a: string, b: string, c = 1): void {
+  let inner = m.get(a);
+  if (!inner) {
+    inner = new Map();
+    m.set(a, inner);
+  }
+  inner.set(b, (inner.get(b) ?? 0) + c);
 }
 
 // ─── 3b. Sound → word ─────────────────────────────────────────────────────
