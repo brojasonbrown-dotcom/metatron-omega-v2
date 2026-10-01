@@ -116,4 +116,5 @@ Notebook 4 what turns a rung off.
 - [x] W1 Ψ→word readout — gate 1089/1089
 - [ ] Field width: live Ψ has 9 rungs, holds ~2 words at once (needs its own task; engine size is frozen)
 - [x] W2 related-pattern recall — gate 1099/1099
-- [ ] W3 meaning · W4 order · W5 prediction/habituation · W6 endogenous proposal · W7 phenomenon log
+- [x] W3 meaning (PPMI second-order) — gate 1106/1106
+- [ ] W4 order · W5 prediction/habituation · W6 endogenous proposal · W7 phenomenon log
