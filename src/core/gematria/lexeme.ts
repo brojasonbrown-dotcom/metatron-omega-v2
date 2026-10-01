@@ -25,16 +25,14 @@
  *      never enough to assert a meaning. Nothing scores similarity from it.
  *
  * FIELD PLACEMENT.  A token is written onto the same (R=φ, r=1) torus that
- * `projectPsiToroidal` builds, using two independent coordinates:
+ * `projectPsiToroidal` builds, from h = FNV-1a(full token):
  *
- *   • major circle (discrete, exact):   n = maxZeckIndex(v) mod rungs
- *   • minor circle (continuous):        ϕ = 2π · frac(v · φ⁻¹)
+ *   • major circle (discrete):   k = LEXEME_SPREAD distinct rungs by double
+ *                                hashing h1 + i·h2 mod rungs (sparse k-of-N)
+ *   • minor circle (continuous): ϕ = 2π · frac(h · φ⁻¹)
  *
- * The first is integer-structural and reversible; the second is an irrational
- * rotation, so by the three-distance theorem the phases of any token
- * inventory have gap ratio max/min = φ² = 2.618033988749895 — the minimum
- * achievable discrepancy for a one-parameter rotation. The two channels are
- * independent: one is a Zeckendorf class, the other an equidistributed phase.
+ * Placement depends on every letter, so it carries no length bias. The
+ * Zeckendorf address remains the reversible identity key; placement is not.
  *
  * The four global tail slots (torusClosure, coherence, circulation,
  * phaseCirculation) are engine-owned invariants and are NEVER written here —
