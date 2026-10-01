@@ -110,5 +110,5 @@ Notebook 4 what turns a rung off.
 - [x] P0.1 Baseline captured and all four gates green (docs/BASELINE.md)
 - [ ] Follow-up: zod schemas per intel tool, then drop the intel.server.ts `any` exemption
 - [x] P0.2 Gate script — `bun run gate` green: lint 0 · tsgo 0 · 1055/1055 · build OK
-- [ ] P0.3 Determinism freeze
+- [x] P0.3 Determinism freeze — docs/FROZEN.md (11 digests) + bit parity; gate 1079/1079
 - [ ] P0.4 Branch/versioning policy

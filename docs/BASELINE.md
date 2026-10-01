@@ -39,4 +39,6 @@ Test count may only drop when a task's plan states the expected drop.
 
 `bun run gate` fails if fewer tests pass than this number. Lower it only with a written reason on the line below it.
 
-gate-expected-tests: 1055
+gate-expected-tests: 1079
+
+P0.3: +24 tests (11 digest + 1 count + 12 parity); marker 1055 → 1079.
