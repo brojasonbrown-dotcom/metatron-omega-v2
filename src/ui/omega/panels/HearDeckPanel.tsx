@@ -79,10 +79,16 @@ function list<T>(xs: readonly T[], fmt: (x: T) => string): string {
 function Inspector({ word }: { word: string }) {
   const rt = getMemoryRuntime();
   const v = useMemoryVersion();
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- version invalidates the mutable-store read
-  const info = useMemo(() => rt.inspectWord(word), [rt, word, v]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- version invalidates the mutable-store read
-  const assoc = useMemo(() => rt.associateWord(word), [rt, word, v]);
+  // Recall over the whole vocabulary costs ~100 ms at ~1,100 words (measured),
+  // so recompute only when what it reads changed — words learned or a new
+  // journal record — not on every memory tick.
+  void v;
+  const learned = rt.store.lexicon.tokens;
+  const journaled = rt.store.journal.size();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- counters invalidate the mutable-store read
+  const info = useMemo(() => rt.inspectWord(word), [rt, word, learned]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- counters invalidate the mutable-store read
+  const assoc = useMemo(() => rt.associateWord(word), [rt, word, learned, journaled]);
   return (
     <section className="rounded border border-primary/40 p-2 space-y-1">
       <div className="flex items-baseline gap-2">
