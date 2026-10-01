@@ -307,6 +307,11 @@ class MemoryRuntime {
     return this.store.lexicon.inspect(w, rungs);
   }
 
+  /** Ω-UNDERSTAND W2: every stored pattern that involves the word. */
+  associateWord(w: string, k = 8) {
+    return this.store.associate(w, k);
+  }
+
   recallWord(w: string) {
     const lex = this.store.lexicon;
     return lex.recall(lex.signature(w), 5);

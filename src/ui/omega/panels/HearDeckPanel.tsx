@@ -77,6 +77,10 @@ function Inspector({ word }: { word: string }) {
   const v = useMemoryVersion();
   // eslint-disable-next-line react-hooks/exhaustive-deps -- version invalidates the mutable-store read
   const info = useMemo(() => rt.inspectWord(word), [rt, word, v]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- version invalidates the mutable-store read
+  const assoc = useMemo(() => rt.associateWord(word), [rt, word, v]);
+  const list = (xs: readonly { word: string }[], fmt: (x: never) => string) =>
+    xs.length ? xs.map((x) => fmt(x as never)).join(' · ') : '—';
   return (
     <section className="rounded border border-primary/40 p-2 space-y-1">
       <div className="flex items-baseline gap-2">
@@ -90,7 +94,10 @@ function Inspector({ word }: { word: string }) {
           value={`${info.value}${info.exact ? '' : ' · truncated'}`}
         />
         <Stat label="Zeckendorf address" value={info.address} />
-        <Stat label="torus rung · phase" value={`${info.torus.rung} · ${deg(info.torus.minor)}`} />
+        <Stat
+          label="torus rungs · phase"
+          value={`${info.torus.rungs.join(',')} · ${deg(info.torus.minor)}`}
+        />
         <Stat label="fingerprint · residue" value={`${info.fingerprint} · ${info.residue}/22`} />
       </div>
       <div className="text-muted-foreground">
@@ -99,6 +106,53 @@ function Inspector({ word }: { word: string }) {
           ? info.neighbours.map((n) => `${n.word} ${n.score.toFixed(2)}`).join(' · ')
           : '—'}
         {info.neighbours.length ? ` · ${info.crisp ? 'crisp' : 'blend'}` : ''}
+      </div>
+      <div className="space-y-0.5 text-muted-foreground">
+        <div>
+          seen in {assoc.occurrences} sentence{assoc.occurrences === 1 ? '' : 's'}
+          {assoc.episodes.length ? ` · ${assoc.episodes.length} saved moment(s)` : ''}
+        </div>
+        <div>
+          spelled like:{' '}
+          {list(assoc.spelling, (x: { word: string; score: number }) => `${x.word} ${x.score.toFixed(2)}`)}
+        </div>
+        <div>
+          follows:{' '}
+          {list(assoc.precedes, (x: { word: string; p: number }) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}
+        </div>
+        <div>
+          leads to:{' '}
+          {list(assoc.follows, (x: { word: string; p: number }) => `${x.word} ${(x.p * 100).toFixed(0)}%`)}
+        </div>
+        <div>
+          appears with:{' '}
+          {list(assoc.together, (x: { word: string; assoc: number }) => `${x.word} ${x.assoc.toFixed(2)}`)}
+        </div>
+        <div>
+          spreads to:{' '}
+          {list(
+            assoc.spread,
+            (x: { word: string; activation: number; hop: number }) =>
+              `${x.word} ${x.activation.toFixed(2)}${x.hop === 2 ? '²' : ''}`,
+          )}
+        </div>
+        {assoc.sentences.length > 0 && (
+          <ul className="list-disc pl-4">
+            {assoc.sentences.slice(0, 4).map((s, i) => (
+              <li key={i}>{s.text}</li>
+            ))}
+          </ul>
+        )}
+        {assoc.episodes.some((e) => e.next.length > 0) && (
+          <div>
+            then the field moved to:{' '}
+            {assoc.episodes
+              .flatMap((e) => e.next)
+              .slice(0, 4)
+              .map((n) => n.text ?? n.hash.slice(0, 8))
+              .join(' · ')}
+          </div>
+        )}
       </div>
       <div className="text-muted-foreground">
         meaning:{' '}
