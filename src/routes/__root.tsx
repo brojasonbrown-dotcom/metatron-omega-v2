@@ -38,7 +38,8 @@ function NotFoundComponent() {
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
-  recordCrash(error.message || 'route error', error.stack, 'error');
+  const e = error instanceof Error ? error : new Error(String(error));
+  recordCrash(e.message || 'route error', e.stack, 'error');
   const router = useRouter();
 
   return (
