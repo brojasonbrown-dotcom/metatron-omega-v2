@@ -659,21 +659,41 @@ export class LexiconMemory {
     }
     if (vocab.length === 0) return empty;
 
-    const weight = new Map<string, number>();
-    const posOf = new Map<string, { pos: number; c: number }>();
-    const posOwner = new Map<number, string>();
-    const order: string[] = [];
+    // W4: orthogonal matching pursuit over (word, position) atoms. After each
+    // pick all coefficients are re-fitted by least squares on the picked set
+    // (removes the greedy bias plain MP leaves when templates overlap); atoms
+    // whose coefficient turns non-positive are dropped (injection only adds).
+    const x = res.slice();
+    const S: number[] = [];
+    let coef: number[] = [];
+    const refit = () => {
+      for (;;) {
+        coef = leastSquares(
+          S.map((j) => vocab[j].t),
+          x,
+        );
+        const bad = coef.findIndex((c) => !(c > 0));
+        if (bad < 0) break;
+        S.splice(bad, 1);
+      }
+      e = 0;
+      for (let i = 0; i < dim; i++) {
+        let r = x[i];
+        for (let k = 0; k < S.length; k++) r -= coef[k] * vocab[S[k]].t[i];
+        res[i] = r;
+        e += r * r;
+      }
+    };
     let margin = 0;
     let e = e0;
-    for (let step = 0; step < Math.max(1, maxWords) * 2 && order.length < maxWords; step++) {
+    for (let step = 0; step < Math.max(1, maxWords) * 2 && S.length < maxWords; step++) {
+      // One token per position per utterance: a position already read is closed.
+      const taken = new Set(S.map((j) => vocab[j].pos));
       let best = -1;
       let bestC = 0;
       let second = 0;
       for (let j = 0; j < vocab.length; j++) {
-        // W4: one token per position per utterance — a position already read
-        // is closed to every other word (structural fact of injection).
-        const owner = posOwner.get(vocab[j].pos);
-        if (owner !== undefined && owner !== vocab[j].word) continue;
+        if (taken.has(vocab[j].pos)) continue;
         const t = vocab[j].t;
         let c = 0;
         for (let i = 0; i < dim; i++) c += res[i] * t[i];
@@ -689,38 +709,30 @@ export class LexiconMemory {
       // (without it, more templates means more noise-level picks; measured W4).
       if (best < 0 || bestC * bestC < e * READ_STOP || e <= e0 * READ_FLOOR) break;
       if (step === 0) margin = (bestC - second) / Math.sqrt(e0);
-      const t = vocab[best].t;
-      e = 0;
-      for (let i = 0; i < dim; i++) {
-        res[i] -= bestC * t[i];
-        e += res[i] * res[i];
-      }
-      const w = vocab[best].word;
-      posOwner.set(vocab[best].pos, w);
-      if (!weight.has(w)) {
-        order.push(w);
-        posOf.set(w, { pos: vocab[best].pos, c: bestC });
-      } else if (bestC > posOf.get(w)!.c) posOf.set(w, { pos: vocab[best].pos, c: bestC });
-      weight.set(w, (weight.get(w) ?? 0) + bestC);
+      S.push(best);
+      const n = S.length;
+      refit();
+      if (S.length < n && !S.includes(best)) break; // pick rejected by the fit: stop
     }
-    // Injection writes positions 0..L−1 with no gaps: a word read beyond the
-    // first unread position cannot belong to the utterance — drop it and
-    // return its energy to the residual (it was a crosstalk pick).
+    // Injection writes positions 0..L−1 with no gaps: an atom beyond the first
+    // unread position cannot belong to the utterance (crosstalk) — drop, refit.
+    const has = new Set(S.map((j) => vocab[j].pos));
     let prefix = 0;
-    while (posOwner.has(prefix)) prefix++;
-    for (let k = order.length - 1; k >= 0; k--) {
-      const w = order[k];
-      if (posOf.get(w)!.pos < prefix) continue;
-      order.splice(k, 1);
-      const c = weight.get(w)!;
-      weight.delete(w);
-      const t = this.template(w, rungs, posOf.get(w)!.pos)!;
-      e = 0;
-      for (let i = 0; i < dim; i++) {
-        res[i] += c * t[i];
-        e += res[i] * res[i];
-      }
+    while (has.has(prefix)) prefix++;
+    if (S.some((j) => vocab[j].pos >= prefix)) {
+      for (let k = S.length - 1; k >= 0; k--) if (vocab[S[k]].pos >= prefix) S.splice(k, 1);
+      refit();
     }
+    const weight = new Map<string, number>();
+    const posOf = new Map<string, { pos: number; c: number }>();
+    const order: string[] = [];
+    S.forEach((j, k) => {
+      const w = vocab[j].word;
+      if (!weight.has(w)) order.push(w);
+      weight.set(w, (weight.get(w) ?? 0) + coef[k]);
+      const cur = posOf.get(w);
+      if (!cur || coef[k] > cur.c) posOf.set(w, { pos: vocab[j].pos, c: coef[k] });
+    });
     const explained = Math.max(0, Math.min(1, 1 - e / e0));
     const total = order.reduce((s, w) => s + (weight.get(w) ?? 0), 0);
     const words = order.map((w) => ({
@@ -868,6 +880,51 @@ export interface Association {
   readonly together: readonly { word: string; count: number; assoc: number }[];
   readonly spread: readonly { word: string; activation: number; hop: number }[];
   readonly sentences: readonly { text: string; tick: number }[];
+}
+
+/**
+ * Least-squares coefficients of `x` on the columns `A` (k ≤ ~13): solves the
+ * Gram system by Gaussian elimination with partial pivoting. Deterministic.
+ */
+function leastSquares(A: readonly Float64Array[], x: Float64Array): number[] {
+  const k = A.length;
+  if (k === 0) return [];
+  const G: number[][] = [];
+  for (let a = 0; a < k; a++) {
+    const row: number[] = [];
+    for (let b = 0; b < k; b++) {
+      let d = 0;
+      for (let i = 0; i < x.length; i++) d += A[a][i] * A[b][i];
+      row.push(d);
+    }
+    let r = 0;
+    for (let i = 0; i < x.length; i++) r += A[a][i] * x[i];
+    row.push(r);
+    G.push(row);
+  }
+  for (let c = 0; c < k; c++) {
+    let piv = c;
+    for (let r = c + 1; r < k; r++) if (Math.abs(G[r][c]) > Math.abs(G[piv][c])) piv = r;
+    [G[c], G[piv]] = [G[piv], G[c]];
+    const d = G[c][c];
+    if (Math.abs(d) < 1e-14) {
+      G[c][k] = 0; // singular direction: duplicate atom carries nothing
+      G[c][c] = 1;
+      for (let r = c + 1; r < k; r++) G[c][r] = 0;
+      continue;
+    }
+    for (let r = c + 1; r < k; r++) {
+      const f = G[r][c] / d;
+      for (let q = c; q <= k; q++) G[r][q] -= f * G[c][q];
+    }
+  }
+  const out = new Array<number>(k).fill(0);
+  for (let c = k - 1; c >= 0; c--) {
+    let v = G[c][k];
+    for (let q = c + 1; q < k; q++) v -= G[c][q] * out[q];
+    out[c] = v / G[c][c];
+  }
+  return out;
 }
 
 /** Increment m[a][b] by c. */
