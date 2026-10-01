@@ -43,6 +43,7 @@
 
 import { PHI, PHI_INV } from './zphi';
 import { zeckendorf, zeckAddress } from './zeckendorf';
+import { fnv1a } from '@/core/knowledge/tokenize';
 
 /** Letters of the positional code. */
 export const LEXEME_RADIX = 27;
@@ -131,27 +132,47 @@ export function lexemeAddress(text: string): string {
   return parts.length === 0 ? 'z:0' : 'z:' + parts.join('|');
 }
 
+/**
+ * Major positions per token (k-of-N sparse code). Placement is a hash of the
+ * FULL token, so it has no length bias and long words no longer share a slot
+ * (the old `maxZeckIndex mod rungs` put every word of length ≥ 12 on one rung
+ * and up to 151 catalog words on another — measured, Ω-UNDERSTAND W0).
+ */
+export const LEXEME_SPREAD = 3;
+
 /** Where a lexeme lands on the (R=φ, r=1) torus with `rungs` major positions. */
 export interface LexemeTorus {
-  /** Largest Zeckendorf index of the code (the discrete class). */
+  /** Largest Zeckendorf index of the code (the discrete address class). */
   readonly top: number;
-  /** Major-circle rung = top mod rungs. */
+  /** Primary major-circle rung (= rungs[0]). */
   readonly rung: number;
-  /** Major angle θ = 2π·rung/rungs, radians. */
+  /** All k distinct major rungs the token is written on. */
+  readonly rungs: readonly number[];
+  /** Major angle θ of the primary rung, radians. */
   readonly theta: number;
-  /** Minor angle ϕ = 2π·frac(v·φ⁻¹), radians. */
+  /** Minor angle ϕ = 2π·frac(h·φ⁻¹), h = FNV-1a of the full token, radians. */
   readonly minor: number;
 }
 
 export function lexemeTorus(lx: Lexeme, rungs: number): LexemeTorus {
   const top = lx.zeck.length > 0 ? lx.zeck[0] : 2;
   const r = Math.max(1, Math.floor(rungs));
-  const rung = top % r;
+  const h1 = fnv1a(lx.token);
+  const h2 = fnv1a(lx.token, 0x9e3779b9) | 1;
+  const k = Math.min(LEXEME_SPREAD, r);
+  const picked: number[] = [];
+  for (let i = 0; picked.length < k; i++) {
+    const n = (h1 + Math.imul(i, h2)) >>> 0;
+    let p = n % r;
+    while (picked.includes(p)) p = (p + 1) % r;
+    picked.push(p);
+  }
   return {
     top,
-    rung,
-    theta: (2 * Math.PI * rung) / r,
-    minor: 2 * Math.PI * ((lx.value * PHI_INV) % 1),
+    rung: picked[0],
+    rungs: picked,
+    theta: (2 * Math.PI * picked[0]) / r,
+    minor: 2 * Math.PI * ((h1 * PHI_INV) % 1),
   };
 }
 
@@ -187,18 +208,22 @@ export function injectTextPsi(psi: Float64Array, text: string): TextInjection {
     const lx = lexeme(tokens[r]);
     if (lx.value <= 0) continue;
     if (!lx.exact) inexact++;
-    // Major circle: Zeckendorf class (discrete, reversible); minor circle:
-    // golden-angle phase (equidistributed). One definition, shared with UI.
-    const { rung: n, theta, minor } = lexemeTorus(lx, rungs);
+    // Major circle: k hashed rungs of the full token (sparse code); minor
+    // circle: golden-angle phase of the same hash. One definition, shared with UI.
+    const { rungs: ns, minor } = lexemeTorus(lx, rungs);
     const ringR = PHI + Math.cos(minor);
-    const amp = PHI_INV ** Math.min(r, 12);
-    const base = RUNG_STRIDE * n;
-    delta[base + 0] += ringR * Math.cos(theta) * amp;
-    delta[base + 1] += ringR * Math.sin(theta) * amp;
-    delta[base + 2] += Math.sin(minor) * amp;
-    // Slot 3 is the rung's master metric — a text token contributes its
-    // residue channel as a mean-centred value in [-1,1], nothing more.
-    delta[base + 3] += (lx.residue / (LEXEME_RESIDUE_SYMBOLS - 1) - 0.5) * 2 * amp;
+    // Energy split 1/√k across the k rungs so per-token ‖ΔΨ‖ is unchanged.
+    const amp = PHI_INV ** Math.min(r, 12) / Math.sqrt(ns.length);
+    for (const n of ns) {
+      const theta = (2 * Math.PI * n) / rungs;
+      const base = RUNG_STRIDE * n;
+      delta[base + 0] += ringR * Math.cos(theta) * amp;
+      delta[base + 1] += ringR * Math.sin(theta) * amp;
+      delta[base + 2] += Math.sin(minor) * amp;
+      // Slot 3 is the rung's master metric — a text token contributes its
+      // residue channel as a mean-centred value in [-1,1], nothing more.
+      delta[base + 3] += (lx.residue / (LEXEME_RESIDUE_SYMBOLS - 1) - 0.5) * 2 * amp;
+    }
   }
 
   const scale = LEXEME_GAIN / Math.sqrt(tokens.length);
