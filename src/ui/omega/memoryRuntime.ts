@@ -424,6 +424,7 @@ class MemoryRuntime {
         );
         try {
           const res = await fetch('/api/transcribe', { method: 'POST', body: form });
+          if (res.status === 499) return; // chunk cancelled; nothing to show
           const body = (await res.json()) as { text?: string; error?: string };
           if (!res.ok) {
             // 401/402/403 are terminal: stop listening and show why.
