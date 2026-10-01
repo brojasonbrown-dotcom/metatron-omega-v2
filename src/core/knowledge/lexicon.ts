@@ -22,7 +22,7 @@
 
 import catalogRaw from './lexiconCatalog.json';
 import { fnv1a } from './tokenize';
-import { dlog, dpow } from '@metatron/trnn-core/core/dmath';
+import { dlog, dpow, dpowi } from '@metatron/trnn-core/core/dmath';
 import { calibratedBeta } from '@/core/gematria/resonanceKernel';
 import {
   lexeme,
@@ -287,6 +287,7 @@ export class LexiconMemory {
   private total = 0;
   /** Unit field templates keyed `rungs:word`; derived from the word only. */
   private readonly templates = new Map<string, Float64Array | null>();
+  private readonly norms = new Map<string, number>();
   /** Ω-UNDERSTAND W2: symmetric co-occurrence counts within ±LEX_WINDOW. */
   private readonly cooc = new Map<string, Map<string, number>>();
   /** Ω-UNDERSTAND W2: word → next-word counts (and the reverse). */
@@ -597,6 +598,20 @@ export class LexiconMemory {
   }
 
   /** Unit-norm field template of a word for a given rung count (cached). */
+  /** ‖lexemePattern(word, rungs)‖ — position-independent (rotation preserves norm). */
+  private rawNorm(word: string, rungs: number): number {
+    const key = rungs + ':' + word;
+    let n = this.norms.get(key);
+    if (n === undefined) {
+      const p = lexemePattern(word, rungs);
+      n = 0;
+      if (p) for (let i = 0; i < p.length; i++) n += p[i] * p[i];
+      n = Math.sqrt(n);
+      this.norms.set(key, n);
+    }
+    return n;
+  }
+
   private template(word: string, rungs: number, pos = 0): Float64Array | null {
     const key = rungs + ':' + pos + ':' + word;
     const hit = this.templates.get(key);
@@ -726,6 +741,33 @@ export class LexiconMemory {
       if (k < 0) break;
       S.splice(k, 1);
       refit();
+    }
+    // Amplitude consistency: injection gives the atom at rank p the coefficient
+    // G·φ⁻ᵖ·‖pattern‖ with ONE G per utterance. Estimate G from the rank-0
+    // atom; an atom whose implied G is below φ⁻¹·G is crosstalk — drop, refit.
+    const gainOf = (k: number) =>
+      coef[k] / (dpowi(PHI_INV_LEX, vocab[S[k]].pos) * this.rawNorm(vocab[S[k]].word, rungs));
+    const k0 = S.findIndex((j) => vocab[j].pos === 0);
+    if (k0 >= 0) {
+      const G = gainOf(k0);
+      let changed = false;
+      for (let k = S.length - 1; k >= 0; k--)
+        if (gainOf(k) < PHI_INV_LEX * G) {
+          S.splice(k, 1);
+          changed = true;
+        }
+      if (changed) {
+        refit();
+        for (;;) {
+          const has = new Set(S.map((j) => vocab[j].pos));
+          let gap = 0;
+          while (has.has(gap)) gap++;
+          const k = S.findIndex((j) => vocab[j].pos > gap);
+          if (k < 0) break;
+          S.splice(k, 1);
+          refit();
+        }
+      }
     }
     const weight = new Map<string, number>();
     const posOf = new Map<string, { pos: number; c: number }>();
