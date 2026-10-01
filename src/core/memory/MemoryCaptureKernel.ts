@@ -47,6 +47,16 @@ const EPISODIC_SALIENCE_THRESHOLD = 0.45;
 const TOPK_SIG = 24;
 const WARMUP_TICKS = 8;
 
+/** Journal text for an episode that carried no words. */
+export function captureLabel(reason: string, salience: number): string {
+  return `${reason} · sal=${salience.toFixed(2)}`;
+}
+
+/** True when journal text is a `captureLabel`, not an utterance. */
+export function isCaptureLabel(text: string): boolean {
+  return /^[a-z]+ · sal=-?\d+\.\d{2}$/.test(text);
+}
+
 export class MemoryCaptureKernel {
   readonly scheduler = new PhiLockScheduler();
   private lastPsi: Float64Array | null = null;
@@ -326,7 +336,7 @@ export class MemoryCaptureKernel {
       tick,
       qualiaScalar,
       signatureHash: hash,
-      text: text ?? `${reason} · sal=${salience.toFixed(2)}`,
+      text: text ?? captureLabel(reason, salience),
     });
 
     // L4 pathway link from prior hash
