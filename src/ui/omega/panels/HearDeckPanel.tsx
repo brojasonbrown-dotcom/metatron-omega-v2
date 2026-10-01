@@ -305,6 +305,19 @@ export default function HearDeckPanel() {
         <Stat label="words known" value={String(st.words)} />
         <Stat label="queued → placed in field" value={`${st.enqueued} → ${st.injected}`} />
         <Stat label="grounded words" value={`${grounding.grounded}/${grounding.entries}`} />
+        <Stat
+          label="field reads"
+          value={
+            st.readout && st.readout.words.length > 0
+              ? `${st.readout.words
+                  .slice(0, 4)
+                  .map((w) => w.word)
+                  .join(
+                    ' ',
+                  )} · ${(st.readout.explained * 100).toFixed(0)}%${st.readout.crisp ? ' · crisp' : ''}`
+              : '—'
+          }
+        />
         <Stat label="field says" value={st.description ?? '—'} />
       </div>
 

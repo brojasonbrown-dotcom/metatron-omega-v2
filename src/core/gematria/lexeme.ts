@@ -185,6 +185,40 @@ export interface TextInjection {
   address: string;
 }
 
+/** Number of toroidal rungs a Ψ of this length carries (0 when too short). */
+export function lexemeRungs(psiLength: number): number {
+  return Math.max(0, Math.floor((psiLength - TAIL) / RUNG_STRIDE));
+}
+
+/**
+ * The per-rung Ψ delta of ONE token at unit amplitude (rank 0, before the
+ * utterance's 1/√k and φ⁻³ gain). Length rungs·4. This is the single
+ * definition of how a word sits in the field: injection writes it, readout
+ * (`LexiconMemory.readPsi`) matches against it. Returns null for no letters.
+ */
+export function lexemePattern(token: string, rungs: number): Float64Array | null {
+  const lx = lexeme(token);
+  if (lx.value <= 0 || rungs <= 0) return null;
+  const out = new Float64Array(rungs * RUNG_STRIDE);
+  // Major circle: k hashed rungs of the full token (sparse code); minor
+  // circle: golden-angle phase of the same hash.
+  const { rungs: ns, minor } = lexemeTorus(lx, rungs);
+  const ringR = PHI + Math.cos(minor);
+  // Energy split 1/√k across the k rungs so per-token ‖ΔΨ‖ is unchanged.
+  const amp = 1 / Math.sqrt(ns.length);
+  for (const n of ns) {
+    const theta = (2 * Math.PI * n) / rungs;
+    const base = RUNG_STRIDE * n;
+    out[base + 0] += ringR * Math.cos(theta) * amp;
+    out[base + 1] += ringR * Math.sin(theta) * amp;
+    out[base + 2] += Math.sin(minor) * amp;
+    // Slot 3 is the rung's master metric — a text token contributes its
+    // residue channel as a mean-centred value in [-1,1], nothing more.
+    out[base + 3] += (lx.residue / (LEXEME_RESIDUE_SYMBOLS - 1) - 0.5) * 2 * amp;
+  }
+  return out;
+}
+
 /**
  * Write an utterance into a toroidal Ψ in place, additively.
  *
@@ -195,7 +229,7 @@ export interface TextInjection {
  */
 export function injectTextPsi(psi: Float64Array, text: string): TextInjection {
   const empty: TextInjection = { tokens: 0, inexact: 0, norm: 0, address: 'z:0' };
-  const rungs = Math.floor((psi.length - TAIL) / RUNG_STRIDE);
+  const rungs = lexemeRungs(psi.length);
   if (rungs <= 0) return empty;
   const tokens = lexemeTokens(text);
   if (tokens.length === 0) return empty;
@@ -203,25 +237,11 @@ export function injectTextPsi(psi: Float64Array, text: string): TextInjection {
   const delta = new Float64Array(rungs * RUNG_STRIDE);
   let inexact = 0;
   for (let r = 0; r < tokens.length; r++) {
-    const lx = lexeme(tokens[r]);
-    if (lx.value <= 0) continue;
-    if (!lx.exact) inexact++;
-    // Major circle: k hashed rungs of the full token (sparse code); minor
-    // circle: golden-angle phase of the same hash. One definition, shared with UI.
-    const { rungs: ns, minor } = lexemeTorus(lx, rungs);
-    const ringR = PHI + Math.cos(minor);
-    // Energy split 1/√k across the k rungs so per-token ‖ΔΨ‖ is unchanged.
-    const amp = PHI_INV ** Math.min(r, 12) / Math.sqrt(ns.length);
-    for (const n of ns) {
-      const theta = (2 * Math.PI * n) / rungs;
-      const base = RUNG_STRIDE * n;
-      delta[base + 0] += ringR * Math.cos(theta) * amp;
-      delta[base + 1] += ringR * Math.sin(theta) * amp;
-      delta[base + 2] += Math.sin(minor) * amp;
-      // Slot 3 is the rung's master metric — a text token contributes its
-      // residue channel as a mean-centred value in [-1,1], nothing more.
-      delta[base + 3] += (lx.residue / (LEXEME_RESIDUE_SYMBOLS - 1) - 0.5) * 2 * amp;
-    }
+    const pat = lexemePattern(tokens[r], rungs);
+    if (!pat) continue;
+    if (tokens[r].length > LEXEME_EXACT_LEN) inexact++;
+    const amp = PHI_INV ** Math.min(r, 12);
+    for (let i = 0; i < pat.length; i++) delta[i] += pat[i] * amp;
   }
 
   const scale = LEXEME_GAIN / Math.sqrt(tokens.length);

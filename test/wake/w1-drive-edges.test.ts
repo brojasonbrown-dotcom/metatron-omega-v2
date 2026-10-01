@@ -90,6 +90,22 @@ describe('W2 — memory drive edge', () => {
     expect(s.hebbianEntries).toBeGreaterThan(0);
   });
 
+  // Measured: the live Ψ has 9 rungs (36 writable slots). With the 4 words of
+  // this sentence known, readout recovers the two leading words; the φ⁻ʳ rank
+  // decay puts later words under the inter-tick background ΔΨ. A tick with no
+  // text reads nothing — background change does not hallucinate words.
+  it('Ω-UNDERSTAND W1: the tick reads words back out of ΔΨ', () => {
+    const store = new MemoryStore();
+    tickMemory(outputFromSnapshot(snap({ tick: 1 })), store, 1);
+    expect(store.lastReadout).toBeNull();
+    tickMemory(outputFromSnapshot(snap({ tick: 2 })), store, 2, 'the cat drinks milk');
+    const r = store.lastReadout!;
+    expect(r.words.map((w) => w.word).slice(0, 2)).toEqual(['the', 'cat']);
+    expect(r.crisp).toBe(true);
+    tickMemory(outputFromSnapshot(snap({ tick: 3 })), store, 3);
+    expect(store.lastReadout!.words).toHaveLength(0);
+  });
+
   it('is deterministic — same snapshot, same output', () => {
     const a = outputFromSnapshot(snap());
     const b = outputFromSnapshot(snap());

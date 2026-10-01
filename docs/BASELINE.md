@@ -39,7 +39,7 @@ Test count may only drop when a task's plan states the expected drop.
 
 `bun run gate` fails if fewer tests pass than this number. Lower it only with a written reason on the line below it.
 
-gate-expected-tests: 1083
+gate-expected-tests: 1089
 
 P0.3: +24 tests (11 digest + 1 count + 12 parity); marker 1055 → 1079.
 
@@ -48,3 +48,16 @@ Full-token FNV-1a sparse placement (k=3 rungs) in `lexeme.ts` replaced `maxZeckI
 Measured on 1,092 catalog tokens, 55 rungs: before 51/55 rungs used, max 151 on one rung;
 after 55/55 used, primary-rung max 30, k-placement load 42–82 (mean 59.6), 953 distinct rung-sets.
 +4 tests in `test/memory/w0-placement.test.ts`.
+
+## Ω-UNDERSTAND W1 — 2026-10-01 (marker 1083 → 1089)
+Ψ → word readout: `LexiconMemory.readPsi` (non-negative matching pursuit with explain-away over
+`lexemePattern` templates); fake `recalledWord` (last typed token) deleted from `tickMemory.ts`.
+Measured phenomena (kept as tests):
+- 55-rung Ψ, 1,092-word vocab, 200 sentences/length: P ≥ 0.990; R 1.000/.998/.988/.960/.896/.799 for L=1..6.
+  Recall falls with length because rank r is injected at φ⁻ʳ.
+- Live engine Ψ has 9 rungs (36 writable slots). At 9 rungs with the full vocab, P/R = .83/1.00 (L=1),
+  .74/.78 (L=2), .44/.30 (L=4); at 21 rungs .95/.84 (L=4). Field width, not readout, bounds how many
+  words the live field holds at once. Identity beyond ~2 simultaneous words must come from memory.
+- A softmax "mass" under calibratedBeta is ≥ N/(N+1) by construction, so it was rejected as a
+  confidence measure; readout reports the cosine margin instead (crisp: margin ≥ φ⁻⁵, explained ≥ φ⁻¹).
++5 tests `test/memory/w1-field-readout.test.ts`, +1 in `test/wake/w1-drive-edges.test.ts`.

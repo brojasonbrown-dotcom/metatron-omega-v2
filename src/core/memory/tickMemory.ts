@@ -286,11 +286,21 @@ export function tickMemory(
   // those words are learned too — algorithm → word closes the loop.
   store.coherencePath.push(witnessC);
   if (store.coherencePath.length > 21) store.coherencePath.shift();
-  const recalledWord =
-    store.lexicon.size > 0 && utterances.length > 0
-      ? (lexemeTokens(utterances[utterances.length - 1]).at(-1) ?? null)
-      : null;
-  const desc = describeField({ x: store.coherencePath }, recalledWord ? [recalledWord] : []);
+  // Ω-UNDERSTAND W1: the object word is READ FROM THE FIELD, not copied from
+  // input. Readout runs on ΔΨ = Ψ_t − Ψ_{t−1} (this tick's injections plus
+  // propagation), matched against every known word's field template with
+  // explain-away; only a crisp readout may name the object.
+  const prev = store.prevPsi;
+  let readout = null;
+  if (prev && prev.length === psi.length) {
+    const d = new Float64Array(psi.length);
+    for (let i = 0; i < psi.length; i++) d[i] = psi[i] - prev[i];
+    readout = store.lexicon.readPsi(d);
+  }
+  store.prevPsi = psi.slice();
+  store.lastReadout = readout;
+  const readWord = readout && readout.crisp ? readout.words[0].word : null;
+  const desc = describeField({ x: store.coherencePath }, readWord ? [readWord] : []);
   store.lastDescription = desc ? desc.text : null;
 
   const m = store.capture({

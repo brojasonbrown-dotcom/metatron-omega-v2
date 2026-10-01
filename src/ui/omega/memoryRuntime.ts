@@ -320,6 +320,7 @@ class MemoryRuntime {
       enqueued: s.wordsEnqueued,
       injected: s.wordsInjected,
       description: s.lastDescription,
+      readout: s.lastReadout,
       hearing: this.hearingStatus,
       lastHeard: this.lastHeard,
       sound: s.soundWords.stats(),

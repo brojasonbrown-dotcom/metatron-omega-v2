@@ -46,6 +46,7 @@ export interface MemoryRecall {
 import {
   LexiconMemory,
   SoundWordMap,
+  type FieldReadout,
   type LexiconSnapshot,
   type SoundWordSnapshot,
 } from '@/core/knowledge/lexicon';
@@ -227,6 +228,10 @@ export class MemoryStore {
   readonly coherencePath: number[] = [];
   /** Last field → words transcription, null when nothing fired. */
   lastDescription: string | null = null;
+  /** Ψ at the previous memory tick — baseline for the ΔΨ word readout. */
+  prevPsi: Float64Array | null = null;
+  /** Last Ψ → word readout (Ω-UNDERSTAND W1); null before two ticks. */
+  lastReadout: FieldReadout | null = null;
   /** Word-rate counters: every enqueued token is either injected or still queued. */
   wordsEnqueued = 0;
   wordsInjected = 0;
