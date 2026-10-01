@@ -684,6 +684,10 @@ export class LexiconMemory {
         e += r * r;
       }
     };
+    // Detection threshold = extreme-value noise floor: for a residual with no
+    // structure, the largest of N unit-template cos² in `dim` dimensions is
+    // ≈ 2·ln N / dim. A pick must explain more than that share of what is left.
+    const floor = Math.min(1, (2 * dlog(vocab.length)) / dim);
     let margin = 0;
     let e = e0;
     for (let step = 0; step < Math.max(1, maxWords) * 2 && S.length < maxWords; step++) {
@@ -707,7 +711,7 @@ export class LexiconMemory {
       }
       // Second clause: residual is at float round-off — nothing left to read
       // (without it, more templates means more noise-level picks; measured W4).
-      if (best < 0 || bestC * bestC < e * READ_STOP || e <= e0 * READ_FLOOR) break;
+      if (best < 0 || bestC * bestC < e * floor || e <= e0 * READ_FLOOR) break;
       if (step === 0) margin = (bestC - second) / Math.sqrt(e0);
       S.push(best);
       const n = S.length;
@@ -716,24 +720,12 @@ export class LexiconMemory {
     }
     // Injection writes positions 0..L−1 with no gaps: an atom beyond the first
     // unread position cannot belong to the utterance (crosstalk) — drop, refit.
-    // First try to MOVE such an atom (same word) into the gap: a near-repeat
-    // phase (e.g. offset 3, cos 3ω ≈ 0.6) can mislocate a correct word.
-    const atomIndex = (word: string, pos: number) => vocab.findIndex((v) => v.word === word && v.pos === pos);
-    for (let pass = 0; pass < P; pass++) {
+    for (;;) {
       const has = new Set(S.map((j) => vocab[j].pos));
       let gap = 0;
       while (has.has(gap)) gap++;
       const k = S.findIndex((j) => vocab[j].pos > gap);
       if (k < 0) break;
-      const moved = atomIndex(vocab[S[k]].word, gap);
-      const before = e;
-      const keep = S.slice();
-      if (moved >= 0) {
-        S[k] = moved;
-        refit();
-        if (S.includes(moved) && e <= before * (1 + READ_STOP)) continue;
-        S.splice(0, S.length, ...keep);
-      }
       S.splice(k, 1);
       refit();
     }
