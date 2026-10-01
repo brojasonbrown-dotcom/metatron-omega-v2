@@ -39,4 +39,4 @@ Test count may only drop when a task's plan states the expected drop.
 
 `bun run gate` fails if fewer tests pass than this number. Lower it only with a written reason on the line below it.
 
-gate-expected-tests: 1055
+gate-expected-tests: 1079
